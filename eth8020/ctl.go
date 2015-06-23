@@ -1,3 +1,10 @@
+// Package eth8020 controls an ETH8080 relay board over a TCP
+// connection. See http://www.robot-electronics.co.uk/htm/eth8020tech.htm
+// for details of the device.
+//
+// Note that relays are consistently numbered from 0 in this
+// API, not 1. This means that, for example, calling c.Set(3, true)
+// will turn on the relay numbered 4 on the board.
 package eth8020
 
 import (
@@ -8,10 +15,14 @@ import (
 	"time"
 )
 
+// DefaultPort holds the default port that is used
+// to listen for control connections on the device.
 const DefaultPort = 17494
 
+// NumRelays holds the number of relays on the device.
 const NumRelays = 20
 
+// Conn represents a control connection to the device.
 type Conn struct {
 	buf      []byte
 	password []byte
@@ -34,14 +45,25 @@ const (
 	cmdLogout            = 0x7b
 )
 
+// ModuleInfo holds information about the device.
 type ModuleInfo struct {
-	Id        byte
+	// Id holds the id of the device.
+	Id byte
+	// HWVersion holds the hardware version of the device.
 	HWVersion byte
+	// FWVersion holds the firmware version of the device.
 	FWVersion byte
 }
 
-var ErrFailed = errors.New("eth8030 command failed")
+// ErrFailed is the error returned when the device
+// returns a "failed" error status.
+var ErrFailed = errors.New("eth8020 command failed")
 
+// NewConn returns a new Conn that uses the given
+// connection to talk to the device. The caller
+// is responsible for establishing the connection.
+// The caller should not close c after calling NewConn
+// (use Conn.Close instead).
 func NewConn(c net.Conn) *Conn {
 	return &Conn{
 		buf: make([]byte, 8),
@@ -49,16 +71,19 @@ func NewConn(c net.Conn) *Conn {
 	}
 }
 
+// Close closes the Conn and its underlying TCP connection.
 func (c *Conn) Close() error {
 	return c.c.Close()
 }
 
+// Login logs in with the given password.
 func (c *Conn) Login(password string) error {
 	c.start(cmdLogin)
 	c.append([]byte(password)...)
 	return c.simple()
 }
 
+// Info returns information on the device.
 func (c *Conn) Info() (ModuleInfo, error) {
 	c.start(cmdModuleInfo)
 	if err := c.cmd(3); err != nil {
@@ -71,6 +96,7 @@ func (c *Conn) Info() (ModuleInfo, error) {
 	}, nil
 }
 
+// Set sets the given relay to the given state.
 func (c *Conn) Set(relay int, on bool) error {
 	if relay < 0 || relay >= NumRelays {
 		return fmt.Errorf("invalid relay number %d", relay)
@@ -91,11 +117,15 @@ func (c *Conn) Set(relay int, on bool) error {
 // unlike in the technical documentation.
 type State uint
 
+// Pulse changes the state of the relay for the given duration.
+// Note that the duration is rounded to the nearest 100 milliseconds
+// and an error is returned if the duration is longer than the
+// allowed maximum (~25 seconds).
 func (c *Conn) Pulse(relay int, on bool, duration time.Duration) error {
 	if relay < 0 || relay >= NumRelays {
 		return fmt.Errorf("invalid relay number %d", relay)
 	}
-	duration = duration / (100 * time.Millisecond)
+	duration = (duration + 50*time.Millisecond) / (100 * time.Millisecond)
 	if duration <= 0 {
 		duration = 1
 	}
@@ -112,7 +142,8 @@ func (c *Conn) Pulse(relay int, on bool, duration time.Duration) error {
 	return c.simple()
 }
 
-func (c *Conn) SetMulti(s State) error {
+// SetOutputs sets the state of all the relays.
+func (c *Conn) SetOutputs(s State) error {
 	c.start(cmdDigitalSetOutputs)
 	c.buf = c.buf[0:4]
 
@@ -122,6 +153,7 @@ func (c *Conn) SetMulti(s State) error {
 	return c.simple()
 }
 
+// GetOutputs returns the state of all the relays.
 func (c *Conn) GetOutputs() (State, error) {
 	c.start(cmdDigitalGetOutputs)
 	if err := c.cmd(3); err != nil {
@@ -133,6 +165,8 @@ func (c *Conn) GetOutputs() (State, error) {
 		nil
 }
 
+// Volts returns the voltage of the low voltage power
+// supply to the device.
 func (c *Conn) Volts() float64 {
 	panic("not implemented")
 }
