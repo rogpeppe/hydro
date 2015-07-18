@@ -1,0 +1,30 @@
+#!/bin/bash
+# go-run - a stub that runs the right Go binary for the current architecture
+#
+# Usage:
+#   - copy this stub in the snap magic-bin/ directory with the name matching the desired Go binary
+
+set -e
+
+# map platform to GOARCH
+platform=$(uname -i)
+case $platform in
+x86_64)
+	GOARCH=amd64
+	;;
+armv7l)
+	GOARCH=arm
+	;;
+*)
+	echo "unknown platform for snapy-magic: $platform."
+	;;
+esac
+
+# workaround that snapy services have bogus SNAP_ vars set; assume PWD is right
+echo "$SNAP_APP_PATH" | grep -q SNAP_APP && SNAP_APP_PATH=$PWD
+if test -z "$SNAP_APP_PATH"; then
+	SNAP_APP_PATH=$PWD
+fi
+
+cd $SNAP_APP_PATH
+exec "./bin/$GOARCH/$(basename $0)" "$@"
