@@ -1,0 +1,76 @@
+2015/10/13
+
+questions:
+
+colour theme? SASS?
+
+accordion?
+
+react vs bootstrap, foundation, ... ?
+
+layout in general
+
+
+unminify.com
+
+
+# media query
+@media only screen and (max-width: 620px) {
+	#classname {
+		font-size: ..
+	}
+}
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+https://github.com/juju/juju-gui/blob/pyramid-fork/jujugui/static/gui/src/app/components/string-config/string-config.js
+
+babelify Makefile:
+
+	SHELL = /bin/bash
+	.DEFAULT_GOAL := all
+	
+	BABEL := node_modules/.bin/babel
+	ESLINT := node_modules/.bin/eslint
+	
+	BUILD_DIR := build/
+	RAW_JS_FILES := $(shell find app -type f -name '*.js')
+	BUILT_RAW_JS_FILES := $(patsubst app/%, $(BUILD_DIR)%, $(RAW_JS_FILES))
+	
+	define colorecho
+		@tput setaf 2
+		@echo $(1)
+		@tput sgr0
+	endef
+	
+	$(BUILD_DIR):
+		@echo -n "Generating build directory. "
+		@mkdir -p $(BUILD_DIR)
+		$(call colorecho,"Done.")
+	
+	$(BUILD_DIR)%.js: app/%.js
+		@echo -n "Creating $^. "
+		@mkdir -p $(@D)
+		@$(BABEL) $^ -o $@ --source-maps
+		$(call colorecho,"Done.")
+	
+	.PHONY: all
+	all: $(BUILD_DIR) deps babelize
+	
+	.PHONY: deps
+	deps:
+		@echo "Installing dependencies."
+		@npm install
+		$(call colorecho,"Done installing dependencies.")
+	
+	.PHONY: babelize
+	babelize: $(BUILD_DIR)
+		@echo "Running source files through babeljs."
+		@$(BABEL) app --source-maps --out-dir=$(BUILD_DIR)
+		$(call colorecho,"Done babeljs processing.")
+	
+	.PHONY: clean
+	clean:
+		@echo -n "Removing built files. "
+		@rm -rf $(BUILD_DIR)
+		$(call colorecho,"Done.")
