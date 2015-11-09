@@ -1,15 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"time"
 	"log"
 	"net/http"
-
-	_ "github.com/rogpeppe/hydro/statik"
+	"strconv"
+	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/juju/utils/voyeur"
 	"github.com/rakyll/statik/fs"
+
+	_ "github.com/rogpeppe/hydro/statik"
 )
 
 const (
@@ -24,11 +25,11 @@ var upgrader = websocket.Upgrader{
 }
 
 type Relay struct {
-	Number      int
-	Title       string
-	MaxPower    string
-	Status      string
-	ActiveSlots []Slot
+	Number        int
+	Title         string
+	MaxPower      string
+	Status        string
+	ActiveSlots   []Slot
 	InactiveSlots []Slot
 }
 
@@ -39,73 +40,98 @@ type Slot struct {
 	Duration  string
 }
 
+var initialData = []Relay{{
+	Number:   0,
+	Title:    "Spare room",
+	MaxPower: "0kW",
+	Status:   "active",
+	ActiveSlots: []Slot{{
+		StartTime: "0100",
+		EndTime:   "0600",
+		Condition: ">=",
+		Duration:  "5 hours",
+	}, {
+		StartTime: "0700",
+		EndTime:   "0800",
+		Condition: "==",
+		Duration:  "20 mins",
+	}},
+}, {
+	Number:   1,
+	Title:    "Number 8",
+	MaxPower: "3kW",
+	Status:   "inactive",
+	InactiveSlots: []Slot{{
+		StartTime: "0100",
+		EndTime:   "0600",
+		Condition: ">=",
+		Duration:  "5 hours",
+	}},
+}}
+
 func main() {
 	staticData, err := fs.New()
 	if err != nil {
 		log.Fatal(err)
 	}
+	h := &handler{
+		store: &store{
+			data: initialData,
+		},
+	}
+	h.store.val.Set(nil)
 	mux := http.DefaultServeMux
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
 	mux.HandleFunc("/index.html", serveIndex)
-	mux.HandleFunc("/updates", serveUpdates)
-	mux.HandleFunc("/change", serveChange)
+	mux.HandleFunc("/updates", h.serveUpdates)
+	mux.HandleFunc("/change", h.serveChange)
 
-	log.Printf("listening on localhost:8081")
-	err = http.ListenAndServe("localhost:8081", nil)
+	log.Printf("listening on :8081")
+	err = http.ListenAndServe(":8081", nil)
 	log.Fatal(err)
 }
 
-func serveChange(w http.ResponseWriter, req *http.Request) {
+type handler struct {
+	store *store
+}
+
+func (h *handler) serveChange(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, "POST only", http.StatusMethodNotAllowed)
 		return
 	}
 	log.Printf("POST %s", req.URL)
+	req.ParseForm()
+	index, _ := strconv.Atoi(req.Form.Get("attr"))
+	val := req.Form.Get("value")
+	h.store.mu.Lock()
+	defer h.store.mu.Unlock()
+	h.store.data[index].Title = val
+	h.store.val.Set(nil)
 }
 
-func serveUpdates(w http.ResponseWriter, req *http.Request) {
+type store struct {
+	val voyeur.Value
+
+	mu   sync.Mutex
+	data []Relay
+}
+
+func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	conn, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Printf("connection upgrade failed: %v", err)
 		return
 	}
-	data := []Relay{{
-		Number:   0,
-		Title:    "Spare room",
-		MaxPower: "0kW",
-		Status:   "active",
-		ActiveSlots: []Slot{{
-			StartTime: "0100",
-			EndTime:   "0600",
-			Condition: ">=",
-			Duration:  "5 hours",
-		}, {
-			StartTime: "0700",
-			EndTime: "0800",
-			Condition: "==",
-			Duration: "20 mins",
-		}},
-	}, {
-		Number:   1,
-		Title:    "Number 8",
-		MaxPower: "3kW",
-		Status:   "inactive",
-		InactiveSlots: []Slot{{
-			StartTime: "0100",
-			EndTime:   "0600",
-			Condition: ">=",
-			Duration:  "5 hours",
-		}},
-	}}
 	log.Printf("websocket connection made")
-	for i := 0; i < 2 ; i++ {
-		data[0].MaxPower = fmt.Sprintf("%dkW", i)
-		if err := conn.WriteJSON(data); err != nil {
+	for w := h.store.val.Watch(); w.Next(); {
+		h.store.mu.Lock()
+		err := conn.WriteJSON(h.store.data)
+		h.store.mu.Unlock()
+		if err != nil {
 			log.Printf("cannot write JSON to websocket: %v", err)
 			return
 		}
-		log.Printf("wrote message")
-		time.Sleep(time.Second)
 	}
 }
 
@@ -210,7 +236,7 @@ var prog = `
 		},
 		handleChange: function(event) {
 			this.setState({value: event.target.value});
-			$.ajax("/change?attr=" + event.target.value, {
+			$.ajax("/change?attr=" + this.props.attr + "&value=" + event.target.value, {
 				method: "POST",
 				success: function() {
 					console.log("done POST")
@@ -247,7 +273,7 @@ var prog = `
 				<div className="row">
 					<div className="relayHeader col-sm-8 col-offset-2">
 						<span className="relayNumber">{data.Number}.</span>
-						<EditOnClick className="relayTitle" value={data.Title} />
+						<EditOnClick className="relayTitle" attr={data.Number} value={data.Title} />
 						<span className="relayStatus">status: {data.Status}</span>
 						<span className="relayMaxPower">max power: {data.MaxPower}</span>
 					</div>
@@ -289,7 +315,7 @@ var prog = `
 // from http://stackoverflow.com/questions/25886660/bootstrap-with-react-accordion-wont-work
 //var WontWorkPanel = React.createClass({
 //  render: function() {
-//    return this.transferPropsTo( 
+//    return this.transferPropsTo(
 //      <ReactBootstrap.Panel header={"WontWork " + this.props.key} key={this.props.key}>
 //        Anim pariatur cliche reprehenderit, enim eiusmod high life
 //        accusamus terry richardson ad squid. 3 wolf moon officia aute,
