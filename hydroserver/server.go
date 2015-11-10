@@ -1,12 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/juju/httprequest"
 	"github.com/juju/utils/voyeur"
 	"github.com/rakyll/statik/fs"
 
@@ -24,9 +28,16 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-type Relay struct {
-	Number        int
+type State struct {
+	maxCohortId int
+	Cohorts     map[string]*Cohort
+}
+
+type Cohort struct {
+	Id            string // Unique; always increases.
+	Index         int    // Display index.
 	Title         string
+	Relays        []int
 	MaxPower      string
 	Status        string
 	ActiveSlots   []Slot
@@ -40,34 +51,44 @@ type Slot struct {
 	Duration  string
 }
 
-var initialData = []Relay{{
-	Number:   0,
-	Title:    "Spare room",
-	MaxPower: "0kW",
-	Status:   "active",
-	ActiveSlots: []Slot{{
-		StartTime: "0100",
-		EndTime:   "0600",
-		Condition: ">=",
-		Duration:  "5 hours",
-	}, {
-		StartTime: "0700",
-		EndTime:   "0800",
-		Condition: "==",
-		Duration:  "20 mins",
-	}},
-}, {
-	Number:   1,
-	Title:    "Number 8",
-	MaxPower: "3kW",
-	Status:   "inactive",
-	InactiveSlots: []Slot{{
-		StartTime: "0100",
-		EndTime:   "0600",
-		Condition: ">=",
-		Duration:  "5 hours",
-	}},
-}}
+var initialState = State{
+	maxCohortId: 1,
+	Cohorts: map[string]*Cohort{
+		"cohort0": {
+			Id:       "cohort0",
+			Index:    0,
+			Relays:   []int{0},
+			Title:    "Spare room",
+			MaxPower: "0kW",
+			Status:   "active",
+			ActiveSlots: []Slot{{
+				StartTime: "0100",
+				EndTime:   "0600",
+				Condition: ">=",
+				Duration:  "5 hours",
+			}, {
+				StartTime: "0700",
+				EndTime:   "0800",
+				Condition: "==",
+				Duration:  "20 mins",
+			}},
+		},
+		"cohort1": {
+			Id:       "cohort1",
+			Index:    1,
+			Relays:   []int{1},
+			Title:    "Number 8",
+			MaxPower: "3kW",
+			Status:   "inactive",
+			InactiveSlots: []Slot{{
+				StartTime: "0100",
+				EndTime:   "0600",
+				Condition: ">=",
+				Duration:  "5 hours",
+			}},
+		},
+	},
+}
 
 func main() {
 	staticData, err := fs.New()
@@ -76,7 +97,7 @@ func main() {
 	}
 	h := &handler{
 		store: &store{
-			data: initialData,
+			state: initialState,
 		},
 	}
 	h.store.val.Set(nil)
@@ -85,6 +106,7 @@ func main() {
 	mux.HandleFunc("/index.html", serveIndex)
 	mux.HandleFunc("/updates", h.serveUpdates)
 	mux.HandleFunc("/change", h.serveChange)
+	mux.HandleFunc("/store/", h.serveStore)
 
 	log.Printf("listening on :8081")
 	err = http.ListenAndServe(":8081", nil)
@@ -102,19 +124,52 @@ func (h *handler) serveChange(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Printf("POST %s", req.URL)
 	req.ParseForm()
-	index, _ := strconv.Atoi(req.Form.Get("attr"))
+	index := req.Form.Get("attr")
 	val := req.Form.Get("value")
 	h.store.mu.Lock()
 	defer h.store.mu.Unlock()
-	h.store.data[index].Title = val
+	h.store.state.Cohorts[index].Title = val
 	h.store.val.Set(nil)
+}
+
+func (h *handler) serveStore(w http.ResponseWriter, req *http.Request) {
+	log.Printf("store %s %s", req.Method, req.URL.Path)
+	path := strings.TrimPrefix(req.URL.Path, "/store/")
+	h.store.mu.Lock()
+	defer h.store.mu.Unlock()
+	switch req.Method {
+	case "PUT":
+		data, _ := ioutil.ReadAll(req.Body)
+		log.Printf("put %s", data)
+		if err := putVal(h.store.state, path, data); err != nil {
+			http.Error(w, fmt.Sprintf("cannot put: %v", err), http.StatusBadRequest)
+			return
+		}
+		h.store.val.Set(nil)
+	case "GET":
+		v, err := getVal(h.store.state, path)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("cannot get: %v", err), http.StatusBadRequest)
+			return
+		}
+		httprequest.WriteJSON(w, http.StatusOK, v)
+	case "DELETE":
+		err := deleteVal(h.store.state, path)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
+			return
+		}
+		h.store.val.Set(nil)
+	default:
+		http.Error(w, fmt.Sprintf("bad method"), http.StatusBadRequest)
+	}
 }
 
 type store struct {
 	val voyeur.Value
 
-	mu   sync.Mutex
-	data []Relay
+	mu    sync.Mutex
+	state State
 }
 
 func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
@@ -126,13 +181,40 @@ func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	log.Printf("websocket connection made")
 	for w := h.store.val.Watch(); w.Next(); {
 		h.store.mu.Lock()
-		err := conn.WriteJSON(h.store.data)
+
+		err := conn.WriteJSON(cohortSlice(h.store.state.Cohorts))
 		h.store.mu.Unlock()
 		if err != nil {
 			log.Printf("cannot write JSON to websocket: %v", err)
 			return
 		}
 	}
+}
+
+func cohortSlice(cohorts map[string]*Cohort) []*Cohort {
+	slice := make([]*Cohort, 0, len(cohorts))
+	for _, c := range cohorts {
+		slice = append(slice, c)
+	}
+	sort.Sort(cohortsByIndex(slice))
+	return slice
+}
+
+type cohortsByIndex []*Cohort
+
+func (c cohortsByIndex) Len() int {
+	return len(c)
+}
+func (c cohortsByIndex) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+func (c cohortsByIndex) Less(i, j int) bool {
+	c0, c1 := c[i], c[j]
+	if c0.Index != c1.Index {
+		return c0.Index < c1.Index
+	}
+	// Shouldn't happen as we should keep consistent index.
+	return c0.Title < c1.Title
 }
 
 func serveIndex(w http.ResponseWriter, req *http.Request) {
@@ -164,22 +246,27 @@ var htmlPage = `<!DOCTYPE html>
 			}
 			
 			.content {margin:10px;}
-			.relayNumber {
+			.cohortRelays {
 				font-size: 150%;
 				padding-right: 20px;
 			}
-			.relayTitle {
+			.cohortTitle {
 				font-size: 150%;
 				padding-left: 20px;
 				padding-right: 20px;
 				display: block;
+				background-color: #74afad;
 			}
-			.relayStatus {
+			.cohortStatus {
 				font-size: 150%;
 				padding-left: 20px;
 				padding-right: 20px;
 			}
-			.relayMaxPower {
+			.slotTitle {
+				font-size: 120%;
+				padding-left: 30px;
+			}
+			.cohortMaxPower {
 				font-size: 150%;
 				padding-left: 20px;
 				padding-right: 20px;
@@ -236,13 +323,15 @@ var prog = `
 		},
 		handleChange: function(event) {
 			this.setState({value: event.target.value});
-			$.ajax("/change?attr=" + this.props.attr + "&value=" + event.target.value, {
-				method: "POST",
+			$.ajax("/store/Cohorts/" + this.props.attr + "/Title", {
+				method: "PUT",
+				data: JSON.stringify(event.target.value),
+				// TODO JSON content type
 				success: function() {
-					console.log("done POST")
+					console.log("done PUT")
 				},
 				error: function() {
-					console.log("POST failed")
+					console.log("PUT failed")
 				},
 			})
 		},
@@ -254,47 +343,45 @@ var prog = `
 				this.inputElem.focus()
 			}
 		},
-	})
-	var Relay = React.createClass({
+	});
+	var Slots = React.createClass({
 		render: function() {
-			var data = this.props.data;
-			// why doesn't this work?
-			// var {data, ...otherProps} = this.props;
-			var otherProps = jQuery.extend({}, this.props)
-			delete otherProps.data
-			console.log("Relay created with other props", otherProps);
-			var slots = [];
-			if(data.Status === "active"){
-				slots = data.ActiveSlots;
-			} else if(data.Status === "inactive"){
-				slots = data.InactiveSlots;
+			if(!this.props.slots){
+				console.log("Slots.render -> nothing")
+				return <span/>
 			}
-			return <Panel bsStyle="primary" header={"Relay " + data.Number} eventKey={data.Number} {... otherProps}>
-				<div className="row">
-					<div className="relayHeader col-sm-8 col-offset-2">
-						<span className="relayNumber">{data.Number}.</span>
-						<EditOnClick className="relayTitle" attr={data.Number} value={data.Title} />
-						<span className="relayStatus">status: {data.Status}</span>
-						<span className="relayMaxPower">max power: {data.MaxPower}</span>
-					</div>
-				</div>
+			console.log("Slots.render -> something")
+			return <div>
+				<div className="slotTitle">{this.props.title}</div>
 				<ul>{
-					slots.map(function(slot){
-						return <li><Slot data={slot} key={slot.StartTime}/></li>
+					this.props.slots.map(function(slot){
+						return <li key={slot.StartTime}><Slot data={slot}/></li>
 					})
 				}</ul>
-			</Panel>
+			</div>
 		}
-	})
+	});
+	var Cohort = React.createClass({
+		render: function() {
+			var data = this.props.data
+			return <div key={data.Id}>
+				<EditOnClick className="cohortTitle" attr={data.Id} value={data.Title} />
+				<span className="cohortStatus">status: {data.Status}</span>
+				<span className="cohortMaxPower">max power: {data.MaxPower}</span>
+				<Slots title="Active slots" slots={data.ActiveSlots}/>
+				<Slots title="Inactive slots" slots={data.InactiveSlots}/>
+			</div>
+		}
+	});
 	var HydroControl = React.createClass({
 		render: function() {
-			return <Accordion>{
-				this.props.relays.map(function(relay){
-					return <Relay key={relay.Number} data={relay}/>
+			return <div className="cohortControl">{
+				this.props.cohorts.map(function(cohort){
+					return <Cohort data={cohort} key={cohort.Id}/>
 				})
-			}</Accordion>
+			}</div>
 		}
-	})
+	});
 	function wsURL(path) {
 		var loc = window.location, scheme;
 		if (loc.protocol === "https:") {
@@ -308,7 +395,8 @@ var prog = `
 	var socket = new ReconnectingWebSocket(wsURL("/updates"));
 	socket.onmessage = function(event) {
 		var m = JSON.parse(event.data);
-		ReactDOM.render(<HydroControl relays={m}/>, document.getElementById("topLevel"));
+		console.log("message", event.data)
+		ReactDOM.render(<HydroControl cohorts={m}/>, document.getElementById("topLevel"));
 	};
 `
 
