@@ -1,10 +1,12 @@
 package hydroserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	stdpath "path"
 	"sort"
 	"strings"
 
@@ -66,28 +68,32 @@ var initialState = State{
 	},
 }
 
+type handler struct {
+	store *store
+	mux   *http.ServeMux	
+}
+
 func New() (http.Handler, error) {
 	staticData, err := fs.New()
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
-	h := &handler{
-		store: &store{
-			state: initialState,
-		},
-	}
+	h := &handler{	
+		store: newStore(initialState),
+		mux:   http.NewServeMux(),
+		}
 	h.store.val.Set(nil)
-	mux := http.DefaultServeMux
-	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
-	mux.HandleFunc("/index.html", serveIndex)
-	mux.HandleFunc("/updates", h.serveUpdates)
-	mux.HandleFunc("/state/", h.serveState)
-	mux.HandleFunc("/store/", h.serveStore)
-	return mux, nil
+	h.mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
+	h.mux.HandleFunc("/index.html", serveIndex)
+	h.mux.HandleFunc("/updates", h.serveUpdates)
+	h.mux.HandleFunc("/state/", h.serveState)
+	h.mux.HandleFunc("/store/", h.serveStore)
+	return h, nil
 }
 
-type handler struct {
-	store *store
+func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Printf("request: %s %v", req.Method, req.URL)
+	h.mux.ServeHTTP(w, req)
 }
 
 func (h *handler) serveState(w http.ResponseWriter, req *http.Request) {
@@ -107,33 +113,37 @@ func (h *handler) serveState(w http.ResponseWriter, req *http.Request) {
 
 func (h *handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	log.Printf("store %s %s", req.Method, req.URL.Path)
-	path := strings.TrimPrefix(req.URL.Path, "/store/")
-	h.store.mu.Lock()
-	defer h.store.mu.Unlock()
+	path := stdpath.Clean(req.URL.Path)
+	path = strings.TrimPrefix(req.URL.Path, "/store")
 	switch req.Method {
 	case "PUT":
 		data, _ := ioutil.ReadAll(req.Body)
 		log.Printf("put %s", data)
 		if err := h.store.Put(path, data); err != nil {
-			http.Error(w, fmt.Sprintf("cannot put: %v", err), http.StatusBadRequest)
+			h.badRequest(w, errgo.Notef(err, "cannot put"))
 			return
 		}
 	case "GET":
 		v, err := h.store.Get(path)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("cannot get: %v", err), http.StatusBadRequest)
+			h.badRequest(w, errgo.Notef(err, "cannot get"))
 			return
 		}
 		httprequest.WriteJSON(w, http.StatusOK, v)
 	case "DELETE":
 		err := h.store.Delete(path)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
+			h.badRequest(w, errgo.Notef(err, "cannot delete"))
 			return
 		}
 	default:
-		http.Error(w, fmt.Sprintf("bad method"), http.StatusBadRequest)
+		h.badRequest(w, errgo.New("bad method"))
 	}
+}
+
+func (h *handler) badRequest(w http.ResponseWriter, err error) {
+	log.Printf("bad request: %v", err)
+	http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
 }
 
 func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
@@ -144,9 +154,14 @@ func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Printf("websocket connection made")
 	for w := h.store.val.Watch(); w.Next(); {
+		log.Printf("got changed")
 		h.store.mu.Lock()
+		log.Printf("locked")
 
-		err := conn.WriteJSON(cohortSlice(h.store.state.Cohorts))
+		cohorts := cohortSlice(h.store.state.Cohorts)
+		data, _ := json.Marshal(cohorts)
+		log.Printf("writing cohorts: %s", data)
+		err := conn.WriteJSON(cohorts)
 		h.store.mu.Unlock()
 		if err != nil {
 			log.Printf("cannot write JSON to websocket: %v", err)

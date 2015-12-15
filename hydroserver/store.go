@@ -167,8 +167,7 @@ func lastElem(path string) string {
 // find returns the value of the element at the given path,
 // and the value of its parent element.
 func (s *memState) find(path string) (reflect.Value, reflect.Value, error) {
-	path = path[1:]
-	elems := strings.Split(path, "/")
+	elems := strings.Split(strings.TrimPrefix(path, "/"), "/")
 	if elems[len(elems)-1] == "" {
 		elems = elems[0 : len(elems)-1]
 	}
@@ -176,9 +175,13 @@ func (s *memState) find(path string) (reflect.Value, reflect.Value, error) {
 	statev := reflect.ValueOf(s.state)
 	for i, e := range elems {
 		var err error
+		oldStatev := statev
 		statev, parentv, err = walk(statev, e)
 		if err != nil {
-			return reflect.Value{}, reflect.Value{}, fmt.Errorf("cannot get %s: %v", strings.Join(elems[0:i+1], "/"), err)
+			return reflect.Value{}, reflect.Value{}, fmt.Errorf("cannot get %s in %T: %v", strings.Join(elems[0:i+1], "/"), oldStatev.Type(), err)
+		}
+		if !statev.IsValid() {
+			return reflect.Value{}, reflect.Value{}, fmt.Errorf("invalid value %s in %T: %v", strings.Join(elems[0:i+1], "/"), oldStatev.Type(), err)
 		}
 	}
 	return statev, parentv, nil
@@ -190,6 +193,9 @@ func (s *memState) find(path string) (reflect.Value, reflect.Value, error) {
 // the returned parent will be the struct itself, not
 // the pointer.
 func walk(xv reflect.Value, elem string) (foundv, parentv reflect.Value, _ error) {
+	if !xv.IsValid() {
+		return reflect.Value{}, reflect.Value{}, fmt.Errorf("invalid value at %v", elem)
+	}
 	t := xv.Type()
 	switch t.Kind() {
 	case reflect.Ptr:
