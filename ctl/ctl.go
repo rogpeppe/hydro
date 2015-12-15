@@ -200,12 +200,16 @@ const (
 
 //go:generate stringer -type priority
 
+// MaxRelayCount holds the maximum number of relays
+// the system can be configured with.
+const MaxRelayCount = 32
+
 // RelayState holds the state of a set of relays.
 type RelayState uint32
 
 // IsSet reports whether the given relay is on.
 func (s RelayState) IsSet(relay int) bool {
-	if relay < 0 || relay >= 32 {
+	if relay < 0 || relay >= MaxRelayCount {
 		panic(errgo.Newf("relay %d out of bounds", relay))
 	}
 	return (s & (1 << uint(relay))) != 0
@@ -213,7 +217,7 @@ func (s RelayState) IsSet(relay int) bool {
 
 // Set sets the given relay to the given state.
 func (s *RelayState) Set(relay int, on bool) {
-	if relay < 0 || relay >= 32 {
+	if relay < 0 || relay >= MaxRelayCount {
 		panic(errgo.Newf("relay %d out of bounds", relay))
 	}
 	if on {

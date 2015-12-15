@@ -1,4 +1,4 @@
-package main
+package hydroserver
 
 import (
 	"fmt"
@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/juju/httprequest"
-	"github.com/juju/utils/voyeur"
 	"github.com/rakyll/statik/fs"
+	"gopkg.in/errgo.v1"
 
 	_ "github.com/rogpeppe/hydro/statik"
 )
@@ -28,29 +27,6 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-type State struct {
-	maxCohortId int
-	Cohorts     map[string]*Cohort
-}
-
-type Cohort struct {
-	Id            string // Unique; always increases.
-	Index         int    // Display index.
-	Title         string
-	Relays        []int
-	MaxPower      string
-	Status        string
-	ActiveSlots   []Slot
-	InactiveSlots []Slot
-}
-
-type Slot struct {
-	StartTime string
-	EndTime   string
-	Condition string
-	Duration  string
-}
-
 var initialState = State{
 	maxCohortId: 1,
 	Cohorts: map[string]*Cohort{
@@ -60,17 +36,17 @@ var initialState = State{
 			Relays:   []int{0},
 			Title:    "Spare room",
 			MaxPower: "0kW",
-			Status:   "active",
-			ActiveSlots: []Slot{{
-				StartTime: "0100",
-				EndTime:   "0600",
-				Condition: ">=",
-				Duration:  "5 hours",
+			Mode:     "active",
+			InUseSlots: []Slot{{
+				Start:        "0100",
+				SlotDuration: "5h",
+				Kind:         ">=",
+				Duration:     "5h",
 			}, {
-				StartTime: "0700",
-				EndTime:   "0800",
-				Condition: "==",
-				Duration:  "20 mins",
+				Start:        "0700",
+				SlotDuration: "1h",
+				Kind:         "==",
+				Duration:     "20m",
 			}},
 		},
 		"cohort1": {
@@ -79,21 +55,21 @@ var initialState = State{
 			Relays:   []int{1},
 			Title:    "Number 8",
 			MaxPower: "3kW",
-			Status:   "inactive",
-			InactiveSlots: []Slot{{
-				StartTime: "0100",
-				EndTime:   "0600",
-				Condition: ">=",
-				Duration:  "5 hours",
+			Mode:     "inactive",
+			NotInUseSlots: []Slot{{
+				Start:        "0100",
+				SlotDuration: "5h",
+				Kind:         ">=",
+				Duration:     "5h",
 			}},
 		},
 	},
 }
 
-func main() {
+func New() (http.Handler, error) {
 	staticData, err := fs.New()
 	if err != nil {
-		log.Fatal(err)
+		return nil, errgo.Notef(err, "cannot get static data")
 	}
 	h := &handler{
 		store: &store{
@@ -105,19 +81,16 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
 	mux.HandleFunc("/index.html", serveIndex)
 	mux.HandleFunc("/updates", h.serveUpdates)
-	mux.HandleFunc("/change", h.serveChange)
+	mux.HandleFunc("/state/", h.serveState)
 	mux.HandleFunc("/store/", h.serveStore)
-
-	log.Printf("listening on :8081")
-	err = http.ListenAndServe(":8081", nil)
-	log.Fatal(err)
+	return mux, nil
 }
 
 type handler struct {
 	store *store
 }
 
-func (h *handler) serveChange(w http.ResponseWriter, req *http.Request) {
+func (h *handler) serveState(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, "POST only", http.StatusMethodNotAllowed)
 		return
@@ -141,35 +114,26 @@ func (h *handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	case "PUT":
 		data, _ := ioutil.ReadAll(req.Body)
 		log.Printf("put %s", data)
-		if err := putVal(h.store.state, path, data); err != nil {
+		if err := h.store.Put(path, data); err != nil {
 			http.Error(w, fmt.Sprintf("cannot put: %v", err), http.StatusBadRequest)
 			return
 		}
-		h.store.val.Set(nil)
 	case "GET":
-		v, err := getVal(h.store.state, path)
+		v, err := h.store.Get(path)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("cannot get: %v", err), http.StatusBadRequest)
 			return
 		}
 		httprequest.WriteJSON(w, http.StatusOK, v)
 	case "DELETE":
-		err := deleteVal(h.store.state, path)
+		err := h.store.Delete(path)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
 			return
 		}
-		h.store.val.Set(nil)
 	default:
 		http.Error(w, fmt.Sprintf("bad method"), http.StatusBadRequest)
 	}
-}
-
-type store struct {
-	val voyeur.Value
-
-	mu    sync.Mutex
-	state State
 }
 
 func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
@@ -257,7 +221,7 @@ var htmlPage = `<!DOCTYPE html>
 				display: block;
 				background-color: #74afad;
 			}
-			.cohortStatus {
+			.cohortMode {
 				font-size: 150%;
 				padding-left: 20px;
 				padding-right: 20px;
@@ -292,7 +256,7 @@ var prog = `
 	var Slot = React.createClass({
 		render: function() {
 			var data = this.props.data;
-			return <div className="slot">{data.StartTime} to {data.EndTime} {data.Condition} for {data.Duration}</div>
+			return <div className="slot">{data.Start} to {data.EndTime} {data.Kind} for {data.Duration}</div>
 		}
 	});
 	var EditOnClick = React.createClass({
@@ -323,7 +287,7 @@ var prog = `
 		},
 		handleChange: function(event) {
 			this.setState({value: event.target.value});
-			$.ajax("/store/Cohorts/" + this.props.attr + "/Title", {
+			$.ajax("/store/" + this.props.path, {
 				method: "PUT",
 				data: JSON.stringify(event.target.value),
 				// TODO JSON content type
@@ -355,7 +319,7 @@ var prog = `
 				<div className="slotTitle">{this.props.title}</div>
 				<ul>{
 					this.props.slots.map(function(slot){
-						return <li key={slot.StartTime}><Slot data={slot}/></li>
+						return <li key={slot.Start}><Slot data={slot}/></li>
 					})
 				}</ul>
 			</div>
@@ -365,11 +329,11 @@ var prog = `
 		render: function() {
 			var data = this.props.data
 			return <div key={data.Id}>
-				<EditOnClick className="cohortTitle" attr={data.Id} value={data.Title} />
-				<span className="cohortStatus">status: {data.Status}</span>
+				<EditOnClick className="cohortTitle" path={"Cohorts/" + data.Id + "/Title"} value={data.Title} />
+				<EditOnClick className="cohortMode" path={"Cohorts/" + data.Id + "/Mode"} value={data.Mode}/>
 				<span className="cohortMaxPower">max power: {data.MaxPower}</span>
-				<Slots title="Active slots" slots={data.ActiveSlots}/>
-				<Slots title="Inactive slots" slots={data.InactiveSlots}/>
+				<Slots title="Active slots" slots={data.InUseSlots}/>
+				<Slots title="Inactive slots" slots={data.NotInUseSlots}/>
 			</div>
 		}
 	});

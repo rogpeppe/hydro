@@ -1,3 +1,12 @@
+Mon Dec 14 16:47:26 GMT 2015
+
+OK, so we want to actually get something going now!
+
+User alters parameters, gets told when they change.
+
+
+
+
 2015/10/13
 
 questions:
@@ -12,6 +21,36 @@ layout in general
 
 
 unminify.com
+
+
+How are we going to manage timeslots?
+
+watcher:
+
+func (w *Watcher) Next() bool	
+func (w *Watcher) Look() io.Closer
+func (w *Watcher) Change() io.Closer
+
+
+	for w.Next() {
+		x := w.Look()
+		x.Close()
+	}
+
+
+x.y.z
+new x.y
+del x.y
+
+or...
+
+PUT /Cohorts/<id>/ActiveSlots/<id>/title
+PUT /Cohorts/<id>/ActiveSlots/<id>/relays
+POST /Cohorts/<id>/ActiveSlots/new -> <id>
+PUT /Cohorts/<id>/ActiveSlots/<id>/MaxPower
+
+
+PUT /data/Cohorts/<id>/ActiveSlots/<index>/Title
 
 
 # media query
