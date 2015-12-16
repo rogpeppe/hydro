@@ -1,7 +1,6 @@
 package hydroserver
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,6 +14,8 @@ import (
 	"github.com/rakyll/statik/fs"
 	"gopkg.in/errgo.v1"
 
+	"github.com/rogpeppe/hydro/history"
+	"github.com/rogpeppe/hydro/hydroworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
 
@@ -29,7 +30,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-var initialState = State{
+var initialState = &State{
 	maxCohortId: 1,
 	Cohorts: map[string]*Cohort{
 		"cohort0": {
@@ -68,20 +69,39 @@ var initialState = State{
 	},
 }
 
-type handler struct {
+type Handler struct {
 	store *store
+	worker *hydroworker.Worker
 	mux   *http.ServeMux	
 }
 
-func New() (http.Handler, error) {
+type NewParams struct {
+	RelayCtlAddr string
+}
+
+func New(p NewParams) (*Handler, error) {
 	staticData, err := fs.New()
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
-	h := &handler{	
-		store: newStore(initialState),
+	store, err := newStore(initialState)
+	if err != nil {
+		return nil, errgo.Notef(err, "cannot make store")
+	}
+	w, err := hydroworker.New(hydroworker.NewParams{
+		Config: store.relayConfig,
+		Store: new(history.MemStore),
+		Controller: newRelayController(p.RelayCtlAddr, ""),
+	})
+	if err != nil {
+		return nil, errgo.Notef(err, "cannot start worker")
+	}
+	h := &Handler{	
+		store: store,
 		mux:   http.NewServeMux(),
-		}
+		worker: w,
+	}
+	go h.configUpdater()
 	h.store.val.Set(nil)
 	h.mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
 	h.mux.HandleFunc("/index.html", serveIndex)
@@ -91,12 +111,34 @@ func New() (http.Handler, error) {
 	return h, nil
 }
 
-func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) configUpdater() {
+	for {
+		for w := h.store.val.Watch(); w.Next(); {
+			h.store.mu.Lock()
+			cfg := h.store.relayConfig
+			h.store.mu.Unlock()
+			h.worker.SetConfig(cfg)
+		}
+	}	
+}
+
+
+func (h *Handler) Close() {
+	// TODO Possible race here: closing the val will cause configUpdater to
+	// exit, but it might be about to make a call to the worker,
+	// and method calls to the worker after it's closed will panic.
+	// Decide whether to close synchronously or make methods calls
+	// not panic.
+	h.store.val.Close()
+	h.worker.Close()
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Printf("request: %s %v", req.Method, req.URL)
 	h.mux.ServeHTTP(w, req)
 }
 
-func (h *handler) serveState(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) serveState(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, "POST only", http.StatusMethodNotAllowed)
 		return
@@ -111,7 +153,7 @@ func (h *handler) serveState(w http.ResponseWriter, req *http.Request) {
 	h.store.val.Set(nil)
 }
 
-func (h *handler) serveStore(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	log.Printf("store %s %s", req.Method, req.URL.Path)
 	path := stdpath.Clean(req.URL.Path)
 	path = strings.TrimPrefix(req.URL.Path, "/store")
@@ -141,12 +183,12 @@ func (h *handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (h *handler) badRequest(w http.ResponseWriter, err error) {
+func (h *Handler) badRequest(w http.ResponseWriter, err error) {
 	log.Printf("bad request: %v", err)
 	http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
 }
 
-func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	conn, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Printf("connection upgrade failed: %v", err)
@@ -154,13 +196,9 @@ func (h *handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Printf("websocket connection made")
 	for w := h.store.val.Watch(); w.Next(); {
-		log.Printf("got changed")
 		h.store.mu.Lock()
-		log.Printf("locked")
 
 		cohorts := cohortSlice(h.store.state.Cohorts)
-		data, _ := json.Marshal(cohorts)
-		log.Printf("writing cohorts: %s", data)
 		err := conn.WriteJSON(cohorts)
 		h.store.mu.Unlock()
 		if err != nil {

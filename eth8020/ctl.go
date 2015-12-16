@@ -29,20 +29,24 @@ type Conn struct {
 	c        net.Conn
 }
 
+//go:generate stringer -type Cmd
+
+type Cmd uint8
+
 const (
-	cmdModuleInfo        = 0x10
-	cmdDigitalActive     = 0x20
-	cmdDigitalInactive   = 0x21
-	cmdDigitalSetOutputs = 0x23
-	cmdDigitalGetOutputs = 0x24
-	cmdDigitalGetInputs  = 0x25
-	cmdGetAnalogVoltage  = 0x32
-	cmdASCIITextCommand  = 0x3a
-	cmdSerialNumber      = 0x77
-	cmdVolts             = 0x78
-	cmdLogin             = 0x79
-	cmdUnlockTime        = 0x7a
-	cmdLogout            = 0x7b
+	CmdModuleInfo        Cmd = 0x10
+	CmdDigitalActive     Cmd = 0x20
+	CmdDigitalInactive   Cmd = 0x21
+	CmdDigitalSetOutputs Cmd = 0x23
+	CmdDigitalGetOutputs Cmd = 0x24
+	CmdDigitalGetInputs  Cmd = 0x25
+	CmdGetAnalogVoltage  Cmd = 0x32
+	CmdASCIITextCommand  Cmd = 0x3a
+	CmdSerialNumber      Cmd = 0x77
+	CmdVolts             Cmd = 0x78
+	CmdLogin             Cmd = 0x79
+	CmdUnlockTime        Cmd = 0x7a
+	CmdLogout            Cmd = 0x7b
 )
 
 // ModuleInfo holds information about the device.
@@ -78,14 +82,14 @@ func (c *Conn) Close() error {
 
 // Login logs in with the given password.
 func (c *Conn) Login(password string) error {
-	c.start(cmdLogin)
+	c.start(CmdLogin)
 	c.append([]byte(password)...)
 	return c.simple()
 }
 
 // Info returns information on the device.
 func (c *Conn) Info() (ModuleInfo, error) {
-	c.start(cmdModuleInfo)
+	c.start(CmdModuleInfo)
 	if err := c.cmd(3); err != nil {
 		return ModuleInfo{}, err
 	}
@@ -102,9 +106,9 @@ func (c *Conn) Set(relay int, on bool) error {
 		return fmt.Errorf("invalid relay number %d", relay)
 	}
 	if on {
-		c.start(cmdDigitalActive)
+		c.start(CmdDigitalActive)
 	} else {
-		c.start(cmdDigitalInactive)
+		c.start(CmdDigitalInactive)
 	}
 	c.append(byte(relay + 1))
 	c.append(0) // permanent
@@ -133,9 +137,9 @@ func (c *Conn) Pulse(relay int, on bool, duration time.Duration) error {
 		return fmt.Errorf("duration out of range")
 	}
 	if on {
-		c.start(cmdDigitalActive)
+		c.start(CmdDigitalActive)
 	} else {
-		c.start(cmdDigitalInactive)
+		c.start(CmdDigitalInactive)
 	}
 	c.append(byte(relay + 1))
 	c.append(byte(duration))
@@ -144,7 +148,7 @@ func (c *Conn) Pulse(relay int, on bool, duration time.Duration) error {
 
 // SetOutputs sets the state of all the relays.
 func (c *Conn) SetOutputs(s State) error {
-	c.start(cmdDigitalSetOutputs)
+	c.start(CmdDigitalSetOutputs)
 	c.buf = c.buf[0:4]
 
 	c.buf[1] = byte(s >> 0)
@@ -155,7 +159,7 @@ func (c *Conn) SetOutputs(s State) error {
 
 // GetOutputs returns the state of all the relays.
 func (c *Conn) GetOutputs() (State, error) {
-	c.start(cmdDigitalGetOutputs)
+	c.start(CmdDigitalGetOutputs)
 	if err := c.cmd(3); err != nil {
 		return 0, err
 	}
@@ -171,9 +175,9 @@ func (c *Conn) Volts() float64 {
 	panic("not implemented")
 }
 
-func (c *Conn) start(cmd byte) {
+func (c *Conn) start(cmd Cmd) {
 	c.buf = c.buf[:0]
-	c.buf = append(c.buf, cmd)
+	c.buf = append(c.buf, byte(cmd))
 }
 
 func (c *Conn) append(bytes ...byte) {

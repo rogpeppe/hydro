@@ -5,11 +5,19 @@ package history
 type MemStore struct {
 	// Events holds all the recorded events in order.
 	Events []Event
+	
+	toCommit []Event
 }
 
 // Append implements Store.Append.
 func (s *MemStore) Append(e Event) {
-	s.Events = append(s.Events, e)
+	s.toCommit = append(s.toCommit, e)
+}
+
+func (s *MemStore) Commit() error {
+	s.Events = append(s.Events, s.toCommit...)
+	s.toCommit = s.toCommit[:0]
+	return nil
 }
 
 // Append implements Store.ReverseIter.

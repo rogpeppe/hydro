@@ -1,4 +1,4 @@
-package ctl_test
+package hydroctl_test
 
 import (
 	"testing"

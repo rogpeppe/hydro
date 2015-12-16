@@ -5,22 +5,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rogpeppe/hydro/ctl"
+	"github.com/rogpeppe/hydro/hydroctl"
 	"gopkg.in/errgo.v1"
 )
 
 // TODO return errors that point to the field that's in error.
 
-func parseState(st *State) (*ctl.Config, error) {
+func parseState(st *State) (*hydroctl.Config, error) {
 	maxRelay := -1
 	type relayInfo struct {
 		cohort *Cohort
-		config ctl.RelayConfig
+		config hydroctl.RelayConfig
 	}
 	relays := make(map[int]relayInfo)
 	for _, c := range st.Cohorts {
 		for _, r := range c.Relays {
-			if r >= ctl.MaxRelayCount {
+			if r >= hydroctl.MaxRelayCount {
 				return nil, errgo.Newf("cohort has out-of-bound relay number %d", r)
 			}
 			if r > maxRelay {
@@ -39,8 +39,8 @@ func parseState(st *State) (*ctl.Config, error) {
 			}
 		}
 	}
-	cfg := &ctl.Config{
-		Relays: make([]ctl.RelayConfig, maxRelay+1),
+	cfg := &hydroctl.Config{
+		Relays: make([]hydroctl.RelayConfig, maxRelay+1),
 	}
 	for r, c := range relays {
 		cfg.Relays[r] = c.config
@@ -48,31 +48,31 @@ func parseState(st *State) (*ctl.Config, error) {
 	return cfg, nil
 }
 
-func parseCohort(c *Cohort) (ctl.RelayConfig, error) {
-	var cfg ctl.RelayConfig
+func parseCohort(c *Cohort) (hydroctl.RelayConfig, error) {
+	var cfg hydroctl.RelayConfig
 	var ok bool
 	cfg.Mode, ok = modes[c.Mode]
 	if !ok {
-		return ctl.RelayConfig{}, errgo.Newf("unknown mode %q", c.Mode)
+		return hydroctl.RelayConfig{}, errgo.Newf("unknown mode %q", c.Mode)
 	}
 	var err error
 	cfg.MaxPower, err = parsePower(c.MaxPower)
 	if err != nil {
-		return ctl.RelayConfig{}, errgo.Mask(err)
+		return hydroctl.RelayConfig{}, errgo.Mask(err)
 	}
 	cfg.InUse, err = parseSlots(c.InUseSlots)
 	if err != nil {
-		return ctl.RelayConfig{}, errgo.Mask(err)
+		return hydroctl.RelayConfig{}, errgo.Mask(err)
 	}
 	cfg.NotInUse, err = parseSlots(c.InUseSlots)
 	if err != nil {
-		return ctl.RelayConfig{}, errgo.Mask(err)
+		return hydroctl.RelayConfig{}, errgo.Mask(err)
 	}
 	return cfg, nil
 }
 
-func parseSlots(slots []Slot) ([]*ctl.Slot, error) {
-	ctlSlots := make([]*ctl.Slot, len(slots))
+func parseSlots(slots []Slot) ([]*hydroctl.Slot, error) {
+	ctlSlots := make([]*hydroctl.Slot, len(slots))
 	for i, slot := range slots {
 		ctlSlot, err := parseSlot(slot)
 		if err != nil {
@@ -88,14 +88,14 @@ func parseSlots(slots []Slot) ([]*ctl.Slot, error) {
 	return ctlSlots, nil
 }
 
-var slotsKinds = map[string]ctl.SlotKind{
-	">=": ctl.AtLeast,
-	"<=": ctl.AtMost,
-	"==": ctl.Exactly,
+var slotsKinds = map[string]hydroctl.SlotKind{
+	">=": hydroctl.AtLeast,
+	"<=": hydroctl.AtMost,
+	"==": hydroctl.Exactly,
 }
 
-func parseSlot(slot Slot) (*ctl.Slot, error) {
-	var ctlSlot ctl.Slot
+func parseSlot(slot Slot) (*hydroctl.Slot, error) {
+	var ctlSlot hydroctl.Slot
 	var ok bool
 	ctlSlot.Kind, ok = slotsKinds[slot.Kind]
 	if !ok {
@@ -117,7 +117,7 @@ func parseSlot(slot Slot) (*ctl.Slot, error) {
 	return &ctlSlot, nil
 }
 
-func slotOverlap(s0, s1 *ctl.Slot) bool {
+func slotOverlap(s0, s1 *hydroctl.Slot) bool {
 	// The time is cyclic, so first swap the slots so the one
 	// that starts earliest is first.
 	if s0.Start > s1.Start {
@@ -143,11 +143,11 @@ func slotOverlap(s0, s1 *ctl.Slot) bool {
 	return false
 }
 
-var modes = map[string]ctl.RelayMode{
-	"off":        ctl.AlwaysOff,
-	"on":         ctl.AlwaysOn,
-	"in-use":     ctl.InUse,
-	"not-in-use": ctl.NotInUse,
+var modes = map[string]hydroctl.RelayMode{
+	"off":        hydroctl.AlwaysOff,
+	"on":         hydroctl.AlwaysOn,
+	"in-use":     hydroctl.InUse,
+	"not-in-use": hydroctl.NotInUse,
 }
 
 func parsePower(p string) (int, error) {

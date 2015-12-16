@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/juju/utils/voyeur"
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 type State struct {
@@ -39,47 +40,70 @@ type Slot struct {
 type store struct {
 	val voyeur.Value
 
-	mu       sync.Mutex
-	state    State
-	memState memState
+	mu          sync.Mutex
+	relayConfig *hydroctl.Config
+	state       *State
 }
 
-func newStore(initialState State) *store {
-	s := &store{
-		state: initialState,
+func newStore(initialState *State) (*store, error) {
+	cfg, err := parseState(initialState)
+	if err != nil {
+		return nil, errgo.Notef(err, "bad initial state")
 	}
-	s.memState.state = &s.state
-	return s
-}
-
-func (s *store) changed() {
-	s.val.Set(nil)
+	return &store{
+		state:       initialState,
+		relayConfig: cfg,
+	}, nil
 }
 
 func (s *store) Get(path string) (interface{}, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.memState.Get(path)
+	return memState{s.state}.Get(path)
 }
 
 func (s *store) Put(path string, val []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	err := s.memState.Put(path, val)
-	if err == nil {
-		s.changed()
-	}
-	return errgo.Mask(err)
+	return s.mutate(func(st *State) error {
+		return memState{st}.Put(path, val)
+	})
 }
 
 func (s *store) Delete(path string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	err := s.memState.Delete(path)
-	if err == nil {
-		s.changed()
+	return s.mutate(func(st *State) error {
+		return memState{st}.Delete(path)
+	})
+}
+
+// mutate mutates the state atomically, making sure
+// that it still makes a valid relay configuration.
+// This might turn out to be a bad idea - we may
+// need to allow interim illegal states.
+func (s *store) mutate(f func(st *State) error) error {
+	// TODO do this without json!
+	data, err := json.Marshal(&s.state)
+	if err != nil {
+		return errgo.Notef(err, "cannot marshal state")
 	}
-	return errgo.Mask(err)
+	var st State
+	if err := json.Unmarshal(data, &st); err != nil {
+		return errgo.Notef(err, "cannot unmarshal state")
+	}
+	if err := f(&st); err != nil {
+		return errgo.Mask(err, errgo.Any)
+	}
+	cfg, err := parseState(&st)
+	if err != nil {
+		return errgo.Notef(err, "bad resulting state")
+	}
+	s.relayConfig = cfg
+	s.state = &st
+	// Notify any watchers.
+	s.val.Set(nil)
+	return nil
 }
 
 // TODO:
@@ -100,7 +124,7 @@ type memState struct {
 }
 
 // Get returns the value corresponding to the given path.
-func (s *memState) Get(path string) (interface{}, error) {
+func (s memState) Get(path string) (interface{}, error) {
 	pathv, _, err := s.find(path)
 	if err != nil {
 		return nil, err
@@ -125,7 +149,7 @@ var randKey = func() string {
 //}
 
 // Put sets the value of the given path to the given JSON value.
-func (s *memState) Put(path string, data []byte) error {
+func (s memState) Put(path string, data []byte) error {
 	pathv, _, err := s.find(path)
 	if err != nil {
 		return err
@@ -145,7 +169,7 @@ func (s *memState) Put(path string, data []byte) error {
 
 // Delete deletes the given path element, which
 // must refer to an element of a map.
-func (s *memState) Delete(path string) error {
+func (s memState) Delete(path string) error {
 	_, parentv, err := s.find(path)
 	if err != nil {
 		return err

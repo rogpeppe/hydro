@@ -4,7 +4,7 @@ import (
 	"time"
 
 	jc "github.com/juju/testing/checkers"
-	"github.com/rogpeppe/hydro/ctl"
+	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/history"
 	gc "gopkg.in/check.v1"
 )
@@ -13,11 +13,11 @@ type suite struct{}
 
 var _ = gc.Suite(suite{})
 
-var _ ctl.History = (*history.DB)(nil)
+var _ hydroctl.History = (*history.DB)(nil)
 
 type stateUpdate struct {
 	t     time.Time
-	state ctl.RelayState
+	state hydroctl.RelayState
 }
 
 type onDurationTest struct {
@@ -112,8 +112,8 @@ func (suite) TestHistory(c *gc.C) {
 	}
 }
 
-func mkRelays(relays ...uint) ctl.RelayState {
-	var state ctl.RelayState
+func mkRelays(relays ...uint) hydroctl.RelayState {
+	var state hydroctl.RelayState
 	for _, r := range relays {
 		state |= 1 << r
 	}

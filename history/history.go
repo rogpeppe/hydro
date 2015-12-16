@@ -9,12 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rogpeppe/hydro/ctl"
+	"gopkg.in/errgo.v1"
+
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 type Store interface {
-	// Append atomically appends the given event to the database.
+	// Append queues the given event to be added to the
+	// database with Commit is called
 	Append(Event)
+
+	// Commit adds the events queued by Append since
+	// the last commit to the database.
+	Commit() error
 
 	// ReverseIter returns an iterator that enumerates all
 	// items in the database from the end.
@@ -82,10 +89,16 @@ func reverse(a []Event) {
 	}
 }
 
-func (h *DB) RecordState(relays ctl.RelayState, now time.Time) {
-	for i := 0; i < ctl.MaxRelayCount; i++ {
+func (h *DB) RecordState(relays hydroctl.RelayState, now time.Time) error {
+	for i := 0; i < hydroctl.MaxRelayCount; i++ {
 		h.addEvent(i, relays.IsSet(i), now)
 	}
+	// TODO perhaps this should not commit the state.
+	// We could leave that up to the caller of RecordState.
+	if err := h.store.Commit(); err != nil {
+		return errgo.Notef(err, "cannot persistently record state")
+	}
+	return nil
 }
 
 func (h *DB) addEvent(relay int, on bool, now time.Time) {
@@ -101,11 +114,6 @@ func (h *DB) addEvent(relay int, on bool, now time.Time) {
 	}
 	log.Printf("add event to %d %v %v", relay, on, timeFmt(now))
 
-	h.store.Append(Event{
-		Relay: relay,
-		Time:  now,
-		On:    on,
-	})
 	if relay >= len(h.relays) {
 		relays := make([][]Event, relay+1)
 		copy(relays, h.relays)
@@ -114,6 +122,11 @@ func (h *DB) addEvent(relay int, on bool, now time.Time) {
 	h.relays[relay] = append(h.relays[relay], Event{
 		On:   on,
 		Time: now,
+	})
+	h.store.Append(Event{
+		Relay: relay,
+		Time:  now,
+		On:    on,
 	})
 }
 

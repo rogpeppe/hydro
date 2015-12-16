@@ -1,9 +1,9 @@
-package ctl_test
+package hydroctl_test
 
 import (
 	"time"
 
-	"github.com/rogpeppe/hydro/ctl"
+	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/history"
 	gc "gopkg.in/check.v1"
 )
@@ -30,31 +30,31 @@ type assessNowTest struct {
 	// of the previous assessNowTest entry; at
 	// the now time, the state should change to expectState.
 	transition  bool
-	meters      ctl.MeterReading
-	expectState ctl.RelayState
+	meters      hydroctl.MeterReading
+	expectState hydroctl.RelayState
 }
 
 type stateUpdate struct {
 	t     time.Time
-	state ctl.RelayState
+	state hydroctl.RelayState
 }
 
 var assessTests = []struct {
 	about           string
 	previousUpdates []stateUpdate
-	currentState    ctl.RelayState
-	cfg             ctl.Config
+	currentState    hydroctl.RelayState
+	cfg             hydroctl.Config
 	assessNowTests  []assessNowTest
 }{{
 	about: "everything off, some relays that are always on",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{
 			0: {
-				Mode:     ctl.AlwaysOn,
+				Mode:     hydroctl.AlwaysOn,
 				MaxPower: 100,
 			},
 			5: {
-				Mode:     ctl.AlwaysOn,
+				Mode:     hydroctl.AlwaysOn,
 				MaxPower: 100,
 			}},
 	},
@@ -64,7 +64,7 @@ var assessTests = []struct {
 		now:         T(0),
 		expectState: mkRelays(0),
 	}, {
-		now:         T(0).Add(ctl.MinimumChangeDuration),
+		now:         T(0).Add(hydroctl.MinimumChangeDuration),
 		expectState: mkRelays(0, 5),
 		transition:  true,
 	}, {
@@ -73,9 +73,9 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "everything on, one relay that's always off",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
-			Mode:     ctl.AlwaysOff,
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.AlwaysOff,
 			MaxPower: 100,
 		}},
 	},
@@ -89,14 +89,14 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "relay on for exactly 2 hours between 1am and 5am",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
-			Mode:     ctl.InUse,
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}},
@@ -137,14 +137,14 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "relay on for at least 2 hours between 1am and 5am",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
-			Mode:     ctl.InUse,
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.AtLeast,
+				Kind:         hydroctl.AtLeast,
 				Duration:     2 * time.Hour,
 			}},
 		}},
@@ -185,14 +185,14 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "relay on for at most 2 hours between 1am and 5am",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
-			Mode:     ctl.InUse,
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.AtMost,
+				Kind:         hydroctl.AtMost,
 				Duration:     2 * time.Hour,
 			}},
 		}},
@@ -233,26 +233,26 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "when lots of power is in use, discretionary power doesn't kick in until it must",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.AtLeast,
+				Kind:         hydroctl.AtLeast,
 				Duration:     2 * time.Hour,
 			}},
 		}, {
-			Mode:     ctl.AlwaysOn,
+			Mode:     hydroctl.AlwaysOn,
 			MaxPower: 1000,
 		}},
 	},
 	assessNowTests: []assessNowTest{{
 		// At midnight, just the always-on relay is on.
 		now: T(0),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
 		},
@@ -262,7 +262,7 @@ var assessTests = []struct {
 		// doesn't kick in because we don't want
 		// to import anything.
 		now: T(1),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
 		},
@@ -270,7 +270,7 @@ var assessTests = []struct {
 	}, {
 		// Just before 3am, power is still off.
 		now: T(3).Add(-1),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
 		},
@@ -280,7 +280,7 @@ var assessTests = []struct {
 		// kicks in because we realise that it needs
 		// to be on or it will miss its slot criteria.
 		now: T(3),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1100,
 			Here:   1100,
 		},
@@ -288,7 +288,7 @@ var assessTests = []struct {
 	}, {
 		// It's still on just before 5am (the end of the slot).
 		now: T(5).Add(-1),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1100,
 			Here:   1100,
 		},
@@ -296,7 +296,7 @@ var assessTests = []struct {
 	}, {
 		// ... and switches off at the end of the slot.
 		now: T(5),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 1100,
 			Here:   1100,
 		},
@@ -304,25 +304,25 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "When several relays are discretionary, they turn on one at a time",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}, {
 			// Relay 1 is the same as relay 0.
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}},
@@ -335,7 +335,7 @@ var assessTests = []struct {
 	}, {
 		// After MinimumChangeDuration, the other relay
 		// turns on.
-		now:         T(1).Add(ctl.MinimumChangeDuration),
+		now:         T(1).Add(hydroctl.MinimumChangeDuration),
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
@@ -346,21 +346,21 @@ var assessTests = []struct {
 		transition:  true,
 	}, {
 		// Same for the second relay.
-		now:         T(3).Add(ctl.MinimumChangeDuration),
+		now:         T(3).Add(hydroctl.MinimumChangeDuration),
 		expectState: mkRelays(),
 		transition:  true,
 	}},
 }, {
 	about: "When a discretionary-power relay is on and there's not enough power, it switches off until there is",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 100,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		},
@@ -374,7 +374,7 @@ var assessTests = []struct {
 		// At 2am, the meter shows that we're importing
 		// electricity, so the relay is switched off.
 		now: T(2),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import: 500,
 			Here:   1000,
 		},
@@ -385,7 +385,7 @@ var assessTests = []struct {
 		// enough electricity again,
 		// so we switch the relay back on.
 		now: T(3),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Here: 1000,
 		},
 		expectState: mkRelays(0),
@@ -394,7 +394,7 @@ var assessTests = []struct {
 		// At 4am we've satisfied the slot requirements,
 		// so we turn it off again.
 		now: T(4),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Here: 1000,
 		},
 		expectState: mkRelays(),
@@ -402,32 +402,32 @@ var assessTests = []struct {
 	}},
 }, {
 	about: "When several discretionary-power relays are on and power is limited, we switch enough off to try to regain the power",
-	cfg: ctl.Config{
-		Relays: []ctl.RelayConfig{{
-			Mode:     ctl.InUse,
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}, {
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}, {
-			Mode:     ctl.InUse,
+			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
-			InUse: []*ctl.Slot{{
+			InUse: []*hydroctl.Slot{{
 				Start:        1 * time.Hour,
 				SlotDuration: 4 * time.Hour,
-				Kind:         ctl.Exactly,
+				Kind:         hydroctl.Exactly,
 				Duration:     2 * time.Hour,
 			}},
 		}},
@@ -436,23 +436,23 @@ var assessTests = []struct {
 		// At the start of the slot, each relay
 		// will come on in turn.
 		now: T(1),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			// The generator is producing 3kW.
 			Import: -3000,
 		},
 		expectState: mkRelays(0),
 		transition:  true,
 	}, {
-		now: T(1).Add(ctl.MinimumChangeDuration),
-		meters: ctl.MeterReading{
+		now: T(1).Add(hydroctl.MinimumChangeDuration),
+		meters: hydroctl.MeterReading{
 			Import: -2000,
 			Here:   1000,
 		},
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
-		now: T(1).Add(2 * ctl.MinimumChangeDuration),
-		meters: ctl.MeterReading{
+		now: T(1).Add(2 * hydroctl.MinimumChangeDuration),
+		meters: hydroctl.MeterReading{
 			Import: -1000,
 			Here:   2000,
 		},
@@ -461,8 +461,8 @@ var assessTests = []struct {
 	}, {
 		// A little while after, we're using all the generated
 		// power but there's no problem with that.
-		now: T(1).Add(2*ctl.MinimumChangeDuration + time.Minute),
-		meters: ctl.MeterReading{
+		now: T(1).Add(2*hydroctl.MinimumChangeDuration + time.Minute),
+		meters: hydroctl.MeterReading{
 			Import: 0,
 			Here:   3000,
 		},
@@ -473,7 +473,7 @@ var assessTests = []struct {
 		// so we switch off just enough relays to
 		// hope that we stop using the excess power.
 		now: T(2),
-		meters: ctl.MeterReading{
+		meters: hydroctl.MeterReading{
 			Import:    1500,
 			Here:      3000,
 			Neighbour: 1500,
@@ -485,14 +485,14 @@ var assessTests = []struct {
 
 //, {
 //	about: "If we've switched on a relay recently, we can't switch if off immediately",
-//	cfg: ctl.Config{
-//		Relays: []ctl.RelayConfig{{
-//			Mode:     ctl.InUse,
+//	cfg: hydroctl.Config{
+//		Relays: []hydroctl.RelayConfig{{
+//			Mode:     hydroctl.InUse,
 //			MaxPower: 1000,
-//			InUse: []*ctl.Slot{{
+//			InUse: []*hydroctl.Slot{{
 //				Start:        1 * time.Hour,
 //				SlotDuration: 4 * time.Hour,
-//				Kind:         ctl.Exactly,
+//				Kind:         hydroctl.Exactly,
 //				Duration:     2 * time.Hour,
 //			}},
 //		},
@@ -520,17 +520,17 @@ func (suite) TestAssess(c *gc.C) {
 		for j, innertest := range test.assessNowTests {
 			c.Logf("\t%d. at %v", j, D(innertest.now))
 			if innertest.transition {
-				var prevMeters ctl.MeterReading
+				var prevMeters hydroctl.MeterReading
 				if j > 0 {
 					prevMeters = test.assessNowTests[j-1].meters
 				}
 				// Check just before the test time to make
 				// sure the state is unchanged from the
 				// previous test.
-				newState := ctl.Assess(&test.cfg, state, history, prevMeters, innertest.now.Add(-1))
+				newState := hydroctl.Assess(&test.cfg, state, history, prevMeters, innertest.now.Add(-1))
 				c.Assert(newState, gc.Equals, state, gc.Commentf("previous state"))
 			}
-			state = ctl.Assess(&test.cfg, state, history, innertest.meters, innertest.now)
+			state = hydroctl.Assess(&test.cfg, state, history, innertest.meters, innertest.now)
 			c.Assert(state, gc.Equals, innertest.expectState)
 			history.RecordState(state, innertest.now)
 			c.Logf("new history: %v", &history)
@@ -538,8 +538,8 @@ func (suite) TestAssess(c *gc.C) {
 	}
 }
 
-func mkRelays(relays ...uint) ctl.RelayState {
-	var state ctl.RelayState
+func mkRelays(relays ...uint) hydroctl.RelayState {
+	var state hydroctl.RelayState
 	for _, r := range relays {
 		state |= 1 << r
 	}
