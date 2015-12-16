@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/rogpeppe/hydro/eth8020"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/rogpeppe/hydro/eth8020"
 )
 
 func main() {

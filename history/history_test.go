@@ -4,9 +4,10 @@ import (
 	"time"
 
 	jc "github.com/juju/testing/checkers"
-	"github.com/rogpeppe/hydro/hydroctl"
-	"github.com/rogpeppe/hydro/history"
 	gc "gopkg.in/check.v1"
+
+	"github.com/rogpeppe/hydro/history"
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 type suite struct{}

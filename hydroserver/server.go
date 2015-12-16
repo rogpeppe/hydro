@@ -39,14 +39,14 @@ var initialState = &State{
 			Relays:   []int{0},
 			Title:    "Spare room",
 			MaxPower: "0kW",
-			Mode:     "active",
+			Mode:     "in-use",
 			InUseSlots: []Slot{{
-				Start:        "0100",
+				Start:        "1h",
 				SlotDuration: "5h",
 				Kind:         ">=",
 				Duration:     "5h",
 			}, {
-				Start:        "0700",
+				Start:        "7h",
 				SlotDuration: "1h",
 				Kind:         "==",
 				Duration:     "20m",
@@ -58,21 +58,35 @@ var initialState = &State{
 			Relays:   []int{1},
 			Title:    "Number 8",
 			MaxPower: "3kW",
-			Mode:     "inactive",
+			Mode:     "not-in-use",
 			NotInUseSlots: []Slot{{
-				Start:        "0100",
+				Start:        "1h",
 				SlotDuration: "5h",
 				Kind:         ">=",
 				Duration:     "5h",
+			}},
+		},
+		"cohort2": {
+			Id:       "cohort2",
+			Index:    2,
+			Relays:   []int{2, 3},
+			Title:    "Test",
+			MaxPower: "5kW",
+			Mode:     "in-use",
+			InUseSlots: []Slot{{
+				Start:        "16h",
+				SlotDuration: "1h",
+				Kind:         "==",
+				Duration:     "1h",
 			}},
 		},
 	},
 }
 
 type Handler struct {
-	store *store
+	store  *store
 	worker *hydroworker.Worker
-	mux   *http.ServeMux	
+	mux    *http.ServeMux
 }
 
 type NewParams struct {
@@ -89,16 +103,17 @@ func New(p NewParams) (*Handler, error) {
 		return nil, errgo.Notef(err, "cannot make store")
 	}
 	w, err := hydroworker.New(hydroworker.NewParams{
-		Config: store.relayConfig,
-		Store: new(history.MemStore),
+		Config:     store.relayConfig,
+		Store:      new(history.MemStore),
 		Controller: newRelayController(p.RelayCtlAddr, ""),
+		Meters:     meterReader{},
 	})
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start worker")
 	}
-	h := &Handler{	
-		store: store,
-		mux:   http.NewServeMux(),
+	h := &Handler{
+		store:  store,
+		mux:    http.NewServeMux(),
 		worker: w,
 	}
 	go h.configUpdater()
@@ -119,9 +134,8 @@ func (h *Handler) configUpdater() {
 			h.store.mu.Unlock()
 			h.worker.SetConfig(cfg)
 		}
-	}	
+	}
 }
-
 
 func (h *Handler) Close() {
 	// TODO Possible race here: closing the val will cause configUpdater to

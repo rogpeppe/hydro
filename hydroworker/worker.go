@@ -4,9 +4,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/rogpeppe/hydro/hydroctl"
-	"github.com/rogpeppe/hydro/history"
 	"gopkg.in/errgo.v1"
+
+	"github.com/rogpeppe/hydro/history"
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 // TODO provide feedback of log messages to the front end
@@ -73,9 +74,18 @@ func (w *Worker) Close() {
 }
 
 func (w *Worker) run(currentConfig *hydroctl.Config) {
-	ticker := time.NewTicker(Heartbeat)
-	defer ticker.Stop()
+	timer := time.NewTimer(0)
+	defer timer.Stop()
 	for {
+		select {
+		case cfg, ok := <-w.cfgChan:
+			if !ok {
+				return
+			}
+			currentConfig = cfg
+		case <-timer.C:
+			timer.Reset(Heartbeat)
+		}
 		currentRelays, err := w.controller.Relays()
 		if err != nil {
 			log.Printf("cannot get current relay state: %v", err)
@@ -96,14 +106,6 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 		}
 		if err := w.history.RecordState(newRelays, now); err != nil {
 			log.Printf("cannot record state: %v", err)
-		}
-		select {
-		case cfg, ok := <-w.cfgChan:
-			if !ok {
-				return
-			}
-			currentConfig = cfg
-		case <-ticker.C:
 		}
 	}
 }

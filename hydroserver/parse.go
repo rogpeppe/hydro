@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rogpeppe/hydro/hydroctl"
 	"gopkg.in/errgo.v1"
+
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 // TODO return errors that point to the field that's in error.
@@ -82,8 +83,8 @@ func parseSlots(slots []Slot) ([]*hydroctl.Slot, error) {
 			if slotOverlap(ctlSlot, ctlSlot1) {
 				return nil, errgo.Newf("overlapping slot %d vs %d", i, j)
 			}
-			ctlSlots[i] = ctlSlot
 		}
+		ctlSlots[i] = ctlSlot
 	}
 	return ctlSlots, nil
 }
@@ -97,6 +98,8 @@ var slotsKinds = map[string]hydroctl.SlotKind{
 func parseSlot(slot Slot) (*hydroctl.Slot, error) {
 	var ctlSlot hydroctl.Slot
 	var ok bool
+	// TODO if slot.Kind is empty and slot.Duration is empty
+	// then we could defined to "==" and SlotDuration.
 	ctlSlot.Kind, ok = slotsKinds[slot.Kind]
 	if !ok {
 		return nil, errgo.Newf("unknown slot kind %q", slot.Kind)

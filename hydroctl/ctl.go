@@ -137,8 +137,7 @@ func (slot *Slot) ActiveAt(t time.Time) time.Time {
 	return time.Time{}
 }
 
-// dayStart returns the start of the day containing the given
-// time.
+// dayStart returns the start of the day containing the given time.
 // TODO what about time zone changes?
 func dayStart(t time.Time) time.Time {
 	dayOffset :=

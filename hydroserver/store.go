@@ -4,13 +4,14 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/errgo.v1"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/juju/utils/voyeur"
+	"gopkg.in/errgo.v1"
+
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 

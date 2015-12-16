@@ -5,7 +5,7 @@ package history
 type MemStore struct {
 	// Events holds all the recorded events in order.
 	Events []Event
-	
+
 	toCommit []Event
 }
 

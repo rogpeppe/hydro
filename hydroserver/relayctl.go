@@ -7,9 +7,9 @@ import (
 
 	"gopkg.in/errgo.v1"
 
-	"github.com/rogpeppe/hydro/hydroworker"
-	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/eth8020"
+	"github.com/rogpeppe/hydro/hydroctl"
+	"github.com/rogpeppe/hydro/hydroworker"
 )
 
 type relayCtl struct {

@@ -1,10 +1,12 @@
 package eth8020_test
 
 import (
+	"net"
+
+	gc "gopkg.in/check.v1"
+
 	"github.com/rogpeppe/hydro/eth8020"
 	"github.com/rogpeppe/hydro/eth8020test"
-	gc "gopkg.in/check.v1"
-	"net"
 )
 
 type suite struct{}
