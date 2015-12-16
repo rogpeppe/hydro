@@ -1,27 +1,16 @@
 package ctl_test
 
 import (
-	"bytes"
-	"fmt"
-	"local/runtime/debug"
-	"log"
-	"strings"
 	"time"
 
 	"github.com/rogpeppe/hydro/ctl"
+	"github.com/rogpeppe/hydro/history"
 	gc "gopkg.in/check.v1"
 )
 
 type suite struct{}
 
 var _ = gc.Suite(suite{})
-
-type onDurationTest struct {
-	relay          int
-	t0             time.Time
-	t1             time.Time
-	expectDuration time.Duration
-}
 
 var epoch = time.Date(2000, 01, 01, 0, 0, 0, 0, time.UTC)
 
@@ -31,59 +20,6 @@ func T(i int) time.Time {
 
 func D(t time.Time) time.Duration {
 	return t.Sub(epoch)
-}
-
-var historyTests = []struct {
-	history                history
-	onDurationTests        []onDurationTest
-	expectLatestChangeOn   bool
-	expectLatestChangeTime time.Time
-}{{
-	history: history{
-		relays: [][]event{{{
-			t:  T(2),
-			on: true,
-		}, {
-			t:  T(5),
-			on: false,
-		}, {
-			t:  T(10),
-			on: true,
-		}}},
-	},
-	expectLatestChangeOn:   true,
-	expectLatestChangeTime: T(10),
-	onDurationTests: []onDurationTest{{
-		t0:             T(0),
-		t1:             T(13),
-		expectDuration: ((5 - 2) + (13 - 10)) * time.Hour,
-	}, {
-		t0:             T(3),
-		t1:             T(4),
-		expectDuration: (4 - 3) * time.Hour,
-	}, {
-		t0:             T(5),
-		t1:             T(10),
-		expectDuration: 0,
-	}, {
-		t0:             T(7),
-		t1:             T(11),
-		expectDuration: 1 * time.Hour,
-	}},
-}}
-
-func (suite) TestHistory(c *gc.C) {
-	for i, test := range historyTests {
-		c.Logf("test %d", i)
-		on, t := test.history.LatestChange(0)
-		c.Assert(on, gc.Equals, test.expectLatestChangeOn)
-		c.Assert(t.Equal(test.expectLatestChangeTime), gc.Equals, true)
-		for i, dtest := range test.onDurationTests {
-			c.Logf("dtest %d", i)
-			c.Check(test.history.OnDuration(dtest.relay, dtest.t0, dtest.t1), gc.Equals, dtest.expectDuration)
-		}
-		c.Logf("")
-	}
 }
 
 type assessNowTest struct {
@@ -98,12 +34,17 @@ type assessNowTest struct {
 	expectState ctl.RelayState
 }
 
+type stateUpdate struct {
+	t     time.Time
+	state ctl.RelayState
+}
+
 var assessTests = []struct {
-	about          string
-	history        history
-	currentState   ctl.RelayState
-	cfg            ctl.Config
-	assessNowTests []assessNowTest
+	about           string
+	previousUpdates []stateUpdate
+	currentState    ctl.RelayState
+	cfg             ctl.Config
+	assessNowTests  []assessNowTest
 }{{
 	about: "everything off, some relays that are always on",
 	cfg: ctl.Config{
@@ -570,11 +511,12 @@ func (suite) TestAssess(c *gc.C) {
 		c.Logf("")
 		c.Logf("test %d: %s", i, test.about)
 		state := test.currentState
-		history := test.history
-		if history.relays == nil {
-			history = *newHistory(len(test.cfg.Relays))
+
+		history, err := history.New(&history.MemStore{})
+		c.Assert(err, gc.IsNil)
+		for _, u := range test.previousUpdates {
+			history.RecordState(u.state, u.t)
 		}
-		c.Assert(history.relays, gc.HasLen, len(test.cfg.Relays))
 		for j, innertest := range test.assessNowTests {
 			c.Logf("\t%d. at %v", j, D(innertest.now))
 			if innertest.transition {
@@ -585,26 +527,15 @@ func (suite) TestAssess(c *gc.C) {
 				// Check just before the test time to make
 				// sure the state is unchanged from the
 				// previous test.
-				newState := ctl.Assess(&test.cfg, state, &history, prevMeters, innertest.now.Add(-1))
+				newState := ctl.Assess(&test.cfg, state, history, prevMeters, innertest.now.Add(-1))
 				c.Assert(newState, gc.Equals, state, gc.Commentf("previous state"))
 			}
-			state = ctl.Assess(&test.cfg, state, &history, innertest.meters, innertest.now)
+			state = ctl.Assess(&test.cfg, state, history, innertest.meters, innertest.now)
 			c.Assert(state, gc.Equals, innertest.expectState)
 			history.RecordState(state, innertest.now)
 			c.Logf("new history: %v", &history)
 		}
 	}
-}
-
-type event struct {
-	t  time.Time
-	on bool
-}
-
-type history struct {
-	// relays holds one element for each relay, each containing an
-	// ordered slice of events when the state changed.
-	relays [][]event
 }
 
 func mkRelays(relays ...uint) ctl.RelayState {
@@ -613,117 +544,4 @@ func mkRelays(relays ...uint) ctl.RelayState {
 		state |= 1 << r
 	}
 	return state
-}
-
-func newHistory(nrelays int) *history {
-	h := &history{
-		relays: make([][]event, nrelays),
-	}
-	return h
-}
-
-func (h *history) RecordState(relays ctl.RelayState, now time.Time) {
-	for i := range h.relays {
-		h.AddEvent(i, relays.IsSet(i), now)
-	}
-}
-
-func (h *history) AddEvent(relay int, on bool, now time.Time) {
-	log.Printf("add event to %d %v %v", relay, on, D(now))
-	lastOn, t := h.LatestChange(relay)
-	if !now.After(t) {
-		panic("cannot add out of order event")
-	}
-	if lastOn == on && !t.IsZero() {
-		return
-	}
-	h.relays[relay] = append(h.relays[relay], event{
-		on: on,
-		t:  now,
-	})
-}
-
-func (h *history) String() string {
-	var buf bytes.Buffer
-	for i, es := range h.relays {
-		fmt.Fprintf(&buf, " [%d:", i)
-		for _, e := range es {
-			fmt.Fprintf(&buf, " ")
-			if !e.on {
-				fmt.Fprintf(&buf, "!")
-			}
-			fmt.Fprintf(&buf, "%v", D(e.t))
-		}
-		fmt.Fprintf(&buf, "]")
-	}
-	return strings.TrimPrefix(buf.String(), " ")
-}
-
-func (h *history) OnDuration(relay int, t0, t1 time.Time) time.Duration {
-	d := h.onDuration(relay, t0, t1)
-	log.Printf("history: %v", h)
-	log.Printf("on duration(%d, %v, %v) -> %v (callers %s)", relay, D(t0), D(t1), d, debug.Callers(1, 2))
-	return d
-}
-
-func (h *history) onDuration(relay int, t0, t1 time.Time) time.Duration {
-	total := time.Duration(0)
-	if relay >= len(h.relays) {
-		return 0
-	}
-	times := h.relays[relay]
-	// First find the first "off" event after t0.
-
-	var onTime time.Time
-	for _, e := range times {
-		if e.on {
-			// Be resilient to multiple on events in sequence.
-			if onTime.IsZero() {
-				onTime = e.t
-			}
-			continue
-		}
-		if onTime.IsZero() {
-			continue
-		}
-		total += onDuration(onTime, e.t, t0, t1)
-		onTime = time.Time{}
-	}
-	total += onDuration(onTime, t1, t0, t1)
-	return total
-}
-
-func (h *history) LatestChange(relay int) (bool, time.Time) {
-	if relay >= len(h.relays) {
-		return false, time.Time{}
-	}
-	events := h.relays[relay]
-	if len(events) == 0 {
-		return false, time.Time{}
-	}
-	e := events[len(events)-1]
-	return e.on, e.t
-}
-
-// onDuration returns the duration that [onTime, offTime] overlaps
-// with [t0, t1]
-func onDuration(onTime, offTime, t0, t1 time.Time) time.Duration {
-	if onTime.IsZero() || !(onTime.Before(t1) && offTime.After(t0)) {
-		return 0
-	}
-	if onTime.Before(t0) {
-		onTime = t0
-	}
-	if offTime.After(t1) {
-		offTime = t1
-	}
-	return offTime.Sub(onTime)
-}
-
-func mustParseTime(layout, s string) time.Time {
-	t, err := time.Parse(layout, s)
-	if err != nil {
-		panic(err)
-	}
-	return t
 }
