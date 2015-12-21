@@ -100,6 +100,9 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 		}
 		now := time.Now()
 		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, now)
+		if newRelays == currentRelays {
+			continue
+		}
 		if err := w.controller.SetRelays(newRelays); err != nil {
 			log.Printf("cannot set relay state: %v", err)
 			continue

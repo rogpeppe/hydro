@@ -27,9 +27,11 @@ import (
 	"gopkg.in/errgo.v1"
 )
 
+var Debug = false
+
 // MinimumChangeDuration holds the minimum length of time
-// to between turning on relays.
-const MinimumChangeDuration = time.Minute
+// between turning on relays.
+const MinimumChangeDuration = 5 * time.Second
 
 // Config holds the configuration of the control system.
 type Config struct {
@@ -254,7 +256,11 @@ func canSetRelay(hist History, relay int, on bool, now time.Time) bool {
 	if on == latestOn {
 		return true
 	}
-	return t.IsZero() || now.Sub(t) >= MinimumChangeDuration
+	if t.IsZero() || now.Sub(t) >= MinimumChangeDuration {
+		return true
+	}
+	log.Printf("cannot set relay %v (latestOn %v; delta %v)", relay, latestOn, now.Sub(t))
+	return false
 }
 
 // Assess assesses what the new state of the power-controlling relays should be
@@ -278,7 +284,9 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 	for i, rc := range cfg.Relays {
 		on, pri := assessRelay(i, &rc, hist, now)
 		if pri == priAbsolute {
-			log.Printf("relay %d has absolute priority %v (current state %v)", i, pri, currentState.IsSet(i))
+			if Debug {
+				log.Printf("relay %d has absolute priority %v (current state %v)", i, pri, currentState.IsSet(i))
+			}
 			if on {
 				if !currentState.IsSet(i) && added == -1 {
 					// The relay is not already on and no other relay
@@ -433,7 +441,9 @@ func (ap assessedByPriority) Len() int {
 
 func assessRelay(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
 	on, pri = assessRelay0(relay, rc, hist, now)
-	log.Printf("assessRelay %d -> %v %v", relay, on, pri)
+	if Debug {
+		log.Printf("assessRelay %d -> %v %v", relay, on, pri)
+	}
 	return
 }
 
@@ -452,22 +462,33 @@ func assessRelay0(relay int, rc *RelayConfig, hist History, now time.Time) (on b
 	if slot == nil {
 		return false, priAbsolute
 	}
-	log.Printf("at %v, got slot %v starting at %v", D(now), slot, D(start))
+	if Debug {
+		log.Printf("at %v, got slot %v starting at %v", D(now), slot, D(start))
+	}
+
 	dur := hist.OnDuration(relay, start, now)
 	switch {
 	case (slot.Kind == Exactly || slot.Kind == AtLeast) && start.Add(slot.SlotDuration).Sub(now) <= slot.Duration-dur:
-		log.Printf("must use all remaining time")
+		if Debug {
+			log.Printf("must use all remaining time")
+		}
 		// All the remaining time must be used.
 		return true, priAbsolute
 	case (slot.Kind == Exactly || slot.Kind == AtMost) && dur >= slot.Duration:
-		log.Printf("already had the time")
+		if Debug {
+			log.Printf("already had the time")
+		}
 		// Already had the time we require.
 		return false, priAbsolute
 	case slot.Kind == Exactly || slot.Kind == AtLeast:
-		log.Printf("need more discretionary time")
+		if Debug {
+			log.Printf("need more discretionary time")
+		}
 		return true, priHigh
 	case slot.Kind == AtMost:
-		log.Printf("could use more time")
+		if Debug {
+			log.Printf("could use more time")
+		}
 		return true, priLow
 	default:
 		panic("unreachable")

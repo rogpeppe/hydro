@@ -16,15 +16,15 @@ import (
 )
 
 type State struct {
-	maxCohortId int
-	Cohorts     map[string]*Cohort
+	Cohorts map[string]*Cohort
+	Debug   bool
 }
 
 type Cohort struct {
 	Id            string // Unique; always increases.
 	Index         int    // Display index.
 	Title         string
-	Relays        []int
+	Relays        string
 	MaxPower      string
 	Mode          string
 	InUseSlots    []Slot
@@ -77,6 +77,9 @@ func (s *store) Delete(path string) error {
 	return s.mutate(func(st *State) error {
 		return memState{st}.Delete(path)
 	})
+}
+
+func (s *store) Commit() error {
 }
 
 // mutate mutates the state atomically, making sure

@@ -482,6 +482,34 @@ var assessTests = []struct {
 		expectState: mkRelays(2),
 		transition:  true,
 	}},
+}, {
+	about: "A sample case that failed",
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode: hydroctl.NotInUse,
+		}, {
+			Mode: hydroctl.NotInUse,
+		}, {
+			Mode:     hydroctl.InUse,
+			MaxPower: 5000,
+			InUse: []*hydroctl.Slot{{
+				Start:        13 * time.Hour,
+				SlotDuration: 1 * time.Hour,
+				Kind:         hydroctl.Exactly,
+				Duration:     1 * time.Hour,
+			}},
+		}},
+	},
+	assessNowTests: []assessNowTest{{
+		// At the time slot, the lowest-numbered relay comes on first.
+		now:         T(13),
+		expectState: mkRelays(2),
+		transition:  true,
+	}, {
+		now:         T(13).Add(hydroctl.MinimumChangeDuration),
+		expectState: mkRelays(2),
+		transition:  true,
+	}},
 }}
 
 //, {

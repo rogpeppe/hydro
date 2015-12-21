@@ -15,6 +15,7 @@ import (
 	"gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/history"
+	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
@@ -31,12 +32,11 @@ var upgrader = websocket.Upgrader{
 }
 
 var initialState = &State{
-	maxCohortId: 1,
 	Cohorts: map[string]*Cohort{
 		"cohort0": {
 			Id:       "cohort0",
 			Index:    0,
-			Relays:   []int{0},
+			Relays:   "0",
 			Title:    "Spare room",
 			MaxPower: "0kW",
 			Mode:     "in-use",
@@ -55,7 +55,7 @@ var initialState = &State{
 		"cohort1": {
 			Id:       "cohort1",
 			Index:    1,
-			Relays:   []int{1},
+			Relays:   "1",
 			Title:    "Number 8",
 			MaxPower: "3kW",
 			Mode:     "not-in-use",
@@ -69,7 +69,7 @@ var initialState = &State{
 		"cohort2": {
 			Id:       "cohort2",
 			Index:    2,
-			Relays:   []int{2, 3},
+			Relays:   "2 3",
 			Title:    "Test",
 			MaxPower: "5kW",
 			Mode:     "in-use",
@@ -121,7 +121,7 @@ func New(p NewParams) (*Handler, error) {
 	h.mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
 	h.mux.HandleFunc("/index.html", serveIndex)
 	h.mux.HandleFunc("/updates", h.serveUpdates)
-	h.mux.HandleFunc("/state/", h.serveState)
+	h.mux.HandleFunc("/commit", h.serveCommit)
 	h.mux.HandleFunc("/store/", h.serveStore)
 	return h, nil
 }
@@ -152,21 +152,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.mux.ServeHTTP(w, req)
 }
 
-func (h *Handler) serveState(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.Error(w, "POST only", http.StatusMethodNotAllowed)
-		return
-	}
-	log.Printf("POST %s", req.URL)
-	req.ParseForm()
-	index := req.Form.Get("attr")
-	val := req.Form.Get("value")
-	h.store.mu.Lock()
-	defer h.store.mu.Unlock()
-	h.store.state.Cohorts[index].Title = val
-	h.store.val.Set(nil)
-}
-
 func (h *Handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	log.Printf("store %s %s", req.Method, req.URL.Path)
 	path := stdpath.Clean(req.URL.Path)
@@ -179,6 +164,9 @@ func (h *Handler) serveStore(w http.ResponseWriter, req *http.Request) {
 			h.badRequest(w, errgo.Notef(err, "cannot put"))
 			return
 		}
+		h.store.mu.Lock()
+		hydroctl.Debug = h.store.state.Debug
+		h.store.mu.Unlock()
 	case "GET":
 		v, err := h.store.Get(path)
 		if err != nil {
@@ -213,7 +201,13 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 		h.store.mu.Lock()
 
 		cohorts := cohortSlice(h.store.state.Cohorts)
-		err := conn.WriteJSON(cohorts)
+		err := conn.WriteJSON(struct {
+			Cohorts []*Cohort
+			Debug   bool
+		}{
+			Cohorts: cohorts,
+			Debug:   h.store.state.Debug,
+		})
 		h.store.mu.Unlock()
 		if err != nil {
 			log.Printf("cannot write JSON to websocket: %v", err)
@@ -222,6 +216,7 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// TODO remove this function - having a different representation confuses things.
 func cohortSlice(cohorts map[string]*Cohort) []*Cohort {
 	slice := make([]*Cohort, 0, len(cohorts))
 	for _, c := range cohorts {
@@ -320,23 +315,16 @@ var htmlPage = `<!DOCTYPE html>
 var prog = `
 	var Accordion = ReactBootstrap.Accordion
 	var Panel = ReactBootstrap.Panel
-	var Slot = React.createClass({
-		render: function() {
-			var data = this.props.data;
-			return <div className="slot">{data.Start} to {data.EndTime} {data.Kind} for {data.Duration}</div>
-		}
-	});
 	var EditOnClick = React.createClass({
 		getInitialState: function() {
-			console.log("getting initial state")
-			return {value: ""};
+			return {editing: false};
 		},
 		render: function() {
 			if(this.state.editing){
 				return <input
 					type="text"
 					ref={elem => {this.inputElem = elem }}
-					value={this.state.value}
+					value={this.props.value}
 					className={this.props.className}
 					onChange={this.handleChange}
 					onBlur={this.handleOnBlur}
@@ -359,12 +347,12 @@ var prog = `
 				data: JSON.stringify(event.target.value),
 				// TODO JSON content type
 				success: function() {
-					console.log("done PUT")
+					console.log("done PUT");
 				},
-				error: function() {
-					console.log("PUT failed")
+				error: function(xhr) {
+					alert("PUT failed; response text: " + xhr.responseText);
 				},
-			})
+			});
 		},
 		handleClick: function(event) {
 			this.setState({editing: true});
@@ -375,18 +363,29 @@ var prog = `
 			}
 		},
 	});
+	var Slot = React.createClass({
+		render: function() {
+			var data = this.props.data;
+			var path = this.props.path;
+			return <div>
+				<EditOnClick className="slotStart" path={path + "/Start"} value={data.Start} />
+				<EditOnClick className="slotSlotDuration" path={path + "/SlotDuration"} value={data.SlotDuration} />
+				<EditOnClick className="slotKind" path={path + "/Kind"} value={data.Kind} />
+				<EditOnClick className="slotDuration" path={path + "/Duration"} value={data.Duration} />
+			</div>
+		}
+	});
 	var Slots = React.createClass({
 		render: function() {
 			if(!this.props.slots){
-				console.log("Slots.render -> nothing")
 				return <span/>
 			}
-			console.log("Slots.render -> something")
+			var path = this.props.path;
 			return <div>
 				<div className="slotTitle">{this.props.title}</div>
 				<ul>{
-					this.props.slots.map(function(slot){
-						return <li key={slot.Start}><Slot data={slot}/></li>
+					this.props.slots.map(function(slot, i){
+						return <li key={slot.Start}><Slot data={slot} path={path+"/" +i}/></li>
 					})
 				}</ul>
 			</div>
@@ -394,23 +393,27 @@ var prog = `
 	});
 	var Cohort = React.createClass({
 		render: function() {
-			var data = this.props.data
+			var data = this.props.data;
+			var path = "Cohorts/" + data.Id;
 			return <div key={data.Id}>
-				<EditOnClick className="cohortTitle" path={"Cohorts/" + data.Id + "/Title"} value={data.Title} />
-				<EditOnClick className="cohortMode" path={"Cohorts/" + data.Id + "/Mode"} value={data.Mode}/>
-				<span className="cohortMaxPower">max power: {data.MaxPower}</span>
-				<Slots title="Active slots" slots={data.InUseSlots}/>
-				<Slots title="Inactive slots" slots={data.NotInUseSlots}/>
+				<EditOnClick className="cohortTitle" path={path + "/Title"} value={data.Title} />
+				<EditOnClick className="cohortMode" path={path + "/Mode"} value={data.Mode}/>
+				<EditOnClick className="cohortMaxPower" path={path + "/MaxPower"} value={data.MaxPower} />
+				<EditOnClick className="cohortRelays" path={path + "/Relays"} value={data.Relays}/>
+				<Slots title="Active slots" slots={data.InUseSlots} path={path + "/InUseSlots"}/>
+				<Slots title="Inactive slots" slots={data.NotInUseSlots} path={path + "/NotInUseSlots"}/>
 			</div>
 		}
 	});
 	var HydroControl = React.createClass({
 		render: function() {
-			return <div className="cohortControl">{
-				this.props.cohorts.map(function(cohort){
-					return <Cohort data={cohort} key={cohort.Id}/>
-				})
-			}</div>
+			return <div>
+				<div className="cohortControl">{
+					this.props.cohorts.map(function(cohort){
+						return <Cohort data={cohort} key={cohort.Id}/>
+					})
+				}</div>
+			</div>
 		}
 	});
 	function wsURL(path) {
@@ -427,7 +430,7 @@ var prog = `
 	socket.onmessage = function(event) {
 		var m = JSON.parse(event.data);
 		console.log("message", event.data)
-		ReactDOM.render(<HydroControl cohorts={m}/>, document.getElementById("topLevel"));
+		ReactDOM.render(<HydroControl cohorts={m.Cohorts}/>, document.getElementById("topLevel"));
 	};
 `
 
@@ -461,4 +464,33 @@ var prog = `
 //  </Accordion>
 //);
 //
+
+// -- we'd quite like a checkbox (original motivation: debug, but
+// good for other things too)
+//
 //React.render(accordionInstance, mountNode);
+//	var CheckBox = React.createClass({
+//		render: function() {
+//			return <input
+//				type="checkbox"
+//				checked={this.props.checked}
+//				onChange={this.onChange.bind(this)}
+//			/>;
+//		},
+//		onChange: function(event) {
+//
+//			XXX what to do here?
+//			where do we get the checked state from?
+//			can we avoid using react state?
+//			console.log("debug ", this.state.checked)
+//			$.ajax("/debug?on=" + (this.state.checked ? "1" : "0"), {
+//				method: "PUT",
+//				success: function() {
+//					console.log("done PUT debug");
+//				},
+//				error: function(xhr) {
+//					alert("PUT /debug failed; response text: " + xhr.responseText);
+//				},
+//			});
+//		})
+//	}

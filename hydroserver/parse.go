@@ -20,7 +20,11 @@ func parseState(st *State) (*hydroctl.Config, error) {
 	}
 	relays := make(map[int]relayInfo)
 	for _, c := range st.Cohorts {
-		for _, r := range c.Relays {
+		crelays, err := parseRelays(c.Relays)
+		if err != nil {
+			return nil, errgo.Notef(err, "bad relays")
+		}
+		for _, r := range crelays {
 			if r >= hydroctl.MaxRelayCount {
 				return nil, errgo.Newf("cohort has out-of-bound relay number %d", r)
 			}
@@ -47,6 +51,22 @@ func parseState(st *State) (*hydroctl.Config, error) {
 		cfg.Relays[r] = c.config
 	}
 	return cfg, nil
+}
+
+func parseRelays(r string) ([]int, error) {
+	fields := strings.Fields(r)
+	if len(fields) == 0 {
+		return nil, nil
+	}
+	relays := make([]int, len(fields))
+	for i, f := range fields {
+		n, err := strconv.Atoi(f)
+		if err != nil {
+			return nil, errgo.Newf("bad number %q", f)
+		}
+		relays[i] = n
+	}
+	return relays, nil
 }
 
 func parseCohort(c *Cohort) (hydroctl.RelayConfig, error) {
