@@ -44,7 +44,7 @@ type MeterReader interface {
 
 // Heartbeat is the interval at which the worker assesses for
 // possible relay changes.
-const Heartbeat = 500 * time.Millisecond
+const Heartbeat = 1000 * time.Millisecond
 
 // New returns a new worker that updates the
 func New(p NewParams) (*Worker, error) {

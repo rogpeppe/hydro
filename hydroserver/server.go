@@ -43,12 +43,12 @@ var initialState = &State{
 			InUseSlots: []Slot{{
 				Start:        "1h",
 				SlotDuration: "5h",
-				Kind:         ">=",
+				Kind:         "at least",
 				Duration:     "5h",
 			}, {
 				Start:        "7h",
 				SlotDuration: "1h",
-				Kind:         "==",
+				Kind:         "exactly",
 				Duration:     "20m",
 			}},
 		},
@@ -62,7 +62,7 @@ var initialState = &State{
 			NotInUseSlots: []Slot{{
 				Start:        "1h",
 				SlotDuration: "5h",
-				Kind:         ">=",
+				Kind:         "at least",
 				Duration:     "5h",
 			}},
 		},
@@ -76,7 +76,7 @@ var initialState = &State{
 			InUseSlots: []Slot{{
 				Start:        "16h",
 				SlotDuration: "1h",
-				Kind:         "==",
+				Kind:         "exactly",
 				Duration:     "1h",
 			}},
 		},
@@ -123,6 +123,7 @@ func New(p NewParams) (*Handler, error) {
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/commit", h.serveCommit)
 	h.mux.HandleFunc("/store/", h.serveStore)
+	h.mux.HandleFunc("/basic", h.serveBasic)
 	return h, nil
 }
 
@@ -141,7 +142,7 @@ func (h *Handler) Close() {
 	// TODO Possible race here: closing the val will cause configUpdater to
 	// exit, but it might be about to make a call to the worker,
 	// and method calls to the worker after it's closed will panic.
-	// Decide whether to close synchronously or make methods calls
+	// Decide whether to close synchronously or make method calls
 	// not panic.
 	h.store.val.Close()
 	h.worker.Close()
@@ -154,14 +155,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (h *Handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	log.Printf("store %s %s", req.Method, req.URL.Path)
-	path := stdpath.Clean(req.URL.Path)
-	path = strings.TrimPrefix(req.URL.Path, "/store")
+	path := strings.TrimPrefix(stdpath.Clean(req.URL.Path), "/store")
 	switch req.Method {
 	case "PUT":
 		data, _ := ioutil.ReadAll(req.Body)
 		log.Printf("put %s", data)
 		if err := h.store.Put(path, data); err != nil {
-			h.badRequest(w, errgo.Notef(err, "cannot put"))
+			h.badRequest(w, req, errgo.Notef(err, "cannot put"))
 			return
 		}
 		h.store.mu.Lock()
@@ -170,24 +170,35 @@ func (h *Handler) serveStore(w http.ResponseWriter, req *http.Request) {
 	case "GET":
 		v, err := h.store.Get(path)
 		if err != nil {
-			h.badRequest(w, errgo.Notef(err, "cannot get"))
+			h.badRequest(w, req, errgo.Notef(err, "cannot get"))
 			return
 		}
 		httprequest.WriteJSON(w, http.StatusOK, v)
 	case "DELETE":
-		err := h.store.Delete(path)
-		if err != nil {
-			h.badRequest(w, errgo.Notef(err, "cannot delete"))
+		if err := h.store.Delete(path); err != nil {
+			h.badRequest(w, req, errgo.Notef(err, "cannot delete"))
 			return
 		}
 	default:
-		h.badRequest(w, errgo.New("bad method"))
+		h.badRequest(w, req, errgo.New("bad method"))
 	}
 }
 
-func (h *Handler) badRequest(w http.ResponseWriter, err error) {
+func (h *Handler) serveCommit(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		h.badRequest(w, req, errgo.New("bad method"))
+		return
+	}
+	log.Printf("commit state")
+	if err := h.store.Commit(); err != nil {
+		http.Error(w, fmt.Sprintf("cannot commit: %v", err), http.StatusInternalServerError)
+	}
+	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
+}
+
+func (h *Handler) badRequest(w http.ResponseWriter, req *http.Request, err error) {
 	log.Printf("bad request: %v", err)
-	http.Error(w, fmt.Sprintf("cannot delete: %v", err), http.StatusBadRequest)
+	http.Error(w, fmt.Sprintf("bad request (%s %v): %v", req.Method, req.URL, err), http.StatusBadRequest)
 }
 
 func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
@@ -246,193 +257,6 @@ func (c cohortsByIndex) Less(i, j int) bool {
 func serveIndex(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(htmlPage))
 }
-
-var htmlPage = `<!DOCTYPE html>
-<html>
-	<head>
-		<title>Page Title</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<!-- Bootstrap -->
-		<link rel="stylesheet" href="/static/bootstrap-3.3.5-dist/css/bootstrap.css">
-		<link rel="stylesheet" href="/static/bootstrap-3.3.5-dist/css/bootstrap-theme.css">
-		<script src="/static/jquery.js"></script>
-		<script src="/static/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
-		<script src="/static/react/react.js"></script>
-		<script src="/static/react/react-dom.js"></script>
-		<script src="/static/react-bootstrap-0.27.3.js"></script>
-		<script src="/static/babel-browser.min.js"></script>
-		<script src="/static/reconnecting-websocket.js"></script>
-		<script src="/static/es6-promise.min.js"></script>
-		<style type="text/css">
-			html, body {
-				padding-bottom: 70px;
-				width: 900px;
-				max-width: 900px;
-				margin: 0 auto;
-			}
-			
-			.content {margin:10px;}
-			.cohortRelays {
-				font-size: 150%;
-				padding-right: 20px;
-			}
-			.cohortTitle {
-				font-size: 150%;
-				padding-left: 20px;
-				padding-right: 20px;
-				display: block;
-				background-color: #74afad;
-			}
-			.cohortMode {
-				font-size: 150%;
-				padding-left: 20px;
-				padding-right: 20px;
-			}
-			.slotTitle {
-				font-size: 120%;
-				padding-left: 30px;
-			}
-			.cohortMaxPower {
-				font-size: 150%;
-				padding-left: 20px;
-				padding-right: 20px;
-			}
-			.slot {
-				font-size: 120%;
-			}
-		</style>
-	</head>
-
-	<body >
-		<script type="text/babel">
-		` + prog + `
-		</script>
-		<div id="topLevel"></div>
-	</body>
-</html>
-`
-
-var prog = `
-	var Accordion = ReactBootstrap.Accordion
-	var Panel = ReactBootstrap.Panel
-	var EditOnClick = React.createClass({
-		getInitialState: function() {
-			return {editing: false};
-		},
-		render: function() {
-			if(this.state.editing){
-				return <input
-					type="text"
-					ref={elem => {this.inputElem = elem }}
-					value={this.props.value}
-					className={this.props.className}
-					onChange={this.handleChange}
-					onBlur={this.handleOnBlur}
-				/>;
-			} else {
-				return <div
-					className={this.props.className}
-					onClick={this.handleClick}>
-					{this.props.value}
-				</div>;
-			}
-		},
-		handleOnBlur: function(event) {
-			this.setState({editing: false})
-		},
-		handleChange: function(event) {
-			this.setState({value: event.target.value});
-			$.ajax("/store/" + this.props.path, {
-				method: "PUT",
-				data: JSON.stringify(event.target.value),
-				// TODO JSON content type
-				success: function() {
-					console.log("done PUT");
-				},
-				error: function(xhr) {
-					alert("PUT failed; response text: " + xhr.responseText);
-				},
-			});
-		},
-		handleClick: function(event) {
-			this.setState({editing: true});
-		},
-		componentDidUpdate: function() {
-			if (this.inputElem != null) {
-				this.inputElem.focus()
-			}
-		},
-	});
-	var Slot = React.createClass({
-		render: function() {
-			var data = this.props.data;
-			var path = this.props.path;
-			return <div>
-				<EditOnClick className="slotStart" path={path + "/Start"} value={data.Start} />
-				<EditOnClick className="slotSlotDuration" path={path + "/SlotDuration"} value={data.SlotDuration} />
-				<EditOnClick className="slotKind" path={path + "/Kind"} value={data.Kind} />
-				<EditOnClick className="slotDuration" path={path + "/Duration"} value={data.Duration} />
-			</div>
-		}
-	});
-	var Slots = React.createClass({
-		render: function() {
-			if(!this.props.slots){
-				return <span/>
-			}
-			var path = this.props.path;
-			return <div>
-				<div className="slotTitle">{this.props.title}</div>
-				<ul>{
-					this.props.slots.map(function(slot, i){
-						return <li key={slot.Start}><Slot data={slot} path={path+"/" +i}/></li>
-					})
-				}</ul>
-			</div>
-		}
-	});
-	var Cohort = React.createClass({
-		render: function() {
-			var data = this.props.data;
-			var path = "Cohorts/" + data.Id;
-			return <div key={data.Id}>
-				<EditOnClick className="cohortTitle" path={path + "/Title"} value={data.Title} />
-				<EditOnClick className="cohortMode" path={path + "/Mode"} value={data.Mode}/>
-				<EditOnClick className="cohortMaxPower" path={path + "/MaxPower"} value={data.MaxPower} />
-				<EditOnClick className="cohortRelays" path={path + "/Relays"} value={data.Relays}/>
-				<Slots title="Active slots" slots={data.InUseSlots} path={path + "/InUseSlots"}/>
-				<Slots title="Inactive slots" slots={data.NotInUseSlots} path={path + "/NotInUseSlots"}/>
-			</div>
-		}
-	});
-	var HydroControl = React.createClass({
-		render: function() {
-			return <div>
-				<div className="cohortControl">{
-					this.props.cohorts.map(function(cohort){
-						return <Cohort data={cohort} key={cohort.Id}/>
-					})
-				}</div>
-			</div>
-		}
-	});
-	function wsURL(path) {
-		var loc = window.location, scheme;
-		if (loc.protocol === "https:") {
-			scheme = "wss:";
-		} else {
-			scheme = "ws:";
-		}
-		return scheme + "//" + loc.host + path;
-	}
-
-	var socket = new ReconnectingWebSocket(wsURL("/updates"));
-	socket.onmessage = function(event) {
-		var m = JSON.parse(event.data);
-		console.log("message", event.data)
-		ReactDOM.render(<HydroControl cohorts={m.Cohorts}/>, document.getElementById("topLevel"));
-	};
-`
 
 // from http://stackoverflow.com/questions/25886660/bootstrap-with-react-accordion-wont-work
 //var WontWorkPanel = React.createClass({

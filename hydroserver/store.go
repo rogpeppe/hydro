@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -18,6 +19,19 @@ import (
 type State struct {
 	Cohorts map[string]*Cohort
 	Debug   bool
+}
+
+func (s *State) Clone() *State {
+	// TODO do this without json!
+	data, err := json.Marshal(s)
+	if err != nil {
+		panic(errgo.Notef(err, "cannot marshal state"))
+	}
+	var s1 State
+	if err := json.Unmarshal(data, &s1); err != nil {
+		panic(errgo.Notef(err, "cannot unmarshal state"))
+	}
+	return &s1
 }
 
 type Cohort struct {
@@ -43,7 +57,10 @@ type store struct {
 
 	mu          sync.Mutex
 	relayConfig *hydroctl.Config
-	state       *State
+	// editingState holds the state as currently being edited.
+	editingState *State
+	// state holds the actual committed state.
+	state *State
 }
 
 func newStore(initialState *State) (*store, error) {
@@ -53,6 +70,7 @@ func newStore(initialState *State) (*store, error) {
 	}
 	return &store{
 		state:       initialState,
+		editingState: initialState.Clone(),
 		relayConfig: cfg,
 	}, nil
 }
@@ -80,6 +98,18 @@ func (s *store) Delete(path string) error {
 }
 
 func (s *store) Commit() error {
+	log.Printf("committing state")
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cfg, err := parseState(s.editingState)
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	s.relayConfig = cfg
+	s.state = s.editingState.Clone()
+	// Notify any watchers.
+	s.val.Set(nil)
+	return nil
 }
 
 // mutate mutates the state atomically, making sure
@@ -87,26 +117,9 @@ func (s *store) Commit() error {
 // This might turn out to be a bad idea - we may
 // need to allow interim illegal states.
 func (s *store) mutate(f func(st *State) error) error {
-	// TODO do this without json!
-	data, err := json.Marshal(&s.state)
-	if err != nil {
-		return errgo.Notef(err, "cannot marshal state")
-	}
-	var st State
-	if err := json.Unmarshal(data, &st); err != nil {
-		return errgo.Notef(err, "cannot unmarshal state")
-	}
-	if err := f(&st); err != nil {
+	if err := f(s.editingState); err != nil {
 		return errgo.Mask(err, errgo.Any)
 	}
-	cfg, err := parseState(&st)
-	if err != nil {
-		return errgo.Notef(err, "bad resulting state")
-	}
-	s.relayConfig = cfg
-	s.state = &st
-	// Notify any watchers.
-	s.val.Set(nil)
 	return nil
 }
 

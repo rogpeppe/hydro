@@ -110,16 +110,16 @@ func parseSlots(slots []Slot) ([]*hydroctl.Slot, error) {
 }
 
 var slotsKinds = map[string]hydroctl.SlotKind{
-	">=": hydroctl.AtLeast,
-	"<=": hydroctl.AtMost,
-	"==": hydroctl.Exactly,
+	"at least": hydroctl.AtLeast,
+	"at most": hydroctl.AtMost,
+	"exactly": hydroctl.Exactly,
 }
 
 func parseSlot(slot Slot) (*hydroctl.Slot, error) {
 	var ctlSlot hydroctl.Slot
 	var ok bool
 	// TODO if slot.Kind is empty and slot.Duration is empty
-	// then we could defined to "==" and SlotDuration.
+	// then we could defined to "exactly" and SlotDuration.
 	ctlSlot.Kind, ok = slotsKinds[slot.Kind]
 	if !ok {
 		return nil, errgo.Newf("unknown slot kind %q", slot.Kind)
