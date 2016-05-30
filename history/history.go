@@ -9,25 +9,26 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/errgo.v1"
-
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 
+// Store represents a store of relay-changed events.
 type Store interface {
-	// Append queues the given event to be added to the
-	// database with Commit is called
+	// Append adds the given event to the database.
+	// Note that this will not actually write the event to
+	// the database - the event should be committed
+	// by the caller of history.RecordState.
 	Append(Event)
 
-	// Commit adds the events queued by Append since
-	// the last commit to the database.
-	Commit() error
-
 	// ReverseIter returns an iterator that enumerates all
-	// items in the database from the end.
+	// items in the database from the end. It does
+	// not assume that events added by Append are immediately
+	// visible.
 	ReverseIter() Iterator
 }
 
+// Iterator represents an iterator moving back in time
+// through relay events.
 type Iterator interface {
 	// Close closes the iterator, returning an error
 	// if there was any error when iterating.
@@ -44,13 +45,19 @@ type Iterator interface {
 	Item() Event
 }
 
+// Event represents a relay-changed event.
 type Event struct {
+	// Relay holds the number of the relay that changed.
 	Relay int
-	Time  time.Time
-	On    bool
+	// Time holds when it changed.
+	Time time.Time
+	// On holds whether the relay turned on or off
+	// at that time.
+	On bool
 }
 
 // DB represents a store of historical events.
+// It notably implements hydroctl.History.
 type DB struct {
 	store Store
 
@@ -60,6 +67,8 @@ type DB struct {
 	relays [][]Event
 }
 
+// New returns a new history database that uses the given
+// store for persistent storage.
 func New(store Store) (*DB, error) {
 	db := &DB{
 		store: store,
@@ -89,16 +98,13 @@ func reverse(a []Event) {
 	}
 }
 
-func (h *DB) RecordState(relays hydroctl.RelayState, now time.Time) error {
+// RecordState records the given relay state in the history at
+// the given time by appending events to the store. It does not
+// commit the new events to the store.
+func (h *DB) RecordState(relays hydroctl.RelayState, now time.Time) {
 	for i := 0; i < hydroctl.MaxRelayCount; i++ {
 		h.addEvent(i, relays.IsSet(i), now)
 	}
-	// TODO perhaps this should not commit the state.
-	// We could leave that up to the caller of RecordState.
-	if err := h.store.Commit(); err != nil {
-		return errgo.Notef(err, "cannot persistently record state")
-	}
-	return nil
 }
 
 func (h *DB) addEvent(relay int, on bool, now time.Time) {
@@ -130,6 +136,7 @@ func (h *DB) addEvent(relay int, on bool, now time.Time) {
 	})
 }
 
+// String returns a string representation of
 func (h *DB) String() string {
 	var buf bytes.Buffer
 	for i, es := range h.relays {
@@ -146,6 +153,9 @@ func (h *DB) String() string {
 	return strings.TrimPrefix(buf.String(), " ")
 }
 
+// OnDuration implements hydroctl.History.OnDuration.
+// It returns the length of time that the given
+// relay has been switched on within the given time interval.
 func (h *DB) OnDuration(relay int, t0, t1 time.Time) time.Duration {
 	return h.onDuration(relay, t0, t1)
 	//log.Printf("history: %v", h)

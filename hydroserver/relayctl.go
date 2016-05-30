@@ -7,6 +7,7 @@ import (
 
 	"gopkg.in/errgo.v1"
 
+	"github.com/juju/utils/voyeur"
 	"github.com/rogpeppe/hydro/eth8020"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
@@ -18,12 +19,23 @@ type relayCtl struct {
 	conn             *eth8020.Conn
 	currentStateTime time.Time
 	currentState     hydroctl.RelayState
+	val              voyeur.Value
 }
 
 // refreshDuration holds the maximum amount of time
 // for which we will believe the most recently
 // obtained relay settings.
 const refreshDuration = 30 * time.Second
+
+// TODO make the relay controller provide a notification when
+// the relay state changes, so we can send the new relay
+// state to any clients that are watching it.
+//
+// We also want to send the current meter readings.
+// Do we want to have one websocket for both or a separate
+// for each control scheme?
+//
+// Probably a single websocket with several different types of delta.
 
 func newRelayController(addr, password string) hydroworker.RelayController {
 	return &relayCtl{

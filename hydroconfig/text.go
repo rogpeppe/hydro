@@ -1,4 +1,4 @@
-package hydroserver
+package hydroconfig
 
 import (
 	"strings"

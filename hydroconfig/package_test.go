@@ -1,4 +1,4 @@
-package hydroserver_test
+package hydroconfig_test
 
 import (
 	"testing"

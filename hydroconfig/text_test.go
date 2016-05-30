@@ -1,4 +1,4 @@
-package hydroserver
+package hydroconfig
 
 import (
 	jc "github.com/juju/testing/checkers"

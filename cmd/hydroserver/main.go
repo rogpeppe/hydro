@@ -12,7 +12,7 @@ func main() {
 	// TODO make not use eth8020test (actually: make the address changeable in
 	// the web interface)
 	srv := eth8020test.NewServer()
-	h, err := hydroserver.New(hydroserver.NewParams{
+	h, err := hydroserver.New(hydroserver.Params{
 		RelayCtlAddr: srv.Addr,
 	})
 	if err != nil {

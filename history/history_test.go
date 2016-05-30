@@ -94,6 +94,7 @@ func (suite) TestHistory(c *gc.C) {
 		c.Assert(err, gc.IsNil)
 		for _, update := range test.stateUpdates {
 			h.RecordState(update.state, update.t)
+			store.Commit()
 		}
 		// Check that we've ended up with the right history.
 		c.Assert(history.DBRelays(h), jc.DeepEquals, test.expectDBRelays)

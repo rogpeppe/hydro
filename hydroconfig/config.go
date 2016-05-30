@@ -1,4 +1,4 @@
-package hydroserver
+package hydroconfig
 
 import (
 	"fmt"
@@ -9,17 +9,46 @@ import (
 	"time"
 )
 
+// Config represents a control system configuration as specified
+// by the user.
+type Config struct {
+	Cohorts []Cohort
+}
+
+// Cohort represents a configured set of relays associated with the
+// same rule.
 type Cohort struct {
 	Name          string
 	Relays        []int
 	MaxPower      int
 	Mode          hydroctl.RelayMode
-	InUseSlots    []hydroctl.Slot
-	NotInUseSlots []hydroctl.Slot
+	InUseSlots    []*hydroctl.Slot
+	NotInUseSlots []*hydroctl.Slot
 }
 
-type Config struct {
-	Cohorts []Cohort
+// CtlConfig returns the hydroctl configuration that derives
+// from c. It ignores duplicate and out-of-range relays.
+func (c *Config) CtlConfig() *hydroctl.Config {
+	relays := make([]hydroctl.RelayConfig, hydroctl.MaxRelayCount)
+	found := make([]bool, hydroctl.MaxRelayCount)
+	for _, cohort := range c.Cohorts {
+		for _, r := range cohort.Relays {
+			if r < 0 || r >= hydroctl.MaxRelayCount || found[r] {
+				// TODO log?
+				continue
+			}
+			found[r] = true
+			relays[r] = hydroctl.RelayConfig{
+				Mode:     cohort.Mode,
+				MaxPower: cohort.MaxPower,
+				InUse:    cohort.InUseSlots,
+				NotInUse: cohort.NotInUseSlots,
+			}
+		}
+	}
+	return &hydroctl.Config{
+		Relays: relays,
+	}
 }
 
 /*
@@ -32,9 +61,12 @@ dining room on from 14:30 to 20:45 for at least 20m
 bedrooms on from 17:00 to 20:00
 */
 // TODO in use/not in use
+// TODO maxpower
 
 func Parse(s string) (*Config, error) {
-	p := &configParser{}
+	p := &configParser{
+		assignedRelays: make(map[int]string),
+	}
 	for t := newText(s); t.s != ""; {
 		var line text
 		line, t = t.line()
@@ -55,6 +87,9 @@ func Parse(s string) (*Config, error) {
 type configParser struct {
 	cohorts []Cohort
 	errors  []ParseError
+	// assignedRelays maps relay numbers to the
+	// cohort name that the relay is assigned to.
+	assignedRelays map[int]string
 }
 
 func (p *configParser) addLine(t text) {
@@ -85,7 +120,7 @@ func (p *configParser) addLine(t text) {
 		return
 	}
 	if slot := p.parseSlot(t); slot != nil {
-		found.InUseSlots = append(found.InUseSlots, *slot)
+		found.InUseSlots = append(found.InUseSlots, slot)
 	}
 }
 
@@ -190,6 +225,7 @@ func (p *configParser) addCohort(t text) {
 	// "1 is dining room"
 	// "2, 3, 4 are bedrooms"
 
+	whole := t
 	var relays []int
 	for {
 		word, rest := t.word()
@@ -210,17 +246,33 @@ func (p *configParser) addCohort(t text) {
 			p.errorf(word, "invalid relay number")
 			continue
 		}
+		if relay < 0 || relay >= hydroctl.MaxRelayCount {
+			p.errorf(word, "relay number out of bounds")
+			continue
+		}
 		relays = append(relays, relay)
 	}
 	name := t.trimSpace()
+	if name.s == "" {
+		p.errorf(whole, "empty cohort name")
+		return
+	}
 	for _, c := range p.cohorts {
 		if strings.EqualFold(c.Name, name.s) {
 			p.errorf(name, "duplicate cohort name")
 			return
 		}
 	}
+	for _, relay := range relays {
+		if dupe, ok := p.assignedRelays[relay]; ok {
+			// TODO error with actual relay text.
+			p.errorf(t, "duplicate relay %d also in %q", relay, dupe)
+		}
+		p.assignedRelays[relay] = name.s
+	}
 	p.cohorts = append(p.cohorts, Cohort{
 		Name:   name.s,
+		Mode:   hydroctl.InUse,
 		Relays: relays,
 	})
 }

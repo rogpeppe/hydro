@@ -14,6 +14,8 @@ func (s *MemStore) Append(e Event) {
 	s.toCommit = append(s.toCommit, e)
 }
 
+// Commit commits all the events appended since the last
+// call to Commit.
 func (s *MemStore) Commit() error {
 	s.Events = append(s.Events, s.toCommit...)
 	s.toCommit = s.toCommit[:0]
@@ -33,10 +35,12 @@ type memIter struct {
 	store *MemStore
 }
 
+// Close implements Iterator.Close.
 func (iter *memIter) Close() error {
 	return nil
 }
 
+// Next implements Iterator.Next.
 func (iter *memIter) Next() bool {
 	if iter.i <= 0 {
 		return false
@@ -45,6 +49,7 @@ func (iter *memIter) Next() bool {
 	return true
 }
 
+// Item implements Iterator.Item.
 func (iter *memIter) Item() Event {
 	return iter.store.Events[iter.i]
 }

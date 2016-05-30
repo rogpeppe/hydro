@@ -1,3 +1,7 @@
+// Package hydroworker implements the long-running worker that
+// controls the electrics. It reads the meters and passes the configuration
+// and meter readings to the hydroctl package, which will make the
+// actual decisions.
 package hydroworker
 
 import (
@@ -12,18 +16,50 @@ import (
 
 // TODO provide feedback of log messages to the front end
 
-type NewParams struct {
-	Config     *hydroctl.Config
-	Store      history.Store
+// Params holds parameters for creating a new Worker.
+type Params struct {
+	// Config holds the initial relay configuration.
+	Config *hydroctl.Config
+	// Store is used to store events persistently.
+	Store CommitStore
+	// Controller is used to control the current relay state.
 	Controller RelayController
-	Meters     MeterReader
+	// Meters is used to read the meters.
+	Meters MeterReader
+	// Updater is used to inform external parties about the current state.
+	// It may be nil.
+	Updater Updater
 }
 
+// CommitStore adds a Commit method to the history.Store
+// interface.
+type CommitStore interface {
+	history.Store
+
+	// Commit adds the events queued by Append since
+	// the last commit to the database.
+	Commit() error
+}
+
+// Worker represents the worker goroutines.
 type Worker struct {
 	controller RelayController
 	meters     MeterReader
-	history    *history.DB
-	cfgChan    chan *hydroctl.Config
+	// history holds the history storage layer. It
+	// uses Worker.store for its persistent state.
+	history *history.DB
+
+	store CommitStore
+
+	updater Updater
+	cfgChan chan *hydroctl.Config
+}
+
+// Updater is called when the current state changes.
+// The call to UpdateWorkerState should not make
+// any calls to the Worker - they might deadlock.
+type Updater interface {
+	UpdateWorkerState(u *Update)
 }
 
 // RelayController represents an interface presented
@@ -46,23 +82,27 @@ type MeterReader interface {
 // possible relay changes.
 const Heartbeat = 1000 * time.Millisecond
 
-// New returns a new worker that updates the
-func New(p NewParams) (*Worker, error) {
+// New returns a new worker that keeps the relay state up to date
+// with respect to configuration and meter changes.
+func New(p Params) (*Worker, error) {
 	hdb, err := history.New(p.Store)
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
+
 	w := &Worker{
+		store:      p.Store,
 		controller: p.Controller,
 		meters:     p.Meters,
 		history:    hdb,
+		updater:    p.Updater,
 		cfgChan:    make(chan *hydroctl.Config),
 	}
 	go w.run(p.Config)
 	return w, nil
 }
 
-// SetConfig sets the current relay configuration.
+// SetConfig sets the current configuration.
 // The caller must not mutate cfg after calling this function.
 func (w *Worker) SetConfig(cfg *hydroctl.Config) {
 	w.cfgChan <- cfg
@@ -76,6 +116,8 @@ func (w *Worker) Close() {
 func (w *Worker) run(currentConfig *hydroctl.Config) {
 	timer := time.NewTimer(0)
 	defer timer.Stop()
+	firstTime := true
+	var currentState Update
 	for {
 		select {
 		case cfg, ok := <-w.cfgChan:
@@ -107,8 +149,50 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			log.Printf("cannot set relay state: %v", err)
 			continue
 		}
-		if err := w.history.RecordState(newRelays, now); err != nil {
+		w.history.RecordState(newRelays, now)
+		if err := w.store.Commit(); err != nil {
 			log.Printf("cannot record state: %v", err)
 		}
+		w.updateState(&currentState, newRelays, firstTime)
+		if w.updater != nil {
+			w.updater.UpdateWorkerState(currentState.Clone())
+		}
 	}
+}
+
+// updateState updates u to reflect the latest state stored in w.history,
+// updating only those entries that are set in changed.
+func (w *Worker) updateState(u *Update, newState hydroctl.RelayState, all bool) {
+	for i := range u.Relays {
+		if !all && newState.IsSet(i) == u.State.IsSet(i) {
+			continue
+		}
+		on, t := w.history.LatestChange(i)
+		if on != newState.IsSet(i) {
+			panic(errgo.Newf("unexpected result from history; relay %d expected %v got %v %v", i, newState.IsSet(i), on, t))
+		}
+		u.Relays[i] = RelayUpdate{
+			On:    on,
+			Since: t,
+		}
+	}
+	u.State = newState
+}
+
+// Update holds information about the current worker state.
+type Update struct {
+	State  hydroctl.RelayState
+	Relays [hydroctl.MaxRelayCount]RelayUpdate
+}
+
+// Clone returns a copy of *u.
+func (u *Update) Clone() *Update {
+	u1 := *u
+	return &u1
+}
+
+// RelayUpdate holds information about the current state of a relay.
+type RelayUpdate struct {
+	On    bool
+	Since time.Time
 }
