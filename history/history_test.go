@@ -1,6 +1,8 @@
 package history_test
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"time"
 
 	jc "github.com/juju/testing/checkers"
@@ -112,6 +114,122 @@ func (suite) TestHistory(c *gc.C) {
 		}
 		c.Logf("")
 	}
+}
+
+func (suite) TestDiskStoreCreate(c *gc.C) {
+	d := c.MkDir()
+	path := filepath.Join(d, "history")
+	store, err := history.NewDiskStore(path, time.Now())
+	c.Assert(err, gc.IsNil)
+
+	t0 := time.Unix(1000, int64(time.Millisecond))
+
+	events := []history.Event{{
+		Relay: 2,
+		On:    true,
+		Time:  t0,
+	}, {
+		Relay: 3,
+		On:    true,
+		Time:  t0.Add(time.Second),
+	}, {
+		Relay: 3,
+		On:    false,
+		Time:  t0.Add(2 * time.Second),
+	}}
+
+	store.Append(events[0])
+	store.Append(events[1])
+	err = store.Commit()
+	c.Assert(err, gc.IsNil)
+
+	store.Append(events[2])
+	err = store.Commit()
+	c.Assert(err, gc.IsNil)
+
+	err = store.Close()
+	c.Assert(err, gc.IsNil)
+
+	data, err := ioutil.ReadFile(path)
+	c.Assert(err, gc.IsNil)
+	c.Assert(string(data), gc.Equals, `
+2 1 1000001
+3 1 1001001
+3 0 1002001
+`[1:])
+
+	// Reading when the earliest time is before the earliest
+	// event should give us all events.
+	store, err = history.NewDiskStore(path, t0.Add(-5*time.Second))
+	c.Assert(err, gc.IsNil)
+
+	c.Assert(allEvents(store), jc.DeepEquals, events)
+
+	store.Close()
+
+	// Reading when the earliest time is after the earliest
+	// event should give us only the latest event earlier than "earliest".
+
+	store, err = history.NewDiskStore(path, t0.Add(5*time.Second))
+	c.Assert(err, gc.IsNil)
+
+	c.Assert(allEvents(store), jc.DeepEquals, []history.Event{{
+		Relay: 2,
+		On:    true,
+		Time:  t0,
+	}, {
+		Relay: 3,
+		On:    false,
+		Time:  t0.Add(2 * time.Second),
+	}})
+
+	store.Close()
+
+	// Add some more events.
+	store, err = history.NewDiskStore(path, t0.Add(5*time.Second))
+	c.Assert(err, gc.IsNil)
+
+	store.Append(history.Event{
+		Relay: 4,
+		On:    true,
+		Time:  t0.Add(6 * time.Second),
+	})
+	err = store.Commit()
+	c.Assert(err, gc.IsNil)
+
+	store.Close()
+
+	data, err = ioutil.ReadFile(path)
+	c.Assert(err, gc.IsNil)
+
+	store, err = history.NewDiskStore(path, t0.Add(5*time.Second))
+	c.Assert(err, gc.IsNil)
+
+	c.Logf("store: %#v", store)
+
+	c.Assert(allEvents(store), jc.DeepEquals, []history.Event{{
+		Relay: 2,
+		On:    true,
+		Time:  t0,
+	}, {
+		Relay: 3,
+		On:    false,
+		Time:  t0.Add(2 * time.Second),
+	}, {
+		Relay: 4,
+		On:    true,
+		Time:  t0.Add(6 * time.Second),
+	}})
+}
+
+func allEvents(store history.Store) []history.Event {
+	iter := store.ReverseIter()
+	defer iter.Close()
+	var gotEvents []history.Event
+	for iter.Next() {
+		gotEvents = append([]history.Event{iter.Item()}, gotEvents...)
+	}
+	return gotEvents
 }
 
 func mkRelays(relays ...uint) hydroctl.RelayState {

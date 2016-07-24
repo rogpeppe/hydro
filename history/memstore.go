@@ -24,24 +24,24 @@ func (s *MemStore) Commit() error {
 
 // Append implements Store.ReverseIter.
 func (s *MemStore) ReverseIter() Iterator {
-	return &memIter{
-		i:     len(s.Events),
-		store: s,
+	return &eventsIter{
+		i:      len(s.Events),
+		events: s.Events,
 	}
 }
 
-type memIter struct {
-	i     int
-	store *MemStore
+type eventsIter struct {
+	events []Event
+	i      int
 }
 
 // Close implements Iterator.Close.
-func (iter *memIter) Close() error {
+func (iter *eventsIter) Close() error {
 	return nil
 }
 
 // Next implements Iterator.Next.
-func (iter *memIter) Next() bool {
+func (iter *eventsIter) Next() bool {
 	if iter.i <= 0 {
 		return false
 	}
@@ -50,6 +50,6 @@ func (iter *memIter) Next() bool {
 }
 
 // Item implements Iterator.Item.
-func (iter *memIter) Item() Event {
-	return iter.store.Events[iter.i]
+func (iter *eventsIter) Item() Event {
+	return iter.events[iter.i]
 }

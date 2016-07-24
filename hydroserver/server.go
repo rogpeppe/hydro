@@ -16,13 +16,6 @@ import (
 	_ "github.com/rogpeppe/hydro/statik"
 )
 
-const (
-	darkDuckEgg = 0x558c89
-	midDuckEgg  = 0x74afad
-	orange      = 0xd9853b
-	grey        = 0xececea
-)
-
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -35,6 +28,7 @@ type Handler struct {
 
 type Params struct {
 	RelayCtlAddr string
+	ConfigPath string
 }
 
 func New(p Params) (*Handler, error) {
@@ -43,7 +37,7 @@ func New(p Params) (*Handler, error) {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
 	// TODO initialize the store from stored configuration.
-	store, err := newStore()
+	store, err := newStore(p.ConfigPath)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot make store")
 	}

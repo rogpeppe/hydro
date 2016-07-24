@@ -12,6 +12,9 @@ import (
 )
 
 type store struct {
+	// path holds the file name where the configuration is stored.
+	path string
+
 	// configVal is update when the configuration changes.
 	configVal voyeur.Value
 	// anyVal is updated when any value (config, meters or worker state)
