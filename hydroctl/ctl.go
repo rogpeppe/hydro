@@ -52,6 +52,10 @@ type RelayConfig struct {
 
 	InUse    []*Slot
 	NotInUse []*Slot
+
+	// Cohort holds the cohort that this relay is a part
+	// of. This is for informational purposes only.
+	Cohort string
 }
 
 // At returns the slot that is applicable to the given time

@@ -137,25 +137,34 @@ type clientUpdate struct {
 }
 
 type clientRelayInfo struct {
-	Relay int
-	On    bool
-	Since time.Time
+	Cohort string
+	Relay  int
+	On     bool
+	Since  time.Time
 }
 
 func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
+	cfg := h.store.CtlConfig()
 	var u clientUpdate
-	if ws == nil {
-		return u
+	if ws == nil || len(ws.Relays) == 0 {
+		return clientUpdate{
+			Relays: []clientRelayInfo{}, // be nice to JS and don't give it null.
+		}
 	}
 	for i, r := range ws.Relays {
 		if r.Since.IsZero() && !r.On {
 			continue
 		}
+		cohort := ""
+		if cfg != nil && len(cfg.Relays) > i {
+			cohort = cfg.Relays[i].Cohort
+		}
 		u.Relays = append(u.Relays, clientRelayInfo{
-			Relay: i,
-			On:    r.On,
-			Since: r.Since,
+			Cohort: cohort,
+			Relay:  i,
+			On:     r.On,
+			Since:  r.Since,
 		})
 	}
 	// TODO read meters

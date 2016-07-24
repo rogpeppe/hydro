@@ -45,6 +45,14 @@ func (s *store) CtlConfig() *hydroctl.Config {
 	return s.config.CtlConfig()
 }
 
+// Config returns the current relay configuration;
+// the caller should not mutate the returned value.
+func (s *store) Config() *hydroconfig.Config {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.config
+}
+
 // SetConfigText sets the configuration to the given string.
 func (s *store) SetConfigText(text string) error {
 	cfg, err := hydroconfig.Parse(text)

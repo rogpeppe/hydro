@@ -22,34 +22,61 @@ var indexHTML = `<!DOCTYPE html>
 				max-width: 900px;
 				margin: 0 auto;
 			}
+			td {
+				padding: 10px;
+			}
+			th {
+				padding: 10px;
+			}
 			
 			.content {margin:10px;}
 		</style>
 	</head>
 
 	<body >
-		<a href="/config">Change configuration</a>
+		<script type="text/babel">
+		` + prog + `
+		</script>
+		<div id="topLevel"></div>
 	</body>
 </html>
 `
 
-//		<script type="text/babel">
-//		` + prog + `
-//		</script>
-
-//index.html
-//
-//	show current status
-//	show button "Settings"
-//
-//current status:
-//
-//	current "on" status of each relay
-//	current power in use, etc
-
-//<html>
-//<a href="/settings">Settings</a>
-//<table>
-//	<tr><td>Bedrooms</td><td>Relay 1</td><td>On</td></tr>
-//	<tr><td></td>Relay 5</td><td>Off</td></tr>
-//</table>
+var prog = `
+	function wsURL(path) {
+		var loc = window.location, scheme;
+		if (loc.protocol === "https:") {
+			scheme = "wss:";
+		} else {
+			scheme = "ws:";
+		}
+		return scheme + "//" + loc.host + path;
+	};
+	var Relays = React.createClass({
+		render: function() {
+			return <table>
+				<thead>
+					<tr><th>Cohort</th><th>Relay</th><th>Status</th><th>Since</th></tr>
+				</thead>
+				<tbody>
+				{
+					this.props.relays.map(function(relay){
+						return <tr><td>{relay.Cohort}</td><td>{relay.Relay}</td><td>{relay.On ? "on" : "off"}</td><td>{relay.Since}</td></tr>
+					})
+				}
+				</tbody>
+			</table>
+		}
+	})
+	var socket = new ReconnectingWebSocket(wsURL("/updates"));
+	socket.onmessage = function(event) {
+		var m = JSON.parse(event.data);
+		console.log("message", event.data)
+		ReactDOM.render(
+			<div>
+				<a href="/config">Change configuration</a>
+				<p/>
+				<Relays relays={m.Relays}/>
+			</div>, document.getElementById("topLevel"));
+	};
+`

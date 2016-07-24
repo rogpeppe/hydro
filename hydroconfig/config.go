@@ -43,6 +43,7 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 				MaxPower: cohort.MaxPower,
 				InUse:    cohort.InUseSlots,
 				NotInUse: cohort.NotInUseSlots,
+				Cohort:   cohort.Name,
 			}
 		}
 	}
