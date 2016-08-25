@@ -28,7 +28,7 @@ type Handler struct {
 
 type Params struct {
 	RelayCtlAddr string
-	ConfigPath string
+	ConfigPath   string
 }
 
 func New(p Params) (*Handler, error) {
