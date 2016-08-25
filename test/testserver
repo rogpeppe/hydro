@@ -1,0 +1,24 @@
+#!/usr/bin/env rc
+
+if(! ~ $#* 0) {
+	d=$1
+}
+if not {
+	d=`{mktemp -d}
+}
+echo state dir $d
+relayaddr=localhost:34931
+srvaddr=localhost:8089
+cat > $d/config.rjson << EOF
+{
+	RelayAddr: "$relayaddr"
+	ListenAddr: "$srvaddr"
+	StateDir: "$d"
+}
+EOF
+relaysrv $relayaddr &
+relaypid=$apid
+fn sigexit sigint {
+	kill $relaypid
+}
+hydroserver $d/config.rjson

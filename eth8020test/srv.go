@@ -20,17 +20,17 @@ type Server struct {
 	state eth8020.State
 }
 
-func NewServer() *Server {
-	lis, err := net.Listen("tcp", "localhost:0")
+func NewServer(addr string) (*Server, error) {
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	srv := &Server{
 		Addr: lis.Addr().String(),
 		lis:  lis,
 	}
 	go srv.run()
-	return srv
+	return srv, nil
 }
 
 func (srv *Server) run() {

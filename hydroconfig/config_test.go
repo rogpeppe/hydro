@@ -52,7 +52,7 @@ bedrooms on from 17:00 to 20:00
 		}},
 	},
 }, {
-	about: "multple slots",
+	about: "multiple slots",
 	config: `
 relay 6 is dining room
 
@@ -83,6 +83,10 @@ dining room on from 10:00 to 12pm
 			}},
 		}},
 	},
+}, {
+	about:  "empty config",
+	config: "",
+	expect: &hydroconfig.Config{},
 }}
 
 func (*configSuite) TestParse(c *gc.C) {
@@ -131,6 +135,7 @@ var ctlConfigTests = []struct {
 	expect: hydroctl.Config{
 		Relays: mkSlots([hydroctl.MaxRelayCount]hydroctl.RelayConfig{
 			1: {
+				Cohort:   "one",
 				MaxPower: 500,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
@@ -141,6 +146,7 @@ var ctlConfigTests = []struct {
 				}},
 			},
 			2: {
+				Cohort:   "two",
 				MaxPower: 1000,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
@@ -151,6 +157,7 @@ var ctlConfigTests = []struct {
 				}},
 			},
 			4: {
+				Cohort:   "one",
 				MaxPower: 500,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
@@ -161,6 +168,7 @@ var ctlConfigTests = []struct {
 				}},
 			},
 			5: {
+				Cohort:   "two",
 				MaxPower: 1000,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{

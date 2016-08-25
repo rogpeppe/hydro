@@ -1,6 +1,8 @@
 package hydroserver
 
 import (
+	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/juju/utils/voyeur"
@@ -22,14 +24,24 @@ type store struct {
 	anyVal      voyeur.Value
 	mu          sync.Mutex
 	config      *hydroconfig.Config
-	meters      *hydroctl.MeterReading
 	workerState *hydroworker.Update
+	meters      *hydroctl.MeterReading
 	configText  string
 }
 
-func newStore() (*store, error) {
+func newStore(path string) (*store, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, errgo.Mask(err)
+	}
+	cfg, err := hydroconfig.Parse(string(data))
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
 	return &store{
-		config: &hydroconfig.Config{},
+		path:       path,
+		config:     cfg,
+		configText: string(data),
 	}, nil
 }
 
@@ -48,15 +60,15 @@ func (s *store) CtlConfig() *hydroctl.Config {
 	return s.config.CtlConfig()
 }
 
-// Config returns the current relay configuration;
-// the caller should not mutate the returned value.
+// Config returns the current relay configuration. The returned value
+// must not be mutated.
 func (s *store) Config() *hydroconfig.Config {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.config
 }
 
-// SetConfigText sets the configuration to the given string.
+// SetConfigText sets the relay configuration to the given string.
 func (s *store) SetConfigText(text string) error {
 	cfg, err := hydroconfig.Parse(text)
 	if err != nil {
@@ -64,6 +76,13 @@ func (s *store) SetConfigText(text string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if text == s.configText {
+		return nil
+	}
+	// TODO write config atomically.
+	if err := ioutil.WriteFile(s.path, []byte(text), 0666); err != nil {
+		return errgo.Notef(err, "cannot write relay config file")
+	}
 	s.config = cfg
 	s.configText = text
 	// Notify any watchers.
@@ -73,6 +92,7 @@ func (s *store) SetConfigText(text string) error {
 }
 
 // UpdateWorkerState sets the current worker state.
+// It implements hydroworker.Updater.UpdaterWorkerState.
 func (s *store) UpdateWorkerState(u *hydroworker.Update) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

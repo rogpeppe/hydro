@@ -52,19 +52,18 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 	}
 }
 
-/*
-Sample config:
-
-relay 6 is dining room
-relays 0, 4, 5 are bedrooms
-
-dining room on from 14:30 to 20:45 for at least 20m
-bedrooms on from 17:00 to 20:00
-*/
-// TODO in use/not in use
-// TODO maxpower
-
+// Parse parses the contents of a hydro configuration file.
+//
+// A sample config:
+//
+//	relay 6 is dining room
+//	relays 0, 4, 5 are bedrooms
+//
+//	dining room on from 14:30 to 20:45 for at least 20m
+//	bedrooms on from 17:00 to 20:00
 func Parse(s string) (*Config, error) {
+	// TODO in use/not in use
+	// TODO maxpower
 	p := &configParser{
 		assignedRelays: make(map[int]string),
 	}

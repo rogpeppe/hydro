@@ -29,6 +29,7 @@ type Handler struct {
 type Params struct {
 	RelayCtlAddr string
 	ConfigPath   string
+	HistoryPath  string
 }
 
 func New(p Params) (*Handler, error) {
@@ -36,14 +37,17 @@ func New(p Params) (*Handler, error) {
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
-	// TODO initialize the store from stored configuration.
 	store, err := newStore(p.ConfigPath)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot make store")
 	}
+	historyStore, err := history.NewDiskStore(p.HistoryPath, time.Now().Add(-7*24*time.Hour))
+	if err != nil {
+		return nil, errgo.Notef(err, "cannot open history file")
+	}
 	w, err := hydroworker.New(hydroworker.Params{
 		Config:     store.CtlConfig(),
-		Store:      new(history.MemStore),
+		Store:      historyStore,
 		Updater:    store,
 		Controller: newRelayController(p.RelayCtlAddr, ""),
 		Meters:     meterReader{},
