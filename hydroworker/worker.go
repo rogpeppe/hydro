@@ -89,7 +89,6 @@ func New(p Params) (*Worker, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
-
 	w := &Worker{
 		store:      p.Store,
 		controller: p.Controller,
@@ -98,8 +97,16 @@ func New(p Params) (*Worker, error) {
 		updater:    p.Updater,
 		cfgChan:    make(chan *hydroctl.Config),
 	}
+	if w.updater == nil {
+		w.updater = nopUpdater{}
+	}
 	go w.run(p.Config)
 	return w, nil
+}
+
+type nopUpdater struct{}
+
+func (nopUpdater) UpdateWorkerState(*Update) {
 }
 
 // SetConfig sets the current configuration.
@@ -136,32 +143,36 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 		currentMeters, err := w.meters.ReadMeters()
 		if err != nil {
 			log.Printf("cannot get current meter reading: %v", err)
-			// What should we actually do here? Perhaps continuing would
-			// be better.
+			// What should we actually do here? Is continuing the right choice?
 			continue
 		}
 		now := time.Now()
 		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, now)
-		if newRelays == currentRelays {
-			continue
+		changed := newRelays != currentRelays
+		if changed {
+			if err := w.controller.SetRelays(newRelays); err != nil {
+				log.Printf("cannot set relay state: %v", err)
+				continue
+			}
 		}
-		if err := w.controller.SetRelays(newRelays); err != nil {
-			log.Printf("cannot set relay state: %v", err)
-			continue
-		}
-		w.history.RecordState(newRelays, now)
-		if err := w.store.Commit(); err != nil {
-			log.Printf("cannot record state: %v", err)
-		}
-		w.updateState(&currentState, newRelays, firstTime)
-		if w.updater != nil {
+		if firstTime || changed {
+			// The first time through the loop, even if the relay state might not
+			// have changed from the actual state, the history might not
+			// reflect the current state, so record it anyway.
+			w.history.RecordState(newRelays, now)
+			if err := w.store.Commit(); err != nil {
+				log.Printf("cannot record state: %v", err)
+			}
+			w.updateState(&currentState, newRelays, firstTime)
 			w.updater.UpdateWorkerState(currentState.Clone())
+			firstTime = false
 		}
 	}
 }
 
 // updateState updates u to reflect the latest state stored in w.history,
-// updating only those entries that are set in changed.
+// updating only those entries that have changed value,
+// unless all is true, in which case all entries are updated.
 func (w *Worker) updateState(u *Update, newState hydroctl.RelayState, all bool) {
 	for i := range u.Relays {
 		if !all && newState.IsSet(i) == u.State.IsSet(i) {
