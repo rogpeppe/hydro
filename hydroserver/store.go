@@ -72,7 +72,7 @@ func (s *store) Config() *hydroconfig.Config {
 func (s *store) SetConfigText(text string) error {
 	cfg, err := hydroconfig.Parse(text)
 	if err != nil {
-		return errgo.Mask(err)
+		return errgo.Mask(err, errgo.Any)
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()

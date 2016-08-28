@@ -29,6 +29,8 @@ func (t text) eqFold(s string) bool {
 	return strings.EqualFold(t.s, s)
 }
 
+// word returns the non-whitespace run of runes in in t starting after any leading
+// white space and the rest of the text following that.
 func (t text) word() (text, text) {
 	found := false
 	start := 0
@@ -84,7 +86,16 @@ func (t text) trimSpace() text {
 	return t
 }
 
+func (t text) trimWord(p string) (text, bool) {
+	tw, t1 := t.word()
+	if tw.eqFold(p) {
+		return t1, true
+	}
+	return t, false
+}
+
 func (t text) trimPrefix(p string) (text, bool) {
+	t0 := t
 	pfields := strings.Fields(p)
 	for {
 		if len(pfields) == 0 {
@@ -93,10 +104,10 @@ func (t text) trimPrefix(p string) (text, bool) {
 		var tw text
 		tw, t = t.word()
 		if len(tw.s) == 0 {
-			return text{}, false
+			return t, false
 		}
 		if !tw.eqFold(pfields[0]) {
-			return text{}, false
+			return t0, false
 		}
 		pfields = pfields[1:]
 	}

@@ -102,7 +102,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.mux.ServeHTTP(w, req)
 }
 
-func (h *Handler) badRequest(w http.ResponseWriter, req *http.Request, err error) {
+func badRequest(w http.ResponseWriter, req *http.Request, err error) {
 	log.Printf("bad request: %v", err)
 	http.Error(w, fmt.Sprintf("bad request (%s %v): %v", req.Method, req.URL, err), http.StatusBadRequest)
 }

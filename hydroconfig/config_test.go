@@ -84,10 +84,58 @@ dining room on from 10:00 to 12pm
 		}},
 	},
 }, {
+	about: "slot with is/are",
+	config: `
+Relay 6 is dining room.
+Relays 7, 8 are bedrooms.
+
+Dining room is from 14:00 to 15:00.
+Bedrooms are on from 12:00 to 1pm
+`,
+	expect: &hydroconfig.Config{
+		Cohorts: []hydroconfig.Cohort{{
+			Name:   "bedrooms",
+			Relays: []int{7, 8},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("12h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}, {
+			Name:   "dining room",
+			Relays: []int{6},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("14h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}},
+	},
+}, {
 	about:  "empty config",
 	config: "",
 	expect: &hydroconfig.Config{},
 }}
+
+// awkward failing test for now.
+// Fix it later.
+//{
+//	about: "cohort with no spaces between relay numbers",
+//	config: `
+//relays 7,8,10 are bedrooms
+//`,
+//	expect: &hydroconfig.Config{
+//		Cohorts: []hydroconfig.Cohort{{
+//			Name: "bedrooms",
+//			Relays: []int{7, 8, 10},
+//			Mode: hydroctl.InUse,
+//		}},
+//	},
+//},
 
 func (*configSuite) TestParse(c *gc.C) {
 	for i, test := range parseTests {

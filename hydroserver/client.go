@@ -60,8 +60,8 @@ var prog = `
 				</thead>
 				<tbody>
 				{
-					this.props.relays.map(function(relay){
-						return <tr><td>{relay.Cohort}</td><td>{relay.Relay}</td><td>{relay.On ? "on" : "off"}</td><td>{relay.Since}</td></tr>
+					this.props.relays && this.props.relays.map(function(relay){
+						return <tr><td>{relay.Cohort}</td><td><a href={"/relay/" + relay.Relay}>{relay.Relay}</a></td><td>{relay.On ? "on" : "off"}</td><td>{relay.Since}</td></tr>
 					})
 				}
 				</tbody>

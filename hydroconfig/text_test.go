@@ -87,6 +87,22 @@ var wordTests = []struct {
 		p0: 16,
 		p1: 22,
 	},
+}, {
+	t: text{
+		s:  "a b",
+		p0: 0,
+		p1: 1,
+	},
+	expect: text{
+		s:  "a",
+		p0: 0,
+		p1: 1,
+	},
+	expectRest: text{
+		s:  " b",
+		p0: 1,
+		p1: 3,
+	},
 }}
 
 func (*textSuite) TestWord(c *gc.C) {
@@ -122,10 +138,23 @@ var trimPrefixTests = []struct {
 	},
 	expectOK: true,
 }, {
-	t:        newText("   Hewllo"),
-	prefix:   " hello  There ",
-	expect:   text{},
+	t:      newText("   Hewllo"),
+	prefix: " hello  There ",
+	expect: text{
+		s:  "   Hewllo",
+		p0: 0,
+		p1: 9,
+	},
 	expectOK: false,
+}, {
+	t:      newText("Dining room on"),
+	prefix: "dining room",
+	expect: text{
+		s:  " on",
+		p0: 11,
+		p1: 14,
+	},
+	expectOK: true,
 }}
 
 func (*textSuite) TestTrimPrefix(c *gc.C) {

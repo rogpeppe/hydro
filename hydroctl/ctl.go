@@ -263,7 +263,7 @@ func canSetRelay(hist History, relay int, on bool, now time.Time) bool {
 	if t.IsZero() || now.Sub(t) >= MinimumChangeDuration {
 		return true
 	}
-	log.Printf("cannot set relay %v (latestOn %v; delta %v)", relay, latestOn, now.Sub(t))
+	log.Printf("too soon to set relay %v (latestOn %v; delta %v)", relay, latestOn, now.Sub(t))
 	return false
 }
 

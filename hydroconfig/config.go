@@ -3,10 +3,12 @@ package hydroconfig
 import (
 	"fmt"
 	"github.com/rogpeppe/hydro/hydroctl"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // Config represents a control system configuration as specified
@@ -53,6 +55,8 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 }
 
 // Parse parses the contents of a hydro configuration file.
+// On error it returns a *ConfigParseError containing
+// any errors found.
 //
 // A sample config:
 //
@@ -93,6 +97,11 @@ type configParser struct {
 }
 
 func (p *configParser) addLine(t text) {
+	t = t.trimSpace()
+	// Trim off any final full stop.
+	if strings.HasSuffix(t.s, ".") {
+		t = t.slice(0, len(t.s)-1)
+	}
 	word, rest := t.word()
 	if word.s == "" {
 		return
@@ -114,9 +123,10 @@ func (p *configParser) addLine(t text) {
 			t = rest
 			break
 		}
+		log.Printf("trimPrefix %q on %#v", c.Name, t)
 	}
 	if found == nil {
-		p.errorf(t, "unrecognised line")
+		p.errorf(t, "line must start with 'relay' or relay cohort name")
 		return
 	}
 	if slot := p.parseSlot(t); slot != nil {
@@ -127,13 +137,19 @@ func (p *configParser) addLine(t text) {
 func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 	// "on from 14:30 to 20:45 for at least 20m"
 	// "on from 17:00 to 20:00"
-	word, rest := t.word()
-	if word.s == "on" {
-		t = rest
+	// "is on from..."
+	// "are on from..."
+
+	t, ok := t.trimWord("is")
+	if !ok {
+		t, ok = t.trimWord("are")
 	}
-	word, rest = t.word()
+	// Technically "foo is from 12pm..." doesn't read well, but it's easier to allow it.
+	t, _ = t.trimWord("on")
+
+	word, rest := t.word()
 	if word.s != "from" {
-		p.errorf(t, "expected 'from'")
+		p.errorf(word, "expected 'from'")
 		return nil
 	}
 	var slot hydroctl.Slot
@@ -146,7 +162,7 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 
 	word, rest = t.word()
 	if word.s != "to" {
-		p.errorf(t, "expected 'to'")
+		p.errorf(word, "expected 'to'")
 		return nil
 	}
 	t = rest
@@ -198,7 +214,6 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 
 var timeFormats = []string{
 	"15:04",
-	"15:04",
 	"3pm",
 	"3:04pm",
 }
@@ -217,7 +232,7 @@ func (p *configParser) parseTime(t text) (time.Duration, text, bool) {
 				true
 		}
 	}
-	p.errorf(t, "invalid time value %q", word.s)
+	p.errorf(word, "invalid time value %q. Can use 15:04, 3pm, 3:04pm.", word.s)
 	return 0, text{}, false
 }
 
@@ -230,7 +245,7 @@ func (p *configParser) addCohort(t text) {
 	for {
 		word, rest := t.word()
 		if word.s == "" {
-			p.errorf(t, "expected relay number")
+			p.errorf(t, "expected relay number, got %q", word.s)
 			return
 		}
 		t = rest
@@ -277,6 +292,10 @@ func (p *configParser) addCohort(t text) {
 	})
 }
 
+func isSpaceOrDigit(r rune) bool {
+	return unicode.IsSpace(r) || '0' <= r && r <= '9'
+}
+
 func (p *configParser) errorf(t text, f string, a ...interface{}) {
 	p.errors = append(p.errors, ParseError{
 		P0:      t.p0,
@@ -290,7 +309,9 @@ type ConfigParseError struct {
 	Errors []ParseError
 }
 
+// ParseError holds a single parse error.
 type ParseError struct {
+	// [P0, P1] is the range of text the error pertains to.
 	P0, P1  int
 	Message string
 }

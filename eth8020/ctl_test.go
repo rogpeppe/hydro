@@ -14,7 +14,8 @@ type suite struct{}
 var _ = gc.Suite(suite{})
 
 func (suite) TestGetSetOutputs(c *gc.C) {
-	srv := eth8020test.NewServer()
+	srv, err := eth8020test.NewServer("localhost:0")
+	c.Assert(err, gc.IsNil)
 	defer srv.Close()
 	netc, err := net.Dial("tcp", srv.Addr)
 	c.Assert(err, gc.IsNil)
