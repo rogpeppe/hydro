@@ -19,7 +19,6 @@ estimate the max power by using a statistical measure
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ import (
 	"gopkg.in/errgo.v1"
 )
 
-var Debug = false
+var Debug = true
 
 // MinimumChangeDuration holds the minimum length of time
 // between turning on relays.
@@ -255,7 +254,7 @@ type assessedRelay struct {
 // be switched to the given on value. We don't change
 // the state of any relay if it's been in the other state
 // recently.
-func canSetRelay(hist History, relay int, on bool, now time.Time) bool {
+func (a assessor) canSetRelay(hist History, relay int, on bool, now time.Time) bool {
 	latestOn, t := hist.LatestChange(relay)
 	if on == latestOn {
 		return true
@@ -263,8 +262,23 @@ func canSetRelay(hist History, relay int, on bool, now time.Time) bool {
 	if t.IsZero() || now.Sub(t) >= MinimumChangeDuration {
 		return true
 	}
-	log.Printf("too soon to set relay %v (latestOn %v; delta %v)", relay, latestOn, now.Sub(t))
+	a.logf("too soon to set relay %v (latestOn %v; delta %v)", relay, latestOn, now.Sub(t))
 	return false
+}
+
+// Logger is the interface used by Assess to log the reasons for the assessment.
+type Logger interface {
+	Log(s string)
+}
+
+type assessor struct {
+	logger Logger
+}
+
+func (a assessor) logf(f string, args ...interface{}) {
+	if a.logger != nil {
+		a.logger.Log(fmt.Sprintf(f, args...))
+	}
 }
 
 // Assess assesses what the new state of the power-controlling relays should be
@@ -273,7 +287,10 @@ func canSetRelay(hist History, relay int, on bool, now time.Time) bool {
 // It ensures that no more than one relay is turned on within MinimumChangeDuration
 // to prevent power surges, and similarly that if a relay was turned on or off recently, we
 // don't change its state too soon.
-func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReading, now time.Time) RelayState {
+func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReading, logger Logger, now time.Time) RelayState {
+	a := assessor{
+		logger: logger,
+	}
 	newState := currentState
 	assessed := make([]assessedRelay, 0, len(cfg.Relays))
 
@@ -286,18 +303,16 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 	earliestPossibleStart := now.Add(-24 * time.Hour)
 	added := -1 // Number of first relay with absolute priority to be turned on.
 	for i, rc := range cfg.Relays {
-		on, pri := assessRelay(i, &rc, hist, now)
+		on, pri := a.assessRelay(i, &rc, hist, now)
 		if pri == priAbsolute {
-			if Debug {
-				log.Printf("relay %d has absolute priority %v (current state %v)", i, pri, currentState.IsSet(i))
-			}
+			a.logf("relay %d has absolute priority %v (current state %v)", i, pri, currentState.IsSet(i))
 			if on {
 				if !currentState.IsSet(i) && added == -1 {
 					// The relay is not already on and no other relay
 					// is being turned on.
 					added = i
 				}
-			} else if canSetRelay(hist, i, false, now) {
+			} else if a.canSetRelay(hist, i, false, now) {
 				newState.Set(i, false)
 			}
 			continue
@@ -334,9 +349,9 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 		// TODO only turn off discretionary power if there's
 		// not enough power available to cope with the
 		// max power usable by the newly added relay.
-		for _, a := range assessed {
-			if canSetRelay(hist, a.relay, false, now) {
-				newState.Set(a.relay, false)
+		for _, ar := range assessed {
+			if a.canSetRelay(hist, ar.relay, false, now) {
+				newState.Set(ar.relay, false)
 			}
 		}
 		newState.Set(added, true)
@@ -346,6 +361,10 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 		assessed[i].onDuration = hist.OnDuration(i, earliestStart, now)
 	}
 	sort.Sort(assessedByPriority(assessed))
+	for i, ar := range assessed {
+		a.logf("sort %d: relay %d; pri %v; on %v", i, ar.relay, ar.pri, ar.onDuration)
+	}
+	a.logf("meter import %v", meter.Import)
 	if meter.Import > 0 {
 		// We're importing electricity. This must stop forthwith.
 		// How do we decide how many meters to turn off?
@@ -371,28 +390,39 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 		// regain is the measure of how much power we need
 		// to stop using to get under the required limit.
 		regain := meter.Here - meter.Total()/2
+		a.logf("need to regain %d", regain)
 		for _, r := range assessed {
 			if regain <= 0 {
 				break
 			}
-			if !canSetRelay(hist, r.relay, false, now) {
+			if !currentState.IsSet(r.relay) {
+				// Relay is already off - we won't change anything if we switch it off.
 				continue
 			}
+			if !a.canSetRelay(hist, r.relay, false, now) {
+				a.logf("would like to turn off %d but can't", r.relay)
+				continue
+			}
+			a.logf("regaining by turning off %v", r.relay)
 			newState.Set(r.relay, false)
 			regain -= cfg.Relays[r.relay].MaxPower
 		}
 	} else if canTurnOn {
+		a.logf("we can turn on something")
 		for i := len(assessed) - 1; i >= 0; i-- {
-			a := &assessed[i]
-			if currentState.IsSet(a.relay) {
+			ar := &assessed[i]
+			if currentState.IsSet(ar.relay) {
 				// The relay is already on; leave it that way.
+				a.logf("%d is already on; leaving it that way", ar.relay)
 				continue
 			}
-			if canSetRelay(hist, a.relay, true, now) {
+			if a.canSetRelay(hist, ar.relay, true, now) {
 				// Turn on just the one relay.
-				newState.Set(a.relay, true)
+				a.logf("turning on %d", ar.relay)
+				newState.Set(ar.relay, true)
 				break
 			}
+			a.logf("would like to turn on %d but can't", ar.relay)
 		}
 	}
 	return newState
@@ -443,11 +473,9 @@ func (ap assessedByPriority) Len() int {
 	return len(ap)
 }
 
-func assessRelay(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
-	on, pri = assessRelay0(relay, rc, hist, now)
-	if Debug {
-		log.Printf("assessRelay %d -> %v %v", relay, on, pri)
-	}
+func (a assessor) assessRelay(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
+	on, pri = a.assessRelay0(relay, rc, hist, now)
+	a.logf("assessRelay %d -> %v %v", relay, on, pri)
 	return
 }
 
@@ -455,7 +483,7 @@ func assessRelay(relay int, rc *RelayConfig, hist History, now time.Time) (on bo
 // respect to its configuration and history at the given time.
 // It returns the desired state and how important it is to
 // put the relay in that state.
-func assessRelay0(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
+func (a assessor) assessRelay0(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
 	switch rc.Mode {
 	case AlwaysOff:
 		return false, priAbsolute
@@ -466,33 +494,23 @@ func assessRelay0(relay int, rc *RelayConfig, hist History, now time.Time) (on b
 	if slot == nil {
 		return false, priAbsolute
 	}
-	if Debug {
-		log.Printf("at %v, got slot %v starting at %v", D(now), slot, D(start))
-	}
-
 	dur := hist.OnDuration(relay, start, now)
+	a.logf("got slot %v starting at %v, has %v", slot, D(start), dur)
+
 	switch {
 	case (slot.Kind == Exactly || slot.Kind == AtLeast) && start.Add(slot.SlotDuration).Sub(now) <= slot.Duration-dur:
-		if Debug {
-			log.Printf("must use all remaining time")
-		}
+		a.logf("must use all remaining time")
 		// All the remaining time must be used.
 		return true, priAbsolute
 	case (slot.Kind == Exactly || slot.Kind == AtMost) && dur >= slot.Duration:
-		if Debug {
-			log.Printf("already had the time")
-		}
+		a.logf("already had the time")
 		// Already had the time we require.
 		return false, priAbsolute
 	case slot.Kind == Exactly || slot.Kind == AtLeast:
-		if Debug {
-			log.Printf("need more discretionary time")
-		}
+		a.logf("want more discretionary time")
 		return true, priHigh
 	case slot.Kind == AtMost:
-		if Debug {
-			log.Printf("could use more time")
-		}
+		a.logf("could use more time")
 		return true, priLow
 	default:
 		panic("unreachable")

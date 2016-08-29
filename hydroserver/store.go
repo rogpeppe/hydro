@@ -116,7 +116,18 @@ func (s *store) WorkerState() *hydroworker.Update {
 func (s *store) ReadMeters() (hydroctl.MeterReading, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	// TODO derive readings from current meter state.
 
-	return hydroctl.MeterReading{}, nil
+	if s.workerState == nil {
+		return hydroctl.MeterReading{}, nil
+	}
+	total := 0
+	for i := 0; i < hydroctl.MaxRelayCount; i++ {
+		if s.workerState.State.IsSet(i) {
+			total += s.config.Relays[i].MaxPower
+		}
+	}
+	return hydroctl.MeterReading{
+		Here:   total,
+		Import: total,
+	}, nil
 }

@@ -510,6 +510,49 @@ var assessTests = []struct {
 		expectState: mkRelays(2),
 		transition:  true,
 	}},
+}, {
+	about: "Given two discsretionary relays that could be on and we're importing, don't switch either on",
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
+			MaxPower: 1000,
+			InUse: []*hydroctl.Slot{{
+				Start:        10 * time.Hour,
+				SlotDuration: time.Hour,
+				Kind:         hydroctl.AtLeast,
+				Duration:     5 * time.Minute,
+			}},
+		}, {
+			Mode:     hydroctl.InUse,
+			MaxPower: 1000,
+			InUse: []*hydroctl.Slot{{
+				Start:        10 * time.Hour,
+				SlotDuration: time.Hour,
+				Kind:         hydroctl.AtLeast,
+				Duration:     5 * time.Minute,
+			}},
+		}},
+	},
+	assessNowTests: []assessNowTest{{
+		now:         T(10).Add(0),
+		expectState: mkRelays(0),
+		transition:  true,
+	}, {
+		now:         T(10).Add(time.Second),
+		expectState: mkRelays(0),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
+	}, {
+		now:         T(10).Add(5 * time.Minute),
+		expectState: mkRelays(1),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
+		transition: true,
+	}},
 }}
 
 //, {
@@ -556,15 +599,23 @@ func (suite) TestAssess(c *gc.C) {
 				// Check just before the test time to make
 				// sure the state is unchanged from the
 				// previous test.
-				newState := hydroctl.Assess(&test.cfg, state, history, prevMeters, innertest.now.Add(-1))
+				newState := hydroctl.Assess(&test.cfg, state, history, prevMeters, clogger{c}, innertest.now.Add(-1))
 				c.Assert(newState, gc.Equals, state, gc.Commentf("previous state"))
 			}
-			state = hydroctl.Assess(&test.cfg, state, history, innertest.meters, innertest.now)
+			state = hydroctl.Assess(&test.cfg, state, history, innertest.meters, clogger{c}, innertest.now)
 			c.Assert(state, gc.Equals, innertest.expectState)
 			history.RecordState(state, innertest.now)
 			c.Logf("new history: %v", &history)
 		}
 	}
+}
+
+type clogger struct {
+	c *gc.C
+}
+
+func (l clogger) Log(s string) {
+	l.c.Logf("assess: %s", s)
 }
 
 func mkRelays(relays ...uint) hydroctl.RelayState {

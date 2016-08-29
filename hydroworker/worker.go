@@ -147,13 +147,16 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			continue
 		}
 		now := time.Now()
-		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, now)
+		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, logger{}, now)
 		changed := newRelays != currentRelays
 		if changed {
+			log.Printf("relay state changed to %v", newRelays)
 			if err := w.controller.SetRelays(newRelays); err != nil {
 				log.Printf("cannot set relay state: %v", err)
 				continue
 			}
+		} else {
+			log.Printf("relay state unchanged at %v", newRelays)
 		}
 		if firstTime || changed {
 			// The first time through the loop, even if the relay state might not
@@ -168,6 +171,12 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			firstTime = false
 		}
 	}
+}
+
+type logger struct{}
+
+func (logger) Log(s string) {
+	log.Print(s)
 }
 
 // updateState updates u to reflect the latest state stored in w.history,
