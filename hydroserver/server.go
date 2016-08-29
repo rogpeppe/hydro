@@ -50,7 +50,8 @@ func New(p Params) (*Handler, error) {
 		Store:      historyStore,
 		Updater:    store,
 		Controller: newRelayController(p.RelayCtlAddr, ""),
-		Meters:     meterReader{},
+		// TODO use actual meter reader.
+		Meters: store,
 	})
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start worker")
@@ -105,12 +106,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func badRequest(w http.ResponseWriter, req *http.Request, err error) {
 	log.Printf("bad request: %v", err)
 	http.Error(w, fmt.Sprintf("bad request (%s %v): %v", req.Method, req.URL, err), http.StatusBadRequest)
-}
-
-func (h *Handler) ReadMeters() (hydroctl.MeterReading, error) {
-	// TODO initially derive readings from current meter state.
-	// TODO read actual meter readings or scrape off the web.
-	return hydroctl.MeterReading{}, nil
 }
 
 type update struct {

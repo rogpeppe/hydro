@@ -25,7 +25,8 @@ func (t text) slice(p0, p1 int) text {
 	}
 }
 
-func (t text) eqFold(s string) bool {
+// eq reports whether the given text is s, case insentifively.
+func (t text) eq(s string) bool {
 	return strings.EqualFold(t.s, s)
 }
 
@@ -88,7 +89,7 @@ func (t text) trimSpace() text {
 
 func (t text) trimWord(p string) (text, bool) {
 	tw, t1 := t.word()
-	if tw.eqFold(p) {
+	if tw.eq(p) {
 		return t1, true
 	}
 	return t, false
@@ -106,7 +107,7 @@ func (t text) trimPrefix(p string) (text, bool) {
 		if len(tw.s) == 0 {
 			return t, false
 		}
-		if !tw.eqFold(pfields[0]) {
+		if !tw.eq(pfields[0]) {
 			return t0, false
 		}
 		pfields = pfields[1:]

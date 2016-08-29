@@ -109,3 +109,14 @@ func (s *store) WorkerState() *hydroworker.Update {
 	defer s.mu.Unlock()
 	return s.workerState
 }
+
+// ReadMeters implements hydroworkd.MeterReader by assuming
+// all currently active relays use their maximum power.
+// TODO read actual meter readings or scrape off the web.
+func (s *store) ReadMeters() (hydroctl.MeterReading, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// TODO derive readings from current meter state.
+
+	return hydroctl.MeterReading{}, nil
+}

@@ -3,6 +3,7 @@ package hydroconfig
 import (
 	"fmt"
 	"github.com/rogpeppe/hydro/hydroctl"
+	"gopkg.in/errgo.v1"
 	"log"
 	"sort"
 	"strconv"
@@ -15,6 +16,12 @@ import (
 // by the user.
 type Config struct {
 	Cohorts []Cohort
+	Relays  map[int]Relay
+}
+
+// Relay holds information specific to a relay.
+type Relay struct {
+	MaxPower int // maximum power that this relay can draw in watts.
 }
 
 // Cohort represents a configured set of relays associated with the
@@ -22,7 +29,6 @@ type Config struct {
 type Cohort struct {
 	Name          string
 	Relays        []int
-	MaxPower      int
 	Mode          hydroctl.RelayMode
 	InUseSlots    []*hydroctl.Slot
 	NotInUseSlots []*hydroctl.Slot
@@ -42,7 +48,7 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 			found[r] = true
 			relays[r] = hydroctl.RelayConfig{
 				Mode:     cohort.Mode,
-				MaxPower: cohort.MaxPower,
+				MaxPower: c.Relays[r].MaxPower,
 				InUse:    cohort.InUseSlots,
 				NotInUse: cohort.NotInUseSlots,
 				Cohort:   cohort.Name,
@@ -63,12 +69,16 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 //	relay 6 is dining room
 //	relays 0, 4, 5 are bedrooms
 //
+//	relay 4 has max power 300w
+//	relays 0, 7, 8 have max power 5kw
+//
 //	dining room on from 14:30 to 20:45 for at least 20m
 //	bedrooms on from 17:00 to 20:00
 func Parse(s string) (*Config, error) {
 	// TODO in use/not in use
 	// TODO maxpower
 	p := &configParser{
+		relayInfo:      make(map[int]Relay),
 		assignedRelays: make(map[int]string),
 	}
 	for t := newText(s); t.s != ""; {
@@ -83,8 +93,13 @@ func Parse(s string) (*Config, error) {
 		}
 	}
 	sort.Sort(cohortsByName(p.cohorts))
+	if len(p.relayInfo) == 0 {
+		// Make tests a little easier.
+		p.relayInfo = nil
+	}
 	return &Config{
 		Cohorts: p.cohorts,
+		Relays:  p.relayInfo,
 	}, nil
 }
 
@@ -94,6 +109,7 @@ type configParser struct {
 	// assignedRelays maps relay numbers to the
 	// cohort name that the relay is assigned to.
 	assignedRelays map[int]string
+	relayInfo      map[int]Relay
 }
 
 func (p *configParser) addLine(t text) {
@@ -108,8 +124,10 @@ func (p *configParser) addLine(t text) {
 	}
 	// "relay 6 is dining room"
 	// "relays 0, 4, 5 are bedrooms"
-	if word.eqFold("relay") || word.eqFold("relays") {
-		p.addCohort(rest)
+	// "relay 5 has max power 500w"
+	// "relays 0, 4, 5 have max power 2kw"
+	if word.eq("relay") || word.eq("relays") {
+		p.addCohortOrMaxPower(rest)
 		return
 	}
 
@@ -236,12 +254,14 @@ func (p *configParser) parseTime(t text) (time.Duration, text, bool) {
 	return 0, text{}, false
 }
 
-func (p *configParser) addCohort(t text) {
+func (p *configParser) addCohortOrMaxPower(t text) {
 	// "1 is dining room"
 	// "2, 3, 4 are bedrooms"
 
 	whole := t
 	var relays []int
+	isNewCohort := false
+relayNumbers:
 	for {
 		word, rest := t.word()
 		if word.s == "" {
@@ -249,8 +269,25 @@ func (p *configParser) addCohort(t text) {
 			return
 		}
 		t = rest
-		if word.s == "is" || word.s == "are" {
-			break
+		switch {
+		case word.eq("is"), word.eq("are"):
+			isNewCohort = true
+			break relayNumbers
+		case word.eq("has"), word.eq("have"):
+			if rest, ok := t.trimPrefix("max power"); ok {
+				t = rest
+				break relayNumbers
+			}
+			if rest, ok := t.trimPrefix("maximum power"); ok {
+				t = rest
+				break relayNumbers
+			}
+			if rest, ok := t.trimPrefix("maxpower"); ok {
+				t = rest
+				break relayNumbers
+			}
+			p.errorf(t, "expected max power setting")
+			return
 		}
 		s := strings.TrimSuffix(word.s, ",")
 		if s == "" {
@@ -267,9 +304,71 @@ func (p *configParser) addCohort(t text) {
 		}
 		relays = append(relays, relay)
 	}
+	if isNewCohort {
+		p.addCohort(t, relays)
+		return
+	}
+	word, rest := t.word()
+	if word.s == "" {
+		p.errorf(t, "expected power value")
+		return
+	}
+	t = rest
+	watts, err := parsePower(word.s)
+	if err != nil {
+		p.errorf(t, "bad power value: %v", err)
+		return
+	}
+	word, rest = t.word()
+	if word.s != "" {
+		p.errorf(t, "unexpected text after power value")
+		return
+	}
+	for _, r := range relays {
+		if _, ok := p.assignedRelays[r]; !ok {
+			p.errorf(whole, "unassigned relay %d", r)
+			return
+		}
+		info := p.relayInfo[r]
+		info.MaxPower = watts
+		p.relayInfo[r] = info
+	}
+}
+
+func parsePower(s string) (int, error) {
+	i := strings.LastIndexFunc(s, isDigit)
+	if i == -1 {
+		return 0, errgo.New("no digits")
+	}
+	num, suffix := s[0:i+1], s[i+1:]
+	n, err := strconv.ParseFloat(num, 64)
+	if err != nil {
+		return 0, errgo.New("bad number")
+	}
+	if n < 0 {
+		return 0, errgo.New("negative power")
+	}
+	m := 1.0
+	switch strings.ToLower(suffix) {
+	case "w":
+	case "kw":
+		m = 1e3
+	case "mw":
+		m = 1e6
+	default:
+		return 0, errgo.New("unknown power unit")
+	}
+	return int(m*n + 0.5), nil
+}
+
+func isDigit(r rune) bool {
+	return '0' <= r && r <= '9'
+}
+
+func (p *configParser) addCohort(t text, relays []int) {
 	name := t.trimSpace()
 	if name.s == "" {
-		p.errorf(whole, "empty cohort name")
+		p.errorf(t, "empty cohort name")
 		return
 	}
 	for _, c := range p.cohorts {

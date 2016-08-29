@@ -116,6 +116,45 @@ Bedrooms are on from 12:00 to 1pm
 		}},
 	},
 }, {
+	about: "with max-power specs",
+	config: `
+Relay 6 is dining room.
+Relays 7, 8, 9 are bedrooms.
+relay 6, 7 have max power 100w
+relays 8 has maxpower 5.678KW.
+
+Dining room is from 14:00 to 15:00.
+Bedrooms are on from 12:00 to 1pm
+`,
+	expect: &hydroconfig.Config{
+		Cohorts: []hydroconfig.Cohort{{
+			Name:   "bedrooms",
+			Relays: []int{7, 8, 9},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("12h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}, {
+			Name:   "dining room",
+			Relays: []int{6},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("14h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}},
+		Relays: map[int]hydroconfig.Relay{
+			6: {100},
+			7: {100},
+			8: {5678},
+		},
+	},
+}, {
 	about:  "empty config",
 	config: "",
 	expect: &hydroconfig.Config{},
@@ -156,11 +195,16 @@ var ctlConfigTests = []struct {
 	expect hydroctl.Config
 }{{
 	cfg: hydroconfig.Config{
+		Relays: map[int]hydroconfig.Relay{
+			1: {500},
+			2: {1000},
+			4: {600},
+			5: {2000},
+		},
 		Cohorts: []hydroconfig.Cohort{{
-			Name:     "one",
-			Relays:   []int{1, 4},
-			MaxPower: 500,
-			Mode:     hydroctl.InUse,
+			Name:   "one",
+			Relays: []int{1, 4},
+			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
 				Start:        time.Hour,
 				SlotDuration: time.Minute,
@@ -168,10 +212,9 @@ var ctlConfigTests = []struct {
 				Duration:     time.Second,
 			}},
 		}, {
-			Name:     "two",
-			Relays:   []int{2, 4, -1, 2000, 5},
-			MaxPower: 1000,
-			Mode:     hydroctl.InUse,
+			Name:   "two",
+			Relays: []int{2, 4, -1, 2000, 5},
+			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
 				Start:        2 * time.Hour,
 				SlotDuration: 2 * time.Minute,
@@ -206,7 +249,7 @@ var ctlConfigTests = []struct {
 			},
 			4: {
 				Cohort:   "one",
-				MaxPower: 500,
+				MaxPower: 600,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
 					Start:        time.Hour,
@@ -217,7 +260,7 @@ var ctlConfigTests = []struct {
 			},
 			5: {
 				Cohort:   "two",
-				MaxPower: 1000,
+				MaxPower: 2000,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
 					Start:        2 * time.Hour,
