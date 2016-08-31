@@ -114,3 +114,8 @@ babelify Makefile:
 		@echo -n "Removing built files. "
 		@rm -rf $(BUILD_DIR)
 		$(call colorecho,"Done.")
+
+Mon 29 Aug 22:43:33 BST 2016
+
+First actual deployment (on desktop machine).
+

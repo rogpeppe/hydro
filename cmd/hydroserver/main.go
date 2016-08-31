@@ -66,7 +66,7 @@ func readConfig(f string) (*config, error) {
 		return nil, errgo.Notef(err, "invalid relay address %q", cfg.RelayAddr)
 	}
 	if cfg.StateDir == "" {
-		return nil, errgo.New("no state directory set")
+		cfg.StateDir = "."
 	}
 	if _, err := os.Stat(cfg.StateDir); err != nil {
 		return nil, errgo.Notef(err, "bad state directory")

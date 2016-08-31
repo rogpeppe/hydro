@@ -11,7 +11,7 @@ import (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: hydroserver [<listenaddr>]\n")
+		fmt.Fprintf(os.Stderr, "usage: relaysrv [<listenaddr>]\n")
 		os.Exit(2)
 	}
 	flag.Parse()
