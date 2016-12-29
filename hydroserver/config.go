@@ -23,10 +23,11 @@ var configTempl = newTemplate(`
 </head>
 <body>
 <form action="config" method="POST">
-	<input type="submit" value="Save">
 <textarea name="config" rows="30" cols="80">
-{{.ConfigText}}
-</textarea>
+{{.Store.ConfigText}}
+</textarea><br>
+Relay controller address <input name="relayaddr" type="text" value="{{.Controller.RelayAddr}}"><br>
+<input type="submit" value="Save">
 <div class=instructions>
 <p>
 The configuration is specified as a number of lines of text.
@@ -102,9 +103,18 @@ func (h *Handler) serveConfig(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+type configTemplateParams struct {
+	Store      *store
+	Controller *relayCtl
+}
+
 func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
+	p := &configTemplateParams{
+		Store:      h.store,
+		Controller: h.controller,
+	}
 	var b bytes.Buffer
-	if err := configTempl.Execute(&b, h.store); err != nil {
+	if err := configTempl.Execute(&b, p); err != nil {
 		log.Printf("template execution failed: %v", err)
 		http.Error(w, fmt.Sprintf("template execution failed: %v", err), http.StatusInternalServerError)
 		return
@@ -119,6 +129,9 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 		serveConfigError(w, req, err)
 		return
 	}
+	relayAddr := req.Form.Get("relayaddr")
+	// TODO check that we can connect to the relay address?
+	h.controller.SetRelayAddr(relayAddr)
 	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
 }
 

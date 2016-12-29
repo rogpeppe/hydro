@@ -21,15 +21,16 @@ var upgrader = websocket.Upgrader{
 }
 
 type Handler struct {
-	store  *store
-	worker *hydroworker.Worker
-	mux    *http.ServeMux
+	store      *store
+	worker     *hydroworker.Worker
+	controller *relayCtl
+	mux        *http.ServeMux
 }
 
 type Params struct {
-	RelayCtlAddr string
-	ConfigPath   string
-	HistoryPath  string
+	RelayAddrPath string
+	ConfigPath    string
+	HistoryPath   string
 }
 
 func New(p Params) (*Handler, error) {
@@ -45,11 +46,15 @@ func New(p Params) (*Handler, error) {
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot open history file")
 	}
+	relayCtlConfigStore := &relayCtlConfigStore{
+		path: p.RelayAddrPath,
+	}
+	controller := newRelayController(relayCtlConfigStore)
 	w, err := hydroworker.New(hydroworker.Params{
 		Config:     store.CtlConfig(),
 		Store:      historyStore,
 		Updater:    store,
-		Controller: newRelayController(p.RelayCtlAddr, ""),
+		Controller: controller,
 		// TODO use actual meter reader.
 		Meters: store,
 	})
@@ -57,9 +62,10 @@ func New(p Params) (*Handler, error) {
 		return nil, errgo.Notef(err, "cannot start worker")
 	}
 	h := &Handler{
-		store:  store,
-		mux:    http.NewServeMux(),
-		worker: w,
+		store:      store,
+		mux:        http.NewServeMux(),
+		worker:     w,
+		controller: controller,
 	}
 	go h.configUpdater()
 	h.store.anyVal.Set(nil)

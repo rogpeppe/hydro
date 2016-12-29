@@ -308,8 +308,8 @@ func Assess(cfg *Config, currentState RelayState, hist History, meter MeterReadi
 			a.logf("relay %d has absolute priority %v (current state %v)", i, pri, currentState.IsSet(i))
 			if on {
 				if !currentState.IsSet(i) && added == -1 {
-					// The relay is not already on and no other relay
-					// is being turned on.
+					// The relay is not already on and we haven't found
+					// any other relay being turned on.
 					added = i
 				}
 			} else if a.canSetRelay(hist, i, false, now) {

@@ -68,8 +68,13 @@ type Updater interface {
 // caching (Relays might not round-trip each time).
 type RelayController interface {
 	SetRelays(hydroctl.RelayState) error
+	// Relays returns the current relay state. It returns an error
+	// with the cause ErrNoRelayController if there is no
+	// relay controller currently configured.
 	Relays() (hydroctl.RelayState, error)
 }
+
+var ErrNoRelayController = errgo.New("no relay controller configured")
 
 // MeterReader represents a meter reader.
 type MeterReader interface {
@@ -125,6 +130,7 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 	defer timer.Stop()
 	firstTime := true
 	var currentState Update
+	var logger logger
 	for {
 		select {
 		case cfg, ok := <-w.cfgChan:
@@ -137,7 +143,9 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 		}
 		currentRelays, err := w.controller.Relays()
 		if err != nil {
-			log.Printf("cannot get current relay state: %v", err)
+			if errgo.Cause(err) != ErrNoRelayController {
+				log.Printf("cannot get current relay state: %v (%#v)", err, err)
+			}
 			continue
 		}
 		currentMeters, err := w.meters.ReadMeters()
@@ -147,16 +155,18 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			continue
 		}
 		now := time.Now()
-		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, logger{}, now)
+		logger.msgs = logger.msgs[:0]
+		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, &logger, now)
 		changed := newRelays != currentRelays
 		if changed {
+			for _, msg := range logger.msgs {
+				log.Printf("%s", msg)
+			}
 			log.Printf("relay state changed to %v", newRelays)
 			if err := w.controller.SetRelays(newRelays); err != nil {
 				log.Printf("cannot set relay state: %v", err)
 				continue
 			}
-		} else {
-			log.Printf("relay state unchanged at %v", newRelays)
 		}
 		if firstTime || changed {
 			// The first time through the loop, even if the relay state might not
@@ -173,10 +183,12 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 	}
 }
 
-type logger struct{}
+type logger struct {
+	msgs []string
+}
 
-func (logger) Log(s string) {
-	log.Print(s)
+func (l *logger) Log(s string) {
+	l.msgs = append(l.msgs, s)
 }
 
 // updateState updates u to reflect the latest state stored in w.history,

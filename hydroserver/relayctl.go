@@ -1,25 +1,28 @@
 package hydroserver
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net"
+	"os"
+	"sync"
 	"time"
 
 	"gopkg.in/errgo.v1"
 
-	"github.com/juju/utils/voyeur"
 	"github.com/rogpeppe/hydro/eth8020"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
 )
 
 type relayCtl struct {
-	addr             string
-	password         string
+	cfgStore *relayCtlConfigStore
+
+	mu               sync.Mutex
 	conn             *eth8020.Conn
 	currentStateTime time.Time
 	currentState     hydroctl.RelayState
-	val              voyeur.Value
 }
 
 // refreshDuration holds the maximum amount of time
@@ -37,14 +40,40 @@ const refreshDuration = 30 * time.Second
 //
 // Probably a single websocket with several different types of delta.
 
-func newRelayController(addr, password string) hydroworker.RelayController {
+func newRelayController(cfgStore *relayCtlConfigStore) *relayCtl {
 	return &relayCtl{
-		addr:     addr,
-		password: password,
+		cfgStore: cfgStore,
 	}
 }
 
+func (ctl *relayCtl) SetRelayAddr(addr string) error {
+	// TODO provide a way to change the password too.
+	changed, err := ctl.cfgStore.SetRelayAddr(addr)
+	if changed {
+		ctl.mu.Lock()
+		defer ctl.mu.Unlock()
+		if ctl.conn != nil {
+			ctl.conn.Close()
+			ctl.conn = nil
+		}
+	}
+	if err != nil {
+		return errgo.Notef(err, "cannot set relay controller address")
+	}
+	return nil
+}
+
+func (ctl *relayCtl) RelayAddr() (string, error) {
+	addr, err := ctl.cfgStore.RelayAddr()
+	if err == nil || errgo.Cause(err) == hydroworker.ErrNoRelayController {
+		return addr, nil
+	}
+	return "", errgo.Mask(err)
+}
+
 func (ctl *relayCtl) Relays() (hydroctl.RelayState, error) {
+	ctl.mu.Lock()
+	defer ctl.mu.Unlock()
 	if !ctl.currentStateTime.IsZero() && time.Since(ctl.currentStateTime) < refreshDuration {
 		return ctl.currentState, nil
 	}
@@ -55,7 +84,7 @@ func (ctl *relayCtl) Relays() (hydroctl.RelayState, error) {
 		return err
 	})
 	if err != nil {
-		return 0, errgo.Notef(err, "cannot get current state")
+		return 0, errgo.NoteMask(err, "cannot get current state", errgo.Is(hydroworker.ErrNoRelayController))
 	}
 	ctl.currentState = hydroctl.RelayState(state)
 	ctl.currentStateTime = time.Now()
@@ -63,6 +92,8 @@ func (ctl *relayCtl) Relays() (hydroctl.RelayState, error) {
 }
 
 func (ctl *relayCtl) SetRelays(state hydroctl.RelayState) error {
+	ctl.mu.Lock()
+	defer ctl.mu.Unlock()
 	if err := ctl.retry(func() error {
 		return ctl.conn.SetOutputs(eth8020.State(state))
 	}); err != nil {
@@ -79,7 +110,7 @@ func (ctl *relayCtl) SetRelays(state hydroctl.RelayState) error {
 // could lead to a race.
 func (ctl *relayCtl) retry(f func() error) error {
 	if err := ctl.connect(); err != nil {
-		return errgo.Mask(err)
+		return errgo.Mask(err, errgo.Is(hydroworker.ErrNoRelayController))
 	}
 	err := f()
 	if err == nil {
@@ -100,10 +131,14 @@ func (ctl *relayCtl) retry(f func() error) error {
 }
 
 func (ctl *relayCtl) connect() error {
+	addr, err := ctl.cfgStore.RelayAddr()
+	if err != nil {
+		return errgo.Mask(err, errgo.Is(hydroworker.ErrNoRelayController))
+	}
 	if ctl.conn != nil {
 		return nil
 	}
-	conn, err := net.Dial("tcp", ctl.addr)
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return errgo.Notef(err, "cannot connect to eth8020 controller")
 	}
@@ -117,4 +152,55 @@ func (ctl *relayCtl) connect() error {
 	ctl.currentState = hydroctl.RelayState(state)
 	ctl.currentStateTime = time.Now()
 	return nil
+}
+
+// relayCtlConfigStore stores information on how to connect to
+// the relay controller.
+type relayCtlConfigStore struct {
+	// path holds the filename that stores the address.
+	path string
+
+	mu  sync.Mutex
+	cfg relayCtlConfig
+}
+
+type relayCtlConfig struct {
+	Addr string
+	// TODO add password too.
+}
+
+// SetRelayAddr sets the relay controller address.
+// It reports whether the address has changed.
+func (s *relayCtlConfigStore) SetRelayAddr(addr string) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if addr == s.cfg.Addr {
+		return false, nil
+	}
+	s.cfg.Addr = addr
+	data, err := json.Marshal(s.cfg)
+	if err != nil {
+		return true, errgo.Mask(err)
+	}
+	if err := ioutil.WriteFile(s.path, data, 0666); err != nil {
+		return true, errgo.Mask(err)
+	}
+	return true, nil
+}
+
+func (s *relayCtlConfigStore) RelayAddr() (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	data, err := ioutil.ReadFile(s.path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", hydroworker.ErrNoRelayController
+		}
+		return "", errgo.Mask(err)
+	}
+	s.cfg = relayCtlConfig{}
+	if err := json.Unmarshal(data, &s.cfg); err != nil {
+		return "", errgo.Notef(err, "badly formatted relay config data")
+	}
+	return s.cfg.Addr, nil
 }
