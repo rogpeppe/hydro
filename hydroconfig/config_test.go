@@ -155,6 +155,56 @@ Bedrooms are on from 12:00 to 1pm
 		},
 	},
 }, {
+	about: "all day slots",
+	config: `
+relay 0 is dining room.
+relay 1 is bedroom.
+relay 2 is another
+relay 3 is more
+
+dining room on
+bedroom on for 2h.
+another is on for at most 1h.
+more for 12h
+`,
+	expect: &hydroconfig.Config{
+		Cohorts: []hydroconfig.Cohort{{
+			Name:   "another",
+			Relays: []int{2},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("0h"),
+				SlotDuration: D("24h"),
+				Kind:         hydroctl.AtMost,
+				Duration:     D("1h"),
+			}},
+		}, {
+			Name:   "bedroom",
+			Relays: []int{1},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("0h"),
+				SlotDuration: D("24h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("2h"),
+			}},
+		}, {
+			Name:   "dining room",
+			Relays: []int{0},
+			Mode:   hydroctl.AlwaysOn,
+		}, {
+			Name:   "more",
+			Relays: []int{3},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("0h"),
+				SlotDuration: D("24h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("12h"),
+			}},
+		}},
+	},
+}, {
 	about:  "empty config",
 	config: "",
 	expect: &hydroconfig.Config{},

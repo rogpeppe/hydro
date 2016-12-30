@@ -74,6 +74,7 @@ func New(p Params) (*Handler, error) {
 	h.mux.HandleFunc("/index.html", serveIndex)
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/config", h.serveConfig)
+	h.mux.Handle("/api/", newAPIHandler(h))
 	return h, nil
 }
 

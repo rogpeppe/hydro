@@ -39,6 +39,7 @@ func (srv *Server) run() {
 		if err != nil {
 			return
 		}
+		log.Printf("got connection from %v", c.RemoteAddr())
 		go func() {
 			err := srv.serveConn(c)
 			if err != io.EOF {

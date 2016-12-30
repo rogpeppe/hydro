@@ -116,7 +116,7 @@ type Slot struct {
 	Start time.Duration
 
 	// SlotDuration holds the duration of the slot. It must be greater
-	// than zero and less than 24 hours.
+	// than zero and less than or equal to 24 hours.
 	SlotDuration time.Duration
 
 	// Kind holds the kind of slot this is.
@@ -140,6 +140,18 @@ func (slot *Slot) ActiveAt(t time.Time) time.Time {
 		return start
 	}
 	return time.Time{}
+}
+
+// Overlaps reports whether the two slots overlap in time.
+// If a slot has zero duration, it is not considered to overlap
+// any other slot.
+func (slot0 *Slot) Overlaps(slot1 *Slot) bool {
+	if slot0.SlotDuration == 0 || slot1.SlotDuration == 0 {
+		return false
+	}
+	slot0end := slot0.Start + slot0.SlotDuration
+	slot1end := slot1.Start + slot1.SlotDuration
+	return slot0.Start < slot1end && slot1.Start < slot0end
 }
 
 // dayStart returns the start of the day containing the given time.
@@ -486,12 +498,15 @@ func (a assessor) assessRelay(relay int, rc *RelayConfig, hist History, now time
 func (a assessor) assessRelay0(relay int, rc *RelayConfig, hist History, now time.Time) (on bool, pri priority) {
 	switch rc.Mode {
 	case AlwaysOff:
+		a.logf("always off")
 		return false, priAbsolute
 	case AlwaysOn:
+		a.logf("always on")
 		return true, priAbsolute
 	}
 	slot, start := rc.At(now)
 	if slot == nil {
+		a.logf("no slot at %v", now)
 		return false, priAbsolute
 	}
 	dur := hist.OnDuration(relay, start, now)

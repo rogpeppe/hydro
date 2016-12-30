@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"gopkg.in/errgo.v1"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -74,6 +73,8 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 //
 //	dining room on from 14:30 to 20:45 for at least 20m
 //	bedrooms on from 17:00 to 20:00
+//
+// If the time range is omitted, the slot lasts all day.
 func Parse(s string) (*Config, error) {
 	// TODO in use/not in use
 	// TODO maxpower
@@ -90,6 +91,15 @@ func Parse(s string) (*Config, error) {
 		return nil, &ConfigParseError{
 			Config: s,
 			Errors: p.errors,
+		}
+	}
+	for i := range p.cohorts {
+		cohort := &p.cohorts[i]
+		// TODO what should we do when we implement not-in-use support?
+		// The AlwaysOn mode doesn't seem to make much sense then, perhaps.
+		if len(cohort.InUseSlots) == 1 && *cohort.InUseSlots[0] == allDaySlot {
+			cohort.InUseSlots = nil
+			cohort.Mode = hydroctl.AlwaysOn
 		}
 	}
 	sort.Sort(cohortsByName(p.cohorts))
@@ -141,15 +151,28 @@ func (p *configParser) addLine(t text) {
 			t = rest
 			break
 		}
-		log.Printf("trimPrefix %q on %#v", c.Name, t)
 	}
 	if found == nil {
 		p.errorf(t, "line must start with 'relay' or relay cohort name")
 		return
 	}
 	if slot := p.parseSlot(t); slot != nil {
+		for _, oldSlot := range found.InUseSlots {
+			if oldSlot.Overlaps(slot) {
+				// TODO format this with proper-looking times.
+				p.errorf(t, "time slot overlaps %v slot from %v", oldSlot.SlotDuration, oldSlot.Start)
+				return
+			}
+		}
 		found.InUseSlots = append(found.InUseSlots, slot)
 	}
+}
+
+var allDaySlot = hydroctl.Slot{
+	Start:        0,
+	SlotDuration: 24 * time.Hour,
+	Kind:         hydroctl.Exactly,
+	Duration:     24 * time.Hour,
 }
 
 func (p *configParser) parseSlot(t text) *hydroctl.Slot {
@@ -157,6 +180,9 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 	// "on from 17:00 to 20:00"
 	// "is on from..."
 	// "are on from..."
+	// "is on"
+	// "are on"
+	// "on for at least 20m"
 
 	t, ok := t.trimWord("is")
 	if !ok {
@@ -165,40 +191,37 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 	// Technically "foo is from 12pm..." doesn't read well, but it's easier to allow it.
 	t, _ = t.trimWord("on")
 
+	slot := allDaySlot
 	word, rest := t.word()
-	if word.s != "from" {
-		p.errorf(word, "expected 'from'")
-		return nil
-	}
-	var slot hydroctl.Slot
-	t = rest
-	startTime, t, ok := p.parseTime(t)
-	if !ok {
-		return nil
-	}
-	slot.Start = startTime
+	if word.s == "from" {
+		var startTime, endTime time.Duration
+		var ok bool
+		t = rest
+		startTime, t, ok = p.parseTime(t)
+		if !ok {
+			return nil
+		}
+		slot.Start = startTime
 
-	word, rest = t.word()
-	if word.s != "to" {
-		p.errorf(word, "expected 'to'")
-		return nil
+		word, rest = t.word()
+		if word.s != "to" {
+			p.errorf(word, "expected 'to'")
+			return nil
+		}
+		t = rest
+		endTime, t, ok = p.parseTime(t)
+		if !ok {
+			return nil
+		}
+		if endTime < startTime {
+			endTime += 24 * time.Hour
+		}
+		slot.SlotDuration = endTime - startTime
+		slot.Duration = endTime - startTime
 	}
-	t = rest
-	endTime, t, ok := p.parseTime(t)
-	if !ok {
-		return nil
-	}
-	if endTime < startTime {
-		endTime += 24 * time.Hour
-	}
-	slot.SlotDuration = endTime - startTime
-	slot.Duration = endTime - startTime
-	slot.Kind = hydroctl.Exactly
-
 	if word, _ := t.word(); word.s == "" {
 		return &slot
 	}
-
 	if rest, ok = t.trimPrefix("for at most"); ok {
 		slot.Kind = hydroctl.AtMost
 		t = rest

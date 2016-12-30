@@ -126,11 +126,13 @@ func (w *Worker) Close() {
 }
 
 func (w *Worker) run(currentConfig *hydroctl.Config) {
+	log.Printf("hydroworker starting")
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 	firstTime := true
 	var currentState Update
 	var logger logger
+	alreadyUnchanged := false
 	for {
 		select {
 		case cfg, ok := <-w.cfgChan:
@@ -166,6 +168,15 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			if err := w.controller.SetRelays(newRelays); err != nil {
 				log.Printf("cannot set relay state: %v", err)
 				continue
+			}
+			alreadyUnchanged = false
+		} else {
+			if !alreadyUnchanged {
+				for _, msg := range logger.msgs {
+					log.Printf("%s", msg)
+				}
+				log.Printf("relay state unchanged")
+				alreadyUnchanged = true
 			}
 		}
 		if firstTime || changed {

@@ -511,7 +511,7 @@ var assessTests = []struct {
 		transition:  true,
 	}},
 }, {
-	about: "Given two discsretionary relays that could be on and we're importing, don't switch either on",
+	about: "Given two discretionary relays that could be on and we're importing, don't switch either on",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
@@ -607,6 +607,69 @@ func (suite) TestAssess(c *gc.C) {
 			history.RecordState(state, innertest.now)
 			c.Logf("new history: %v", &history)
 		}
+	}
+}
+
+var slotOverlapTests = []struct {
+	about        string
+	slot1, slot2 hydroctl.Slot
+	expect       bool
+}{{
+	about: "exactly the same",
+	slot1: hydroctl.Slot{
+		Start:        time.Hour,
+		SlotDuration: 2 * time.Hour,
+	},
+	slot2: hydroctl.Slot{
+		Start:        time.Hour,
+		SlotDuration: 2 * time.Hour,
+	},
+	expect: true,
+}, {
+	about: "one starts as the other finishes",
+	slot1: hydroctl.Slot{
+		Start:        time.Hour,
+		SlotDuration: 2 * time.Hour,
+	},
+	slot2: hydroctl.Slot{
+		Start:        3 * time.Hour,
+		SlotDuration: time.Hour,
+	},
+	expect: false,
+}, {
+	about: "overlap by a second",
+	slot1: hydroctl.Slot{
+		Start:        time.Hour,
+		SlotDuration: 2 * time.Hour,
+	},
+	slot2: hydroctl.Slot{
+		Start:        3*time.Hour - time.Second,
+		SlotDuration: time.Hour,
+	},
+	expect: true,
+}, {
+	about: "zero length slot within another one",
+	slot1: hydroctl.Slot{
+		Start: time.Hour,
+	},
+	slot2: hydroctl.Slot{
+		Start:        0,
+		SlotDuration: 2 * time.Hour,
+	},
+	expect: false,
+}, {
+	about:  "two zero-length slots",
+	expect: false,
+}}
+
+func (suite) TestSlotOverlap(c *gc.C) {
+	for i, test := range slotOverlapTests {
+		c.Logf("test %d: %v", i, test.about)
+		got := test.slot1.Overlaps(&test.slot2)
+		c.Assert(got, gc.Equals, test.expect)
+		// Try it reversed.
+		got = test.slot2.Overlaps(&test.slot1)
+		c.Assert(got, gc.Equals, test.expect)
 	}
 }
 
