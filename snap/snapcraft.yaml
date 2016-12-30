@@ -1,0 +1,21 @@
+{
+        "apps": {
+                "hydroserver": {
+                        "command": "bin/hydroserver",
+                        "daemon": "simple",
+                        "plugs": ["network-bind", "i2c"]
+                }
+        },
+        "architectures": ["amd64", "armhf"],
+        "confinement": "strict",
+        "description": "Experimental power control system",
+        "name": "hydroctl",
+        "parts": {
+                "server": {
+                        "plugin": "make",
+                        "source": "."
+                }
+        },
+        "summary": "Hydro power control system",
+        "version": 0
+}
