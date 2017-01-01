@@ -538,6 +538,7 @@ var assessTests = []struct {
 		expectState: mkRelays(0),
 		transition:  true,
 	}, {
+		// Too soon to switch off the relay that's just been switched on.
 		now:         T(10).Add(time.Second),
 		expectState: mkRelays(0),
 		meters: hydroctl.MeterReading{
@@ -545,8 +546,44 @@ var assessTests = []struct {
 			Here:   1000,
 		},
 	}, {
-		now:         T(10).Add(5 * time.Minute),
+		// As soon as we're allowed to switch it off, we do.
+		now: T(10).Add(5 * time.Second),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
+		transition: true,
+	}, {
+		// It remains off...
+		now: T(10).Add(5 * time.Minute),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
+	}, {
+		// ... until there's no more time left in the slot, at which point
+		// we need to switch 'em both on. The second relay is
+		// preferred at this point because the first one has already
+		// had 5 seconds of power.
+		now: T(11).Add(-5 * time.Minute),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
 		expectState: mkRelays(1),
+		transition:  true,
+	}, {
+		// The first relay switches on after the usual 5s delay.
+		now: T(11).Add(-5 * time.Minute).Add(5 * time.Second),
+		meters: hydroctl.MeterReading{
+			Import: 1000,
+			Here:   1000,
+		},
+		expectState: mkRelays(0, 1),
+		transition:  true,
+	}, {
+		// And both switch off at the end of the slot.
+		now: T(11),
 		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
