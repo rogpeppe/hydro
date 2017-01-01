@@ -18,7 +18,7 @@ var parseTests = []struct {
 	about       string
 	config      string
 	expect      *hydroconfig.Config
-	expectError *hydroconfig.ConfigParseError
+	expectError string
 }{{
 	about: "original example",
 	config: `
@@ -205,6 +205,16 @@ more for 12h
 		}},
 	},
 }, {
+	about: "overlapping time slot",
+	config: `
+relays 0, 4, 5 are bedrooms
+relay 7 is other
+
+bedrooms on from 11am to 1pm
+bedrooms on from 12pm to 3pm
+`,
+	expectError: `error at " on from 12pm to 3pm": time slot overlaps 2h0m0s slot from 11h0m0s`,
+}, {
 	about:  "empty config",
 	config: "",
 	expect: &hydroconfig.Config{},
@@ -230,8 +240,8 @@ func (*configSuite) TestParse(c *gc.C) {
 	for i, test := range parseTests {
 		c.Logf("test %d; %s", i, test.about)
 		cfg, err := hydroconfig.Parse(test.config)
-		if test.expectError != nil {
-			c.Assert(err, jc.DeepEquals, test.expectError)
+		if test.expectError != "" {
+			c.Assert(err, gc.ErrorMatches, test.expectError)
 			c.Assert(cfg, gc.IsNil)
 		} else {
 			c.Assert(err, gc.IsNil)
