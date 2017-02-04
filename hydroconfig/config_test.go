@@ -52,6 +52,28 @@ bedrooms on from 17:00 to 20:00
 		}},
 	},
 }, {
+	about: "comment line",
+	config: `
+# some comment
+	# a comment with leading whitespace
+relay 1 is somewhere
+
+somewhere on from 1am to 2am
+`,
+	expect: &hydroconfig.Config{
+		Cohorts: []hydroconfig.Cohort{{
+			Name:   "somewhere",
+			Relays: []int{1},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("1h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}},
+	},
+}, {
 	about: "multiple slots",
 	config: `
 relay 6 is dining room

@@ -124,6 +124,10 @@ type configParser struct {
 
 func (p *configParser) addLine(t text) {
 	t = t.trimSpace()
+	// Ignore comment lines.
+	if strings.HasPrefix(t.s, "#") {
+		return
+	}
 	// Trim off any final full stop.
 	if strings.HasSuffix(t.s, ".") {
 		t = t.slice(0, len(t.s)-1)

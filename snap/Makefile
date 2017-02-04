@@ -1,4 +1,6 @@
 all: ./bin/armhf/hydroserver ./bin/amd64/hydroserver
+
+# note: the install target is used by snapcraft build
 install: all
 	test -d ${DESTDIR} || (echo DESTDIR not set; exit 1)
 	cp -r ./bin ${DESTDIR}
