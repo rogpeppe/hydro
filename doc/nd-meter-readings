@@ -1,0 +1,24 @@
+
+
+To retrieve readings from fast log for a time range:
+
+	bhttp -f post http://192.168.2.100/Inst_Data.csv 'From=1170098700' 'To=1170098877' 'Fmt=1'
+
+where range is number of seconds since 1970 - 315532800s (10 years?)
+values have implied decimal point. 
+
+e.g.
+ Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704
+170128_192600,103,419,7,2553,2475,47,263,1037,0
+170128_192700,101,419,7,2549,2478,47,258,1039,0
+	
+
+To retrieve energy readings for a time range:
+
+	bhttp -f post http://192.168.2.100/Read_Energy.cgi 'From=1170008700' 'To=1170098877' 'Fmt=csv'
+
+e.g.
+
+ Date, Time, kWh, kVAh, kvarh, Counter 1, Counter 2, Counter 3
+07-07-2016, 03:00:00, 30189.2, 30780.6, 1188.6, 0.000, 0.000, 0.000
+07-07-2016, 03:30:00, 30190.1, 30781.6, 1188.6, 0.000, 0.000, 0.000
