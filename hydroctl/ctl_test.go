@@ -547,7 +547,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// As soon as we're allowed to switch it off, we do.
-		now: T(10).Add(5 * time.Second),
+		now: T(10).Add(hydroctl.MinimumChangeDuration),
 		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
@@ -573,8 +573,8 @@ var assessTests = []struct {
 		expectState: mkRelays(1),
 		transition:  true,
 	}, {
-		// The first relay switches on after the usual 5s delay.
-		now: T(11).Add(-5 * time.Minute).Add(5 * time.Second),
+		// The first relay switches on after the usual delay.
+		now: T(11).Add(-5 * time.Minute).Add(hydroctl.MinimumChangeDuration),
 		meters: hydroctl.MeterReading{
 			Import: 1000,
 			Here:   1000,
@@ -589,6 +589,87 @@ var assessTests = []struct {
 			Here:   1000,
 		},
 		transition: true,
+	}},
+}, {
+	about: "Given two relays and only enough power for one of them, we'll cycle between them at CycleDuration frequency",
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode:     hydroctl.InUse,
+			MaxPower: 1000,
+			InUse: []*hydroctl.Slot{{
+				Start:        10 * time.Hour,
+				SlotDuration: time.Hour,
+				Kind:         hydroctl.AtLeast,
+				Duration:     23 * time.Minute,
+			}},
+		}, {
+			Mode:     hydroctl.InUse,
+			MaxPower: 1000,
+			InUse: []*hydroctl.Slot{{
+				Start:        10 * time.Hour,
+				SlotDuration: time.Hour,
+				Kind:         hydroctl.AtLeast,
+				Duration:     17 * time.Minute,
+			}},
+		}},
+	},
+	assessNowTests: []assessNowTest{{
+		now:         T(10).Add(0),
+		expectState: mkRelays(0),
+		meters: hydroctl.MeterReading{
+			Import: -1000,
+		},
+		transition: true,
+	}, {
+		now:         T(10).Add(hydroctl.MinimumChangeDuration),
+		expectState: mkRelays(0, 1),
+		meters: hydroctl.MeterReading{
+			Import: -1000,
+		},
+		transition: true,
+	}, {
+		// The relays start drawing power. Too much power.
+		// We switch things off to stop that.
+		now: T(10).Add(time.Minute),
+		meters: hydroctl.MeterReading{
+			Here:   2000,
+			Import: 1000,
+		},
+		transition: true,
+	}, {
+		// The relays are left off until while the meters remain the same.
+		now: T(10).Add(2 * time.Minute),
+		meters: hydroctl.MeterReading{
+			Here:   2000,
+			Import: 1000,
+		},
+	}, {
+		// When the meters change, we turn on relay 1
+		// because it's had slightly less energy (5s) than relay 0.
+		now: T(10).Add(3 * time.Minute),
+		meters: hydroctl.MeterReading{
+			Import: -1000,
+		},
+		expectState: mkRelays(1),
+		transition:  true,
+	}, {
+		// Then we turn on relay 0 because the meters still say the
+		// same thing.
+		//
+		// This is not good! We're in a bad feedback loop. We need to
+		// avoid that somehow. Perhaps when we change relay state, we
+		// should record the power that we're expecting to use, and act
+		// on the basis of that until proven otherwise. One possibility
+		// is to actively read the meters after any change to the relay
+		// state, so that we find out what the change is.
+		// If the relays are pushing their state, then we could have a
+		// duration that we wait for to see the new readings.
+		now: T(10).Add(3*time.Minute + hydroctl.MinimumChangeDuration),
+		meters: hydroctl.MeterReading{
+			Import: -1000,
+		},
+		expectState: mkRelays(0, 1),
+		transition:  true,
 	}},
 }}
 
