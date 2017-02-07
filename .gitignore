@@ -1,0 +1,7 @@
+/snap/bin/*
+/snap/*.bz2
+/snap/*.snap
+/snap/parts
+/snap/prime
+/snap/stage
+
