@@ -1,4 +1,10 @@
-all: ./bin/armhf/hydroserver ./bin/amd64/hydroserver
+.PHONY: all install
+
+all:
+	GOARCH=arm go install ${PKG}
+	GOARCH=arm go build -o ./bin/armhf/hydroserver ${PKG}
+	GOARCH=amd64 go install ${PKG}
+	GOARCH=amd64 go build -o ./bin/amd64/hydroserver ${PKG}
 
 # note: the install target is used by snapcraft build
 install: all
@@ -6,9 +12,3 @@ install: all
 	cp -r ./bin ${DESTDIR}
 
 PKG=github.com/rogpeppe/hydro/cmd/hydroserver
-
-./bin/armhf/hydroserver:
-	GOARCH=arm go build -o $@ ${PKG}
-
-./bin/amd64/hydroserver:
-	GOARCH=amd64 go build -o $@ ${PKG}

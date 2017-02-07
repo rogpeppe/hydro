@@ -10,7 +10,7 @@ type PostedData struct {
 
 	// Readings is present when posting is first configured and at each
 	// time interval as set.
-	Reading *Reading
+	Reading *XMLReading
 }
 
 type Login struct {
@@ -49,7 +49,7 @@ type Settings struct {
 	ESCALE     string // The energy scaling factor.
 }
 
-type Reading struct {
+type XMLReading struct {
 	Header     DateTime
 	Parameters []Parameter
 }

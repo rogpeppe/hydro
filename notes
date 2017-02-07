@@ -1,3 +1,23 @@
+Sat  4 Feb 19:35:47 GMT 2017
+
+build snap:
+
+	remember to update version field if not using the store.
+	
+	cd snap
+	snapcraft clean
+	snapcraft build
+	snapcraft snap
+
+to install directly from .snap file:
+	snap install --dangerous $snap.snap
+	
+
+enable ntp:
+
+	timedatectl set-ntp true
+
+
 Mon Dec 14 16:47:26 GMT 2015
 
 OK, so we want to actually get something going now!
