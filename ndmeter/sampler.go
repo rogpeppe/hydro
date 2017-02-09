@@ -46,9 +46,11 @@ func (sampler *Sampler) GetAll(ctx context.Context, addrs ...string) []*Sample {
 		i, addr := i, addr
 		go func() {
 			s := sampler.getOne(ctx, addr)
-			sampler.mu.Lock()
-			defer sampler.mu.Unlock()
-			sampler.recent[addr] = s
+			if s != nil {
+				sampler.mu.Lock()
+				defer sampler.mu.Unlock()
+				sampler.recent[addr] = s
+			}
 			results <- result{
 				index:  i,
 				sample: s,
