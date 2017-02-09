@@ -1,3 +1,14 @@
+
+Tue  7 Feb 18:43:25 GMT 2017
+
+To decompile a device overlay file:
+
+overlays are in /boot/uboot/pi2-kernel_22.snap/dtbs/overlays.tgz
+
+	dtc -I dtb -O dts i2c-rtc.dtbo 
+
+systemctl --global enable unit...
+
 Sat  4 Feb 19:35:47 GMT 2017
 
 build snap:
@@ -17,6 +28,24 @@ enable ntp:
 
 	timedatectl set-ntp true
 
+systemd unit to sync time, in /etc/systemd/system/timesync.service
+
+[Unit]
+Wants=snap.hydroctl.hydroserver
+Before=snap.hydroctl.hydroserver
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "echo pirt started > /tmp/pirtc.started"
+ExecStart=/home/rogpeppe/pirtc -sys
+
+[Install]
+WantedBy=multi-user.target
+
+
+To see logs for a systemd unit:
+	journalctl -u $unitname
+Note: "systemctl enable" doesn't seem to print warnings!
 
 Mon Dec 14 16:47:26 GMT 2015
 
