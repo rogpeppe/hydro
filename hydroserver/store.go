@@ -1,7 +1,9 @@
 package hydroserver
 
 import (
+	"context"
 	"io/ioutil"
+	"log"
 	"os"
 	"sync"
 
@@ -11,22 +13,42 @@ import (
 	"github.com/rogpeppe/hydro/hydroconfig"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
+	"github.com/rogpeppe/hydro/ndmeter"
 )
 
 type store struct {
 	// path holds the file name where the configuration is stored.
 	path string
 
-	// configVal is update when the configuration changes.
+	// sampler holds the sampler used to obtain meter readings.
+	sampler *ndmeter.Sampler
+
+	// configVal is updated when the configuration changes.
 	configVal voyeur.Value
 	// anyVal is updated when any value (config, meters or worker state)
 	// changes.
-	anyVal      voyeur.Value
-	mu          sync.Mutex
-	config      *hydroconfig.Config
+	anyVal voyeur.Value
+
+	// mu guards the values below it.
+	mu sync.Mutex
+
+	// configText holds the text of the configuration
+	// as entered by the user.
+	configText string
+
+	// config holds the configuration that's derived
+	// from configText.
+	config *hydroconfig.Config
+
+	// workerState holds the latest known worker state.
 	workerState *hydroworker.Update
-	meters      *hydroctl.MeterReading
-	configText  string
+
+	// meterState holds the most recent meter state
+	// as returned by ReadMeters.
+	meterState *MeterState
+
+	// meters holds the meters that will be read.
+	meters []Meter
 }
 
 func newStore(path string) (*store, error) {
@@ -91,6 +113,17 @@ func (s *store) SetConfigText(text string) error {
 	return nil
 }
 
+// SetMeters sets the meters to use for ReadMeters.
+// The meters slice should not be changed after
+// calling.
+func (s *store) SetMeters(meters []Meter) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.meters = meters
+	// TODO we could preserve some of the existing state.
+	s.meterState = nil
+}
+
 // UpdateWorkerState sets the current worker state.
 // It implements hydroworker.Updater.UpdaterWorkerState.
 func (s *store) UpdateWorkerState(u *hydroworker.Update) {
@@ -110,15 +143,89 @@ func (s *store) WorkerState() *hydroworker.Update {
 	return s.workerState
 }
 
-// ReadMeters implements hydroworkd.MeterReader by assuming
-// all currently active relays use their maximum power.
-// TODO read actual meter readings or scrape off the web.
-func (s *store) ReadMeters() (hydroctl.MeterReading, error) {
+// MeterState holds a meter state.
+type MeterState struct {
+	Chargeable hydroctl.PowerChargeable
+	Use        hydroctl.PowerUse
+	Meters     []Meter
+	// Samples holds all the most readings, indexed
+	// by meter address.
+	Samples map[string]*ndmeter.Sample
+}
+
+// MeterState returns the latest known meter state.
+func (s *store) MeterState() *MeterState {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.meterState
+}
 
+// ReadMeters implements hydroworkd.MeterReader by reading the meters if
+// there are any. If there are none it assumes that all currently active
+// relays use their maximum power.
+//
+// If the context is cancelled, it returns immediately with the
+// most recently obtainable readings.
+func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.meters == nil {
+		return s.allMaxPower(), nil
+	}
+	addrs := make([]string, len(s.meters))
+	for i, m := range s.meters {
+		addrs[i] = m.Addr
+	}
+	var failed []string
+	// Unlock so that we don't block everything
+	// else while we're talking on the network.
+	s.mu.Unlock()
+	samples := s.sampler.GetAll(ctx, addrs...)
+	samplesByAddr := make(map[string]*ndmeter.Sample)
+	for i, sample := range samples {
+		if sample != nil {
+			samplesByAddr[addrs[i]] = sample
+		} else {
+			failed = append(failed, addrs[i])
+		}
+	}
+	s.mu.Lock()
+	var pu hydroctl.PowerUseSample
+	for i, m := range s.meters {
+		sample := samples[i]
+		if pu.T0.IsZero() || sample.Time.Before(pu.T0) {
+			pu.T0 = sample.Time
+		}
+		if pu.T1.IsZero() || sample.Time.After(pu.T1) {
+			pu.T1 = sample.Time
+		}
+		switch m.Location {
+		case LocGenerator:
+			pu.Generated += sample.ActivePower
+		case LocHere:
+			pu.Here += sample.ActivePower
+		case LocNeighbour:
+			pu.Neighbour += sample.ActivePower
+		default:
+			log.Printf("unknown meter location %v", m.Location)
+		}
+	}
+	pc := hydroctl.ChargeablePower(pu.PowerUse)
+	s.meterState = &MeterState{
+		Chargeable: pc,
+		Use:        pu.PowerUse,
+		Meters:     s.meters,
+		Samples:    samplesByAddr,
+	}
+	if len(failed) > 0 {
+		return hydroctl.PowerUseSample{}, errgo.Newf("failed to get meter readings from %v", failed)
+	}
+	return pu, nil
+}
+
+func (s *store) allMaxPower() hydroctl.PowerUseSample {
 	if s.workerState == nil {
-		return hydroctl.MeterReading{}, nil
+		return hydroctl.PowerUseSample{}
 	}
 	total := 0
 	for i := 0; i < hydroctl.MaxRelayCount; i++ {
@@ -126,8 +233,9 @@ func (s *store) ReadMeters() (hydroctl.MeterReading, error) {
 			total += s.config.Relays[i].MaxPower
 		}
 	}
-	return hydroctl.MeterReading{
-		Here:   total,
-		Import: total,
-	}, nil
+	return hydroctl.PowerUseSample{
+		PowerUse: hydroctl.PowerUse{
+			Here: float64(total),
+		},
+	}
 }

@@ -5,6 +5,7 @@
 package hydroworker
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -43,8 +44,9 @@ type CommitStore interface {
 
 // Worker represents the worker goroutines.
 type Worker struct {
-	controller RelayController
-	meters     MeterReader
+	cancelContext func()
+	controller    RelayController
+	meters        MeterReader
 	// history holds the history storage layer. It
 	// uses Worker.store for its persistent state.
 	history *history.DB
@@ -80,7 +82,7 @@ var ErrNoRelayController = errgo.New("no relay controller configured")
 type MeterReader interface {
 	// ReadMeters returns the most recent state of the
 	// meters.
-	ReadMeters() (hydroctl.MeterReading, error)
+	ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 }
 
 // Heartbeat is the interval at which the worker assesses for
@@ -94,18 +96,21 @@ func New(p Params) (*Worker, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
+	ctx := context.TODO()
+	ctx, cancel := context.WithCancel(ctx)
 	w := &Worker{
-		store:      p.Store,
-		controller: p.Controller,
-		meters:     p.Meters,
-		history:    hdb,
-		updater:    p.Updater,
-		cfgChan:    make(chan *hydroctl.Config),
+		cancelContext: cancel,
+		store:         p.Store,
+		controller:    p.Controller,
+		meters:        p.Meters,
+		history:       hdb,
+		updater:       p.Updater,
+		cfgChan:       make(chan *hydroctl.Config),
 	}
 	if w.updater == nil {
 		w.updater = nopUpdater{}
 	}
-	go w.run(p.Config)
+	go w.run(ctx, p.Config)
 	return w, nil
 }
 
@@ -122,10 +127,10 @@ func (w *Worker) SetConfig(cfg *hydroctl.Config) {
 
 // Close shuts down the worker.
 func (w *Worker) Close() {
-	close(w.cfgChan)
+	w.cancelContext()
 }
 
-func (w *Worker) run(currentConfig *hydroctl.Config) {
+func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 	log.Printf("hydroworker starting")
 	timer := time.NewTimer(0)
 	defer timer.Stop()
@@ -135,10 +140,9 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 	alreadyUnchanged := false
 	for {
 		select {
-		case cfg, ok := <-w.cfgChan:
-			if !ok {
-				return
-			}
+		case <-ctx.Done():
+			return
+		case cfg := <-w.cfgChan:
 			currentConfig = cfg
 		case <-timer.C:
 			timer.Reset(Heartbeat)
@@ -150,15 +154,27 @@ func (w *Worker) run(currentConfig *hydroctl.Config) {
 			}
 			continue
 		}
-		currentMeters, err := w.meters.ReadMeters()
+		// By deriving the context from our parent context,
+		// this will automatically stop when the worker is closed.
+		ctx1, cancel := context.WithTimeout(ctx, Heartbeat)
+		currentPowerUse, err := w.meters.ReadMeters(ctx1)
+		cancel()
 		if err != nil {
 			log.Printf("cannot get current meter reading: %v", err)
-			// What should we actually do here? Is continuing the right choice?
+			// TODO we should probably continue with calling Assess anyway
+			// even though we can't obtain a meter reading.
 			continue
 		}
 		now := time.Now()
 		logger.msgs = logger.msgs[:0]
-		newRelays := hydroctl.Assess(currentConfig, currentRelays, w.history, currentMeters, &logger, now)
+		newRelays := hydroctl.Assess(hydroctl.AssessParams{
+			Config:         currentConfig,
+			CurrentState:   currentRelays,
+			History:        w.history,
+			PowerUseSample: currentPowerUse,
+			Logger:         &logger,
+			Now:            now,
+		})
 		changed := newRelays != currentRelays
 		if changed {
 			for _, msg := range logger.msgs {

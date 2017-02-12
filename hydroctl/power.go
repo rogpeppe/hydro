@@ -18,7 +18,7 @@ type PowerUse struct {
 	// Neighbour holds the power being used by our neighbour in watts.
 	Neighbour float64
 	// Here holds the power being used here in watts.
-	Here      float64
+	Here float64
 }
 
 // ChargeablePower calculates how power use will be charged.

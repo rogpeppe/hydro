@@ -11,7 +11,6 @@ import (
 	"gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/history"
-	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
@@ -27,10 +26,28 @@ type Handler struct {
 	mux        *http.ServeMux
 }
 
+type MeterLocation int
+
+const (
+	_ MeterLocation = iota
+	LocGenerator
+	LocHere
+	LocNeighbour
+)
+
+// Meter holds a meter that can be read to find out what
+// the system is doing.
+type Meter struct {
+	Name     string
+	Location MeterLocation
+	Addr     string // host:port
+}
+
 type Params struct {
 	RelayAddrPath string
 	ConfigPath    string
 	HistoryPath   string
+	Meters        []Meter
 }
 
 func New(p Params) (*Handler, error) {
@@ -50,14 +67,16 @@ func New(p Params) (*Handler, error) {
 		path: p.RelayAddrPath,
 	}
 	controller := newRelayController(relayCtlConfigStore)
-	w, err := hydroworker.New(hydroworker.Params{
+
+	hwp := hydroworker.Params{
 		Config:     store.CtlConfig(),
 		Store:      historyStore,
 		Updater:    store,
 		Controller: controller,
-		// TODO use actual meter reader.
-		Meters: store,
-	})
+		Meters:     store,
+	}
+
+	w, err := hydroworker.New(hwp)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start worker")
 	}
@@ -116,8 +135,8 @@ func badRequest(w http.ResponseWriter, req *http.Request, err error) {
 }
 
 type update struct {
-	Meters *hydroctl.MeterReading `json:",omitempty"`
-	Relays map[int]relayUpdate    `json:",omitempty"`
+	Meters *MeterState         `json:",omitempty"`
+	Relays map[int]relayUpdate `json:",omitempty"`
 }
 
 type relayUpdate struct {
