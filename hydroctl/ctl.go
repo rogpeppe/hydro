@@ -272,14 +272,14 @@ func (a *assessor) logf(f string, args ...interface{}) {
 // AssessParams holds parameters used in assessing
 // a hydro control decision.
 type AssessParams struct {
-	Config         *Config
-	CurrentState   RelayState
-	History        History
-	MeterTimeStart time.Time
-	MeterTimeEnd   time.Time
-	Meter          PowerUse
-	Logger         Logger
-	Now            time.Time
+	Config            *Config
+	CurrentState      RelayState
+	History           History
+	PowerUseTimeStart time.Time
+	PowerUseTimeEnd   time.Time
+	PowerUse          PowerUse
+	Logger            Logger
+	Now               time.Time
 }
 
 // Assess assesses what the new state of the power-controlling relays should be
@@ -362,7 +362,7 @@ func Assess(p AssessParams) RelayState {
 	for i, ar := range assessed {
 		a.logf("sort %d: relay %d; pri %v; on %v", i, ar.relay, ar.pri, ar.onDuration)
 	}
-	pc := ChargeablePower(a.Meter)
+	pc := ChargeablePower(a.PowerUse)
 	a.logf("meter import %v", pc.ImportHere)
 	if pc.ImportHere > 0 {
 		// We're importing electricity. This must stop forthwith.
