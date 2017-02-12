@@ -13,8 +13,11 @@ type PowerChargeable struct {
 // PowerUse holds how power is being
 // used and generated in the system.
 type PowerUse struct {
+	// Generated holds the power being generated in watts.
 	Generated float64
+	// Neighbour holds the power being used by our neighbour in watts.
 	Neighbour float64
+	// Here holds the power being used here in watts.
 	Here      float64
 }
 

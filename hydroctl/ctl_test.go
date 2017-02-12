@@ -31,7 +31,7 @@ type assessNowTest struct {
 	// of the previous assessNowTest entry; at
 	// the now time, the state should change to expectState.
 	transition  bool
-	meters      hydroctl.MeterReading
+	meters      hydroctl.PowerUse
 	expectState hydroctl.RelayState
 }
 
@@ -253,9 +253,8 @@ var assessTests = []struct {
 	assessNowTests: []assessNowTest{{
 		// At midnight, just the always-on relay is on.
 		now: T(0),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		expectState: mkRelays(1),
 	}, {
@@ -263,17 +262,15 @@ var assessTests = []struct {
 		// doesn't kick in because we don't want
 		// to import anything.
 		now: T(1),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		expectState: mkRelays(1),
 	}, {
 		// Just before 3am, power is still off.
 		now: T(3).Add(-1),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		expectState: mkRelays(1),
 	}, {
@@ -281,25 +278,22 @@ var assessTests = []struct {
 		// kicks in because we realise that it needs
 		// to be on or it will miss its slot criteria.
 		now: T(3),
-		meters: hydroctl.MeterReading{
-			Import: 1100,
-			Here:   1100,
+		meters: hydroctl.PowerUse{
+			Here: 1100,
 		},
 		expectState: mkRelays(0, 1),
 	}, {
 		// It's still on just before 5am (the end of the slot).
 		now: T(5).Add(-1),
-		meters: hydroctl.MeterReading{
-			Import: 1100,
-			Here:   1100,
+		meters: hydroctl.PowerUse{
+			Here: 1100,
 		},
 		expectState: mkRelays(0, 1),
 	}, {
 		// ... and switches off at the end of the slot.
 		now: T(5),
-		meters: hydroctl.MeterReading{
-			Import: 1100,
-			Here:   1100,
+		meters: hydroctl.PowerUse{
+			Here: 1100,
 		},
 		expectState: mkRelays(1),
 	}},
@@ -375,9 +369,9 @@ var assessTests = []struct {
 		// At 2am, the meter shows that we're importing
 		// electricity, so the relay is switched off.
 		now: T(2),
-		meters: hydroctl.MeterReading{
-			Import: 500,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Generated: 500,
+			Here:      1000,
 		},
 		expectState: mkRelays(),
 		transition:  true,
@@ -386,8 +380,9 @@ var assessTests = []struct {
 		// enough electricity again,
 		// so we switch the relay back on.
 		now: T(3),
-		meters: hydroctl.MeterReading{
-			Here: 1000,
+		meters: hydroctl.PowerUse{
+			Generated: 1000,
+			Here:      1000,
 		},
 		expectState: mkRelays(0),
 		transition:  true,
@@ -395,8 +390,9 @@ var assessTests = []struct {
 		// At 4am we've satisfied the slot requirements,
 		// so we turn it off again.
 		now: T(4),
-		meters: hydroctl.MeterReading{
-			Here: 1000,
+		meters: hydroctl.PowerUse{
+			Generated: 1000,
+			Here:      1000,
 		},
 		expectState: mkRelays(),
 		transition:  true,
@@ -437,25 +433,25 @@ var assessTests = []struct {
 		// At the start of the slot, each relay
 		// will come on in turn.
 		now: T(1),
-		meters: hydroctl.MeterReading{
+		meters: hydroctl.PowerUse{
 			// The generator is producing 3kW.
-			Import: -3000,
+			Generated: 3000,
 		},
 		expectState: mkRelays(0),
 		transition:  true,
 	}, {
 		now: T(1).Add(hydroctl.MinimumChangeDuration),
-		meters: hydroctl.MeterReading{
-			Import: -2000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Generated: 3000,
+			Here:      1000,
 		},
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
 		now: T(1).Add(2 * hydroctl.MinimumChangeDuration),
-		meters: hydroctl.MeterReading{
-			Import: -1000,
-			Here:   2000,
+		meters: hydroctl.PowerUse{
+			Generated: 3000,
+			Here:      2000,
 		},
 		expectState: mkRelays(0, 1, 2),
 		transition:  true,
@@ -463,9 +459,9 @@ var assessTests = []struct {
 		// A little while after, we're using all the generated
 		// power but there's no problem with that.
 		now: T(1).Add(2*hydroctl.MinimumChangeDuration + time.Minute),
-		meters: hydroctl.MeterReading{
-			Import: 0,
-			Here:   3000,
+		meters: hydroctl.PowerUse{
+			Generated: 3000,
+			Here:      3000,
 		},
 		expectState: mkRelays(0, 1, 2),
 		transition:  true,
@@ -474,8 +470,8 @@ var assessTests = []struct {
 		// so we switch off just enough relays to
 		// hope that we stop using the excess power.
 		now: T(2),
-		meters: hydroctl.MeterReading{
-			Import:    1500,
+		meters: hydroctl.PowerUse{
+			Generated: 3000,
 			Here:      3000,
 			Neighbour: 1500,
 		},
@@ -541,24 +537,21 @@ var assessTests = []struct {
 		// Too soon to switch off the relay that's just been switched on.
 		now:         T(10).Add(time.Second),
 		expectState: mkRelays(0),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 	}, {
 		// As soon as we're allowed to switch it off, we do.
 		now: T(10).Add(hydroctl.MinimumChangeDuration),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		transition: true,
 	}, {
 		// It remains off...
 		now: T(10).Add(5 * time.Minute),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 	}, {
 		// ... until there's no more time left in the slot, at which point
@@ -566,27 +559,24 @@ var assessTests = []struct {
 		// preferred at this point because the first one has already
 		// had 5 seconds of power.
 		now: T(11).Add(-5 * time.Minute),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		expectState: mkRelays(1),
 		transition:  true,
 	}, {
 		// The first relay switches on after the usual delay.
 		now: T(11).Add(-5 * time.Minute).Add(hydroctl.MinimumChangeDuration),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
 		// And both switch off at the end of the slot.
 		now: T(11),
-		meters: hydroctl.MeterReading{
-			Import: 1000,
-			Here:   1000,
+		meters: hydroctl.PowerUse{
+			Here: 1000,
 		},
 		transition: true,
 	}},
@@ -595,7 +585,7 @@ var assessTests = []struct {
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
-			MaxPower: 1000,
+			MaxPower: 750,
 			InUse: []*hydroctl.Slot{{
 				Start:        10 * time.Hour,
 				SlotDuration: time.Hour,
@@ -604,7 +594,7 @@ var assessTests = []struct {
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
-			MaxPower: 1000,
+			MaxPower: 750,
 			InUse: []*hydroctl.Slot{{
 				Start:        10 * time.Hour,
 				SlotDuration: time.Hour,
@@ -616,62 +606,70 @@ var assessTests = []struct {
 	assessNowTests: []assessNowTest{{
 		now:         T(10).Add(0),
 		expectState: mkRelays(0),
-		meters: hydroctl.MeterReading{
-			Import: -1000,
+		meters: hydroctl.PowerUse{
+			Generated: 1000,
 		},
 		transition: true,
 	}, {
 		now:         T(10).Add(hydroctl.MinimumChangeDuration),
 		expectState: mkRelays(0, 1),
-		meters: hydroctl.MeterReading{
-			Import: -1000,
+		meters: hydroctl.PowerUse{
+			Generated: 1000,
 		},
 		transition: true,
 	}, {
 		// The relays start drawing power. Too much power.
-		// We switch things off to stop that.
-		now: T(10).Add(time.Minute),
-		meters: hydroctl.MeterReading{
-			Here:   2000,
-			Import: 1000,
+		// We switch one of the relays off to deal with that.
+		// The first relay that was switched on gets switched
+		// off because it's had more time on.
+		now:         T(10).Add(time.Minute),
+		expectState: mkRelays(1),
+		meters: hydroctl.PowerUse{
+			Generated: 1000,
+			Here:      1500,
 		},
 		transition: true,
-	}, {
-		// The relays are left off until while the meters remain the same.
-		now: T(10).Add(2 * time.Minute),
-		meters: hydroctl.MeterReading{
-			Here:   2000,
-			Import: 1000,
-		},
-	}, {
-		// When the meters change, we turn on relay 1
-		// because it's had slightly less energy (5s) than relay 0.
-		now: T(10).Add(3 * time.Minute),
-		meters: hydroctl.MeterReading{
-			Import: -1000,
-		},
-		expectState: mkRelays(1),
-		transition:  true,
-	}, {
-		// Then we turn on relay 0 because the meters still say the
-		// same thing.
-		//
-		// This is not good! We're in a bad feedback loop. We need to
-		// avoid that somehow. Perhaps when we change relay state, we
-		// should record the power that we're expecting to use, and act
-		// on the basis of that until proven otherwise. One possibility
-		// is to actively read the meters after any change to the relay
-		// state, so that we find out what the change is.
-		// If the relays are pushing their state, then we could have a
-		// duration that we wait for to see the new readings.
-		now: T(10).Add(3*time.Minute + hydroctl.MinimumChangeDuration),
-		meters: hydroctl.MeterReading{
-			Import: -1000,
-		},
-		expectState: mkRelays(0, 1),
-		transition:  true,
 	}},
 }}
+
+//}, {
+//		// The relays are left off until while the meters remain the same.
+//		now: T(10).Add(2 * time.Minute),
+//		expectState: mkRelays(1),
+//		meters: hydroctl.PowerUse{
+//			Generated: 1000,
+//			Here: 1500,
+//		},
+//	}},
+//	, {
+//		// When the meters change, we turn on relay 1
+//		// because it's had slightly less energy (5s) than relay 0.
+//		now: T(10).Add(3 * time.Minute),
+//		meters: hydroctl.PowerUse{
+//			Generated: 1000,
+//			Here: 750,
+//		},
+//		expectState: mkRelays(1),
+//		transition:  true,
+//	}, {
+//		// Then we turn on relay 0 because the meters still say the
+//		// same thing.
+//		//
+//		// This is not good! We're in a bad feedback loop. We need to
+//		// avoid that somehow. Perhaps when we change relay state, we
+//		// should record the power that we're expecting to use, and act
+//		// on the basis of that until proven otherwise. One possibility
+//		// is to actively read the meters after any change to the relay
+//		// state, so that we find out what the change is.
+//		// If the relays are pushing their state, then we could have a
+//		// duration that we wait for to see the new readings.
+//		now: T(10).Add(3*time.Minute + hydroctl.MinimumChangeDuration),
+//		meters: hydroctl.PowerUse{
+//			Generated: 1000,
+//		},
+//		expectState: mkRelays(0, 1),
+//		transition:  true,
+//	}},
 
 //, {
 //	about: "If we've switched on a relay recently, we can't switch if off immediately",
@@ -710,17 +708,31 @@ func (suite) TestAssess(c *gc.C) {
 		for j, innertest := range test.assessNowTests {
 			c.Logf("\t%d. at %v", j, D(innertest.now))
 			if innertest.transition {
-				var prevMeters hydroctl.MeterReading
+				var prevMeters hydroctl.PowerUse
 				if j > 0 {
 					prevMeters = test.assessNowTests[j-1].meters
 				}
 				// Check just before the test time to make
 				// sure the state is unchanged from the
 				// previous test.
-				newState := hydroctl.Assess(&test.cfg, state, history, prevMeters, clogger{c}, innertest.now.Add(-1))
+				newState := hydroctl.Assess(hydroctl.AssessParams{
+					Config:       &test.cfg,
+					CurrentState: state,
+					History:      history,
+					Meter:        prevMeters,
+					Logger:       clogger{c},
+					Now:          innertest.now.Add(-1),
+				})
 				c.Assert(newState, gc.Equals, state, gc.Commentf("previous state"))
 			}
-			state = hydroctl.Assess(&test.cfg, state, history, innertest.meters, clogger{c}, innertest.now)
+			state = hydroctl.Assess(hydroctl.AssessParams{
+				Config:       &test.cfg,
+				CurrentState: state,
+				History:      history,
+				Meter:        innertest.meters,
+				Logger:       clogger{c},
+				Now:          innertest.now,
+			})
 			c.Assert(state, gc.Equals, innertest.expectState)
 			history.RecordState(state, innertest.now)
 			c.Logf("new history: %v", &history)
