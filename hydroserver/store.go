@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"sync"
 
 	"github.com/juju/utils/voyeur"
@@ -64,6 +65,8 @@ func newStore(path string) (*store, error) {
 		path:       path,
 		config:     cfg,
 		configText: string(data),
+		sampler:    ndmeter.NewSampler(),
+		meterState: new(MeterState),
 	}, nil
 }
 
@@ -119,9 +122,14 @@ func (s *store) SetConfigText(text string) error {
 func (s *store) SetMeters(meters []Meter) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if reflect.DeepEqual(meters, s.meters) {
+		return
+	}
 	s.meters = meters
 	// TODO we could preserve some of the existing state.
-	s.meterState = nil
+	s.meterState = &MeterState{
+		Meters: s.meters,
+	}
 }
 
 // UpdateWorkerState sets the current worker state.

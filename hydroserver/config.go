@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -27,6 +28,9 @@ var configTempl = newTemplate(`
 {{.Store.ConfigText}}
 </textarea><br>
 Relay controller address <input name="relayaddr" type="text" value="{{.Controller.RelayAddr}}"><br>
+Generator meter address <input name="genmeteraddr" type="text" value="{{.GeneratorMeterAddrs | joinSp}}"><br>
+Aliday meter address <input name="neighbourmeteraddr" type="text" value="{{.NeighbourMeterAddrs | joinSp}}"><br>
+Drynoch meter addresses (space separated) <input name="heremeteraddr" type="text" value="{{.HereMeterAddrs | joinSp}}"><br>
 <input type="submit" value="Save">
 <div class=instructions>
 <p>
@@ -104,8 +108,11 @@ func (h *Handler) serveConfig(w http.ResponseWriter, req *http.Request) {
 }
 
 type configTemplateParams struct {
-	Store      *store
-	Controller *relayCtl
+	Store               *store
+	Controller          *relayCtl
+	GeneratorMeterAddrs []string
+	NeighbourMeterAddrs []string
+	HereMeterAddrs      []string
 }
 
 func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
@@ -113,6 +120,17 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 		Store:      h.store,
 		Controller: h.controller,
 	}
+	for _, m := range h.store.MeterState().Meters {
+		switch m.Location {
+		case LocGenerator:
+			p.GeneratorMeterAddrs = append(p.GeneratorMeterAddrs, m.Addr)
+		case LocNeighbour:
+			p.NeighbourMeterAddrs = append(p.NeighbourMeterAddrs, m.Addr)
+		case LocHere:
+			p.HereMeterAddrs = append(p.HereMeterAddrs, m.Addr)
+		}
+	}
+
 	var b bytes.Buffer
 	if err := configTempl.Execute(&b, p); err != nil {
 		log.Printf("template execution failed: %v", err)
@@ -132,7 +150,47 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	relayAddr := req.Form.Get("relayaddr")
 	// TODO check that we can connect to the relay address?
 	h.controller.SetRelayAddr(relayAddr)
+
+	var meters []Meter
+	for p, info := range meterInfo {
+		addrs := strings.Fields(req.Form.Get(p))
+		for i, addr := range addrs {
+			if _, _, err := net.SplitHostPort(addr); err != nil {
+				badRequest(w, req, errgo.Newf("invalid meter address %q (must be of the form host:port)", addr))
+				return
+			}
+			name := info.name
+			if len(addrs) > 0 {
+				name = fmt.Sprintf("%s #%d", name, i+1)
+			}
+			meters = append(meters, Meter{
+				Name:     name,
+				Location: info.location,
+				Addr:     addr,
+			})
+		}
+	}
+	h.store.SetMeters(meters)
+
 	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
+}
+
+var meterInfo = map[string]struct {
+	name     string
+	location MeterLocation
+}{
+	"genmeteraddr": {
+		name:     "Generator",
+		location: LocGenerator,
+	},
+	"heremeteraddr": {
+		name:     "Drynoch",
+		location: LocHere,
+	},
+	"neighbourmeteraddr": {
+		name:     "Aliday",
+		location: LocNeighbour,
+	},
 }
 
 var tmplFuncs = template.FuncMap{
@@ -145,6 +203,9 @@ var tmplFuncs = template.FuncMap{
 			return u + s[n:]
 		}
 		return s
+	},
+	"joinSp": func(ss []string) string {
+		return strings.Join(ss, " ")
 	},
 }
 
