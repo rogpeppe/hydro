@@ -160,7 +160,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			name := info.name
-			if len(addrs) > 0 {
+			if len(addrs) > 1 {
 				name = fmt.Sprintf("%s #%d", name, i+1)
 			}
 			meters = append(meters, Meter{

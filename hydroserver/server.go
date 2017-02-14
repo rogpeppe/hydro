@@ -162,6 +162,7 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 
 type clientUpdate struct {
 	Relays []clientRelayInfo
+	Meters *MeterState
 }
 
 type clientRelayInfo struct {
@@ -174,10 +175,12 @@ type clientRelayInfo struct {
 func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
 	cfg := h.store.CtlConfig()
+	meters := h.store.MeterState()
 	var u clientUpdate
 	if ws == nil || len(ws.Relays) == 0 {
 		return clientUpdate{
 			Relays: []clientRelayInfo{}, // be nice to JS and don't give it null.
+			Meters: meters,
 		}
 	}
 	for i, r := range ws.Relays {
@@ -195,7 +198,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 			Since:  r.Since,
 		})
 	}
-	// TODO read meters
+	u.Meters = meters
 	return u
 }
 

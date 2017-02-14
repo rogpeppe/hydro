@@ -130,6 +130,7 @@ func (s *store) SetMeters(meters []Meter) {
 	s.meterState = &MeterState{
 		Meters: s.meters,
 	}
+	s.anyVal.Set(nil)
 }
 
 // UpdateWorkerState sets the current worker state.
@@ -201,6 +202,9 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 	var pu hydroctl.PowerUseSample
 	for i, m := range s.meters {
 		sample := samples[i]
+		if sample == nil {
+			continue
+		}
 		if pu.T0.IsZero() || sample.Time.Before(pu.T0) {
 			pu.T0 = sample.Time
 		}
@@ -225,6 +229,7 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 		Meters:     s.meters,
 		Samples:    samplesByAddr,
 	}
+	s.anyVal.Set(nil)
 	if len(failed) > 0 {
 		return hydroctl.PowerUseSample{}, errgo.Newf("failed to get meter readings from %v", failed)
 	}

@@ -1,3 +1,14 @@
+Tue 14 Feb 07:35:36 GMT 2017
+
+On Zyxel router, port forwarding config in /etc/nat_pvc0/vserver*
+
+Mon 13 Feb 23:28:17 GMT 2017
+
+To make a "local" connection to cabinet-router:
+
+	ssh -p 222  '-oKexAlgorithms=+diffie-hellman-group1-sha1' -L 5900:192.168.1.254:80 pi@borla.ddns.net
+
+then use Chrome Virtual Hosts app to rewrite localhost:5900 to 192.168.1.254
 
 Tue  7 Feb 18:43:25 GMT 2017
 
