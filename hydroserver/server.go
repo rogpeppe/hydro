@@ -26,28 +26,11 @@ type Handler struct {
 	mux        *http.ServeMux
 }
 
-type MeterLocation int
-
-const (
-	_ MeterLocation = iota
-	LocGenerator
-	LocHere
-	LocNeighbour
-)
-
-// Meter holds a meter that can be read to find out what
-// the system is doing.
-type Meter struct {
-	Name     string
-	Location MeterLocation
-	Addr     string // host:port
-}
-
 type Params struct {
-	RelayAddrPath string
-	ConfigPath    string
-	HistoryPath   string
-	Meters        []Meter
+	RelayAddrPath   string
+	ConfigPath      string
+	MeterConfigPath string
+	HistoryPath     string
 }
 
 func New(p Params) (*Handler, error) {
@@ -55,7 +38,7 @@ func New(p Params) (*Handler, error) {
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
-	store, err := newStore(p.ConfigPath)
+	store, err := newStore(p.ConfigPath, p.MeterConfigPath)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot make store")
 	}
@@ -75,7 +58,6 @@ func New(p Params) (*Handler, error) {
 		Controller: controller,
 		Meters:     store,
 	}
-
 	w, err := hydroworker.New(hwp)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start worker")
@@ -135,7 +117,7 @@ func badRequest(w http.ResponseWriter, req *http.Request, err error) {
 }
 
 type update struct {
-	Meters *MeterState         `json:",omitempty"`
+	Meters *meterState         `json:",omitempty"`
 	Relays map[int]relayUpdate `json:",omitempty"`
 }
 
@@ -162,7 +144,7 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 
 type clientUpdate struct {
 	Relays []clientRelayInfo
-	Meters *MeterState
+	Meters *meterState
 }
 
 type clientRelayInfo struct {
@@ -175,7 +157,7 @@ type clientRelayInfo struct {
 func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
 	cfg := h.store.CtlConfig()
-	meters := h.store.MeterState()
+	meters := h.store.meterState()
 	var u clientUpdate
 	if ws == nil || len(ws.Relays) == 0 {
 		return clientUpdate{

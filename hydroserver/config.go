@@ -120,13 +120,13 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 		Store:      h.store,
 		Controller: h.controller,
 	}
-	for _, m := range h.store.MeterState().Meters {
+	for _, m := range h.store.meterState().Meters {
 		switch m.Location {
-		case LocGenerator:
+		case locGenerator:
 			p.GeneratorMeterAddrs = append(p.GeneratorMeterAddrs, m.Addr)
-		case LocNeighbour:
+		case locNeighbour:
 			p.NeighbourMeterAddrs = append(p.NeighbourMeterAddrs, m.Addr)
-		case LocHere:
+		case locHere:
 			p.HereMeterAddrs = append(p.HereMeterAddrs, m.Addr)
 		}
 	}
@@ -143,7 +143,7 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	configText := req.Form.Get("config")
-	if err := h.store.SetConfigText(configText); err != nil {
+	if err := h.store.setConfigText(configText); err != nil {
 		serveConfigError(w, req, err)
 		return
 	}
@@ -151,7 +151,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	// TODO check that we can connect to the relay address?
 	h.controller.SetRelayAddr(relayAddr)
 
-	var meters []Meter
+	var meters []meter
 	for p, info := range meterInfo {
 		addrs := strings.Fields(req.Form.Get(p))
 		for i, addr := range addrs {
@@ -163,33 +163,36 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 			if len(addrs) > 1 {
 				name = fmt.Sprintf("%s #%d", name, i+1)
 			}
-			meters = append(meters, Meter{
+			meters = append(meters, meter{
 				Name:     name,
 				Location: info.location,
 				Addr:     addr,
 			})
 		}
 	}
-	h.store.SetMeters(meters)
+	if err := h.store.setMeters(meters); err != nil {
+		serveConfigError(w, req, err)
+		return
+	}
 
 	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
 }
 
 var meterInfo = map[string]struct {
 	name     string
-	location MeterLocation
+	location meterLocation
 }{
 	"genmeteraddr": {
 		name:     "Generator",
-		location: LocGenerator,
+		location: locGenerator,
 	},
 	"heremeteraddr": {
 		name:     "Drynoch",
-		location: LocHere,
+		location: locHere,
 	},
 	"neighbourmeteraddr": {
 		name:     "Aliday",
-		location: LocNeighbour,
+		location: locNeighbour,
 	},
 }
 

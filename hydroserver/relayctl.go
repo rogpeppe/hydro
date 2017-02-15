@@ -191,16 +191,27 @@ func (s *relayCtlConfigStore) SetRelayAddr(addr string) (bool, error) {
 func (s *relayCtlConfigStore) RelayAddr() (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	data, err := ioutil.ReadFile(s.path)
-	if err != nil {
+	if err := readJSONFile(s.path, &s.cfg); err != nil {
 		if os.IsNotExist(err) {
 			return "", hydroworker.ErrNoRelayController
 		}
-		return "", errgo.Mask(err)
-	}
-	s.cfg = relayCtlConfig{}
-	if err := json.Unmarshal(data, &s.cfg); err != nil {
 		return "", errgo.Notef(err, "badly formatted relay config data")
 	}
 	return s.cfg.Addr, nil
+}
+
+func readJSONFile(path string, x interface{}) error {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, x)
+}
+
+func writeJSONFile(path string, x interface{}) error {
+	data, err := json.Marshal(x)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, data, 0666)
 }

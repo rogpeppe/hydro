@@ -18,8 +18,11 @@ import (
 )
 
 type store struct {
-	// path holds the file name where the configuration is stored.
-	path string
+	// configPath holds the file name where the configuration is stored.
+	configPath string
+
+	// metersPath holds the file name where the meter information is stored.
+	metersPath string
 
 	// sampler holds the sampler used to obtain meter readings.
 	sampler *ndmeter.Sampler
@@ -44,16 +47,16 @@ type store struct {
 	// workerState holds the latest known worker state.
 	workerState *hydroworker.Update
 
-	// meterState holds the most recent meter state
+	// meterState_ holds the most recent meter state
 	// as returned by ReadMeters.
-	meterState *MeterState
+	meterState_ *meterState
 
 	// meters holds the meters that will be read.
-	meters []Meter
+	meters []meter
 }
 
-func newStore(path string) (*store, error) {
-	data, err := ioutil.ReadFile(path)
+func newStore(configPath, metersPath string) (*store, error) {
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, errgo.Mask(err)
 	}
@@ -61,13 +64,44 @@ func newStore(path string) (*store, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
+
+	var mcfg meterConfig
+	err = readJSONFile(metersPath, &mcfg)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, errgo.Mask(err)
+	}
 	return &store{
-		path:       path,
-		config:     cfg,
-		configText: string(data),
-		sampler:    ndmeter.NewSampler(),
-		meterState: new(MeterState),
+		configPath:  configPath,
+		metersPath:  metersPath,
+		config:      cfg,
+		configText:  string(data),
+		sampler:     ndmeter.NewSampler(),
+		meters:      mcfg.Meters,
+		meterState_: new(meterState),
 	}, nil
+}
+
+type meterLocation int
+
+const (
+	_ meterLocation = iota
+	locGenerator
+	locNeighbour
+	locHere
+)
+
+// meter holds a meter that can be read to find out what
+// the system is doing.
+type meter struct {
+	Name     string        `json:"name"`
+	Location meterLocation `json:"location"`
+	Addr     string        // host:port	`json:"addr"`
+}
+
+// meterConfig defines the format used to persistently store
+// the meter configuration.
+type meterConfig struct {
+	Meters []meter `json:"meters"`
 }
 
 // ConfigText returns the current configuration string.
@@ -93,8 +127,8 @@ func (s *store) Config() *hydroconfig.Config {
 	return s.config
 }
 
-// SetConfigText sets the relay configuration to the given string.
-func (s *store) SetConfigText(text string) error {
+// setConfigText sets the relay configuration to the given string.
+func (s *store) setConfigText(text string) error {
 	cfg, err := hydroconfig.Parse(text)
 	if err != nil {
 		return errgo.Mask(err, errgo.Any)
@@ -105,7 +139,7 @@ func (s *store) SetConfigText(text string) error {
 		return nil
 	}
 	// TODO write config atomically.
-	if err := ioutil.WriteFile(s.path, []byte(text), 0666); err != nil {
+	if err := ioutil.WriteFile(s.configPath, []byte(text), 0666); err != nil {
 		return errgo.Notef(err, "cannot write relay config file")
 	}
 	s.config = cfg
@@ -119,18 +153,23 @@ func (s *store) SetConfigText(text string) error {
 // SetMeters sets the meters to use for ReadMeters.
 // The meters slice should not be changed after
 // calling.
-func (s *store) SetMeters(meters []Meter) {
+func (s *store) setMeters(meters []meter) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if reflect.DeepEqual(meters, s.meters) {
-		return
+		return nil
+	}
+	// TODO write config atomically.
+	if err := writeJSONFile(s.metersPath, meters); err != nil {
+		return errgo.Notef(err, "cannot write meters config file")
 	}
 	s.meters = meters
 	// TODO we could preserve some of the existing state.
-	s.meterState = &MeterState{
+	s.meterState_ = &meterState{
 		Meters: s.meters,
 	}
 	s.anyVal.Set(nil)
+	return nil
 }
 
 // UpdateWorkerState sets the current worker state.
@@ -152,21 +191,21 @@ func (s *store) WorkerState() *hydroworker.Update {
 	return s.workerState
 }
 
-// MeterState holds a meter state.
-type MeterState struct {
+// meterState holds a meter state.
+type meterState struct {
 	Chargeable hydroctl.PowerChargeable
 	Use        hydroctl.PowerUse
-	Meters     []Meter
+	Meters     []meter
 	// Samples holds all the most readings, indexed
 	// by meter address.
 	Samples map[string]*ndmeter.Sample
 }
 
-// MeterState returns the latest known meter state.
-func (s *store) MeterState() *MeterState {
+// meterState returns the latest known meter state.
+func (s *store) meterState() *meterState {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.meterState
+	return s.meterState_
 }
 
 // ReadMeters implements hydroworkd.MeterReader by reading the meters if
@@ -212,18 +251,18 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 			pu.T1 = sample.Time
 		}
 		switch m.Location {
-		case LocGenerator:
+		case locGenerator:
 			pu.Generated += sample.ActivePower
-		case LocHere:
+		case locHere:
 			pu.Here += sample.ActivePower
-		case LocNeighbour:
+		case locNeighbour:
 			pu.Neighbour += sample.ActivePower
 		default:
 			log.Printf("unknown meter location %v", m.Location)
 		}
 	}
 	pc := hydroctl.ChargeablePower(pu.PowerUse)
-	s.meterState = &MeterState{
+	s.meterState_ = &meterState{
 		Chargeable: pc,
 		Use:        pu.PowerUse,
 		Meters:     s.meters,

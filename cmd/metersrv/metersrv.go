@@ -26,7 +26,7 @@ func main() {
 			addrs = append(addrs, "localhost:0")
 		}
 	}
-	for i, addr := range addrs {
+	for _, addr := range addrs {
 		srv, err := ndmetertest.NewServer(addr)
 		if err != nil {
 			log.Fatalf("cannot start server: %v", err)

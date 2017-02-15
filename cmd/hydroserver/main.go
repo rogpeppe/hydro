@@ -40,9 +40,10 @@ func main() {
 	}
 	// TODO make the relay server address changeable in the web interface.
 	h, err := hydroserver.New(hydroserver.Params{
-		RelayAddrPath: filepath.Join(cfg.StateDir, "relayaddr"),
-		ConfigPath:    filepath.Join(cfg.StateDir, "relayconfig"),
-		HistoryPath:   filepath.Join(cfg.StateDir, "history"),
+		RelayAddrPath:   filepath.Join(cfg.StateDir, "relayaddr"),
+		ConfigPath:      filepath.Join(cfg.StateDir, "relayconfig"),
+		MeterConfigPath: filepath.Join(cfg.StateDir, "meterconfig"),
+		HistoryPath:     filepath.Join(cfg.StateDir, "history"),
 	})
 	if err != nil {
 		log.Fatal(err)
