@@ -97,7 +97,7 @@ var prog = `
 							<td>{meter.Name}</td>
 							<td><a href={"http://" + meter.Addr}>{meter.Addr}</a></td>
 							<td>{
-								meters.Samples[meter.Addr] === undefined ? "n/a" : kWfmt(meters.Samples[meter.Addr].ActivePower)
+								meters.Samples && meters.Samples[meter.Addr] === undefined ? "n/a" : kWfmt(meters.Samples[meter.Addr].ActivePower)
 							}</td>
 						</tr>
 					})
