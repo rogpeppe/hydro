@@ -80,7 +80,9 @@ func (sampler *Sampler) GetAll(ctx context.Context, addrs ...string) []*Sample {
 }
 
 func (sampler *Sampler) getOne(ctx context.Context, addr string) *Sample {
+	retry := 100 * time.Millisecond
 	for ctx.Err() == nil {
+		t0 := time.Now()
 		sample0, err := sampler.group.Do(addr, func() (interface{}, error) {
 			reading, err := Get(addr)
 			return &Sample{
@@ -92,8 +94,26 @@ func (sampler *Sampler) getOne(ctx context.Context, addr string) *Sample {
 		if err == nil {
 			return sample
 		}
+
 		log.Printf("failed to get reading from %s: %v", addr, err)
+		if !isTemporary(err) {
+			// Don't retry on non-temporary errors
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+		case <-time.After(time.Until(t0.Add(retry))):
+		}
 	}
-	log.Printf("failed to get reading from %s: %v", addr, ctx.Err())
+	log.Printf("context done reading from %s: %v", addr, ctx.Err())
 	return nil
+}
+
+type temporary interface {
+	Temporary() bool
+}
+
+func isTemporary(err error) bool {
+	t, ok := err.(temporary)
+	return ok && t.Temporary()
 }

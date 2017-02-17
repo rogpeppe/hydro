@@ -160,7 +160,7 @@ func (s *store) setMeters(meters []meter) error {
 		return nil
 	}
 	// TODO write config atomically.
-	if err := writeJSONFile(s.metersPath, meters); err != nil {
+	if err := writeJSONFile(s.metersPath, meterConfig{meters}); err != nil {
 		return errgo.Notef(err, "cannot write meters config file")
 	}
 	s.meters = meters

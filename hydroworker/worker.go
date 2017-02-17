@@ -147,16 +147,14 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		case <-timer.C:
 			timer.Reset(Heartbeat)
 		}
+		haveRelays := true
 		currentRelays, err := w.controller.Relays()
 		if err != nil {
 			if errgo.Cause(err) != ErrNoRelayController {
 				log.Printf("cannot get current relay state: %v (%#v)", err, err)
 			}
-			continue
+			haveRelays = false
 		}
-		// TODO read the meters even if there's no relay server,
-		// so that the dashboard gets updated.
-
 		// By deriving the context from our parent context,
 		// this will automatically stop when the worker is closed.
 		ctx1, cancel := context.WithTimeout(ctx, Heartbeat)
@@ -166,6 +164,10 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 			log.Printf("cannot get current meter reading: %v", err)
 			// TODO we should probably continue with calling Assess anyway
 			// even though we can't obtain a meter reading.
+			continue
+		}
+		if !haveRelays {
+			// No point in continuing if we can't talk to the relay server.
 			continue
 		}
 		now := time.Now()
