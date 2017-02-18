@@ -36,6 +36,11 @@ const MinimumChangeDuration = 5 * time.Second
 // through relays using discretionary power.
 const CycleDuration = 5 * time.Minute
 
+// MeterReactionDuration holds the length of time we wait
+// for the meters to react to relay changes before
+// we make further decisions.
+const MeterReactionDuration = 10 * time.Second
+
 // Config holds the configuration of the control system.
 type Config struct {
 	// Relays holds the configuration for all the relays
@@ -51,6 +56,7 @@ type RelayConfig struct {
 
 	// MaxPower holds the maximum power that the given relay
 	// can draw, in watts.
+	// TODO redefine as float64 for consistency.
 	MaxPower int
 
 	InUse    []*Slot
@@ -300,6 +306,7 @@ func Assess(p AssessParams) RelayState {
 		AssessParams: p,
 	}
 	newState := a.CurrentState
+	// assessed will hold all the relays that want discretionary power.
 	assessed := make([]assessedRelay, 0, len(a.Config.Relays))
 
 	// Find the earliest start time of any of the current slots,
@@ -307,6 +314,7 @@ func Assess(p AssessParams) RelayState {
 	// they've been switched on since then. Limit searching
 	// by starting at most 24 hours ago, and only include
 	// relays in discretionary power mode.
+	// Also, make any changes to relays with absolute priority.
 	earliestStart := a.Now
 	earliestPossibleStart := a.Now.Add(-24 * time.Hour)
 	added := -1 // Number of first relay with absolute priority to be turned on.
@@ -338,7 +346,7 @@ func Assess(p AssessParams) RelayState {
 		assessed = append(assessed, ar)
 	}
 
-	latestOnTime := allRelaysLatestOnTime(a.History, len(a.Config.Relays))
+	latestChangeTime, latestOnTime := allRelaysLatestChange(a.History, len(a.Config.Relays))
 
 	// canTurnOn holds whether we're allowed to turn on any
 	// relay because the last time we turned on any relay
@@ -360,6 +368,27 @@ func Assess(p AssessParams) RelayState {
 			}
 		}
 		newState.Set(added, true)
+		return newState
+	}
+
+	// From here on, we'll be using the meter readings to determine
+	// our action. If the meter readings aren't up to date, then don't
+	// do anything more, because we don't want to make decisions
+	// based on data that doesn't correspond to the current relay state.
+	a.logf("meter readings at %v; latest change time %v", a.PowerUseSample.T0, latestChangeTime)
+
+	if a.PowerUseSample.T0.IsZero() {
+		a.logf("invalid meter time (zero time)")
+		return newState
+	}
+
+	if a.PowerUseSample.T0.Before(latestChangeTime) {
+		a.logf("meter readings out of date, leaving discretionary power unchanged; reading at %s, not after %s", a.PowerUseSample.T0, latestChangeTime)
+		return newState
+	}
+	settledTime := latestChangeTime.Add(MeterReactionDuration)
+	if a.PowerUseSample.T0.Before(settledTime) {
+		a.logf("meter readings not settled yet (settled in %v, reading %v ago)", settledTime.Sub(a.Now), a.Now.Sub(a.PowerUseSample.T0))
 		return newState
 	}
 	for i := range assessed {
@@ -392,63 +421,98 @@ func Assess(p AssessParams) RelayState {
 		// So we switch off just enough relays that we hope we'll stop importing.
 		// TODO better algorithm for deciding which order to choose relays
 		// to switch off.
-
-		// regain is the measure of how much power we need
-		// to stop using to get under the required limit.
-		regain := pc.ImportHere
-		a.logf("need to regain %v", regain)
-		for _, ar := range assessed {
-			if regain <= 0 {
+		a.regainPower(&newState, assessed, pc.ImportHere, false)
+		return newState
+	}
+	if !canTurnOn {
+		return newState
+	}
+	a.logf("we may be able to turn on something")
+	// Traverse from high to low priority.
+	alreadyOn := false
+	for i := len(assessed) - 1; i >= 0; i-- {
+		ar := &assessed[i]
+		if a.CurrentState.IsSet(ar.relay) {
+			// The relay is already on; leave it that way.
+			a.logf("%d is already on; leaving it that way", ar.relay)
+			alreadyOn = true
+			continue
+		}
+		if imp := a.possibleImport(ar.relay); imp > 0 {
+			if !alreadyOn && a.regainPower(&newState, assessed, imp, true) {
+				// There's no higher priority relay that's already on and
+				// we've turned off some relays, so hopefully we that will
+				// give us enough power back that the next time we
+				// assess the situation we'll be able to turn on the
+				// current relay.
+				a.logf("regained power in order to turn on %d", ar.relay)
 				break
 			}
-			if !a.CurrentState.IsSet(ar.relay) {
-				// Relay is already off - we won't change anything if we switch it off.
-				continue
-			}
-			if !a.canSetRelay(&ar, false, a.Now) {
-				a.logf("would like to turn off %d but can't", ar.relay)
-				continue
-			}
-			a.logf("regaining by turning off %v", ar.relay)
-			newState.Set(ar.relay, false)
-			regain -= float64(a.Config.Relays[ar.relay].MaxPower)
+			a.logf("would like to turn on %d but not enough available power", ar.relay)
+			continue
 		}
-	} else if canTurnOn {
-		a.logf("we can turn on something")
-		for i := len(assessed) - 1; i >= 0; i-- {
-			ar := &assessed[i]
-			if a.CurrentState.IsSet(ar.relay) {
-				// The relay is already on; leave it that way.
-				a.logf("%d is already on; leaving it that way", ar.relay)
-				continue
-			}
-			if a.canSetRelay(ar, true, a.Now) {
-				// Turn on just the one relay.
-				a.logf("turning on %d", ar.relay)
-				newState.Set(ar.relay, true)
-				break
-			}
-			a.logf("would like to turn on %d but can't", ar.relay)
+		if a.canSetRelay(ar, true, a.Now) {
+			// Turn on just the one relay.
+			a.logf("turning on %d", ar.relay)
+			newState.Set(ar.relay, true)
+			break
 		}
+		a.logf("would like to turn on %d but can't", ar.relay)
 	}
 	return newState
 }
 
-// allRelaysLatestOnTime returns the latest time that any of
-// the relays in [0, n) was switched on. If none
-// of them are on, it returns the zero time.
+// regainPower tries to turn off enough relays to regain the given
+// amount of power. If must is true, no change will be made if it's
+// not possible to regain all the required power.
+// It reports whether the goal was achieved.
+func (a *assessor) regainPower(state *RelayState, assessed []assessedRelay, regain float64, must bool) bool {
+	newState := *state
+	a.logf("trying to regain %v", regain)
+	// Note: we traverse from least priority to highest priority.
+	for _, ar := range assessed {
+		if regain <= 0 {
+			break
+		}
+		if !a.CurrentState.IsSet(ar.relay) {
+			// Relay is already off - we won't change anything if we switch it off.
+			continue
+		}
+		if !a.canSetRelay(&ar, false, a.Now) {
+			a.logf("would like to turn off %d but can't", ar.relay)
+			continue
+		}
+		a.logf("regaining by turning off %v", ar.relay)
+		newState.Set(ar.relay, false)
+		regain -= float64(a.Config.Relays[ar.relay].MaxPower)
+	}
+	if regain <= 0 || !must {
+		*state = newState
+		return true
+	}
+	return false
+}
+
+// allRelaysLatestOnTime returns the latest time
+// that any of the relays in [0, n) was changed
+// and the latest time that any of them was switched on.
+// If none of them have changed, anyTime will hold the
+// zero time; if none of them are on it onTime will hold
+// the zero time.
 // TODO investigate the possibility that this could
 // be more efficiently implemented if defined on
 // History interface.
-func allRelaysLatestOnTime(h History, n int) time.Time {
-	var t time.Time
+func allRelaysLatestChange(h History, n int) (anyTime, onTime time.Time) {
 	for i := 0; i < n; i++ {
-		on, ont := h.LatestChange(i)
-		if on && ont.After(t) {
-			t = ont
+		on, t := h.LatestChange(i)
+		if on && t.After(onTime) {
+			onTime = t
+		}
+		if t.After(anyTime) {
+			anyTime = t
 		}
 	}
-	return t
+	return anyTime, onTime
 }
 
 // assessedRelay holds information about a relay that's being assessed.
@@ -522,6 +586,14 @@ func (ap assessedByPriority) Swap(i, j int) {
 
 func (ap assessedByPriority) Len() int {
 	return len(ap)
+}
+
+// possibleImport reports the amount of import power that turning
+// on the given relay might use.
+func (a *assessor) possibleImport(relay int) float64 {
+	pu := a.PowerUseSample.PowerUse
+	pu.Here += float64(a.Config.Relays[relay].MaxPower)
+	return ChargeablePower(pu).ImportHere
 }
 
 // assessRelay assesses the desired status of the given relay with
