@@ -4,10 +4,10 @@ import (
 	"time"
 
 	jc "github.com/juju/testing/checkers"
+	gc "gopkg.in/check.v1"
+
 	"github.com/rogpeppe/hydro/hydroconfig"
 	"github.com/rogpeppe/hydro/hydroctl"
-
-	gc "gopkg.in/check.v1"
 )
 
 var _ = gc.Suite(&configSuite{})

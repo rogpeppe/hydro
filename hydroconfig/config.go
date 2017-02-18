@@ -2,13 +2,15 @@ package hydroconfig
 
 import (
 	"fmt"
-	"github.com/rogpeppe/hydro/hydroctl"
-	"gopkg.in/errgo.v1"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"gopkg.in/errgo.v1"
+
+	"github.com/rogpeppe/hydro/hydroctl"
 )
 
 // Config represents a control system configuration as specified

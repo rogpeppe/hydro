@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/juju/httprequest"
-
 	"github.com/julienschmidt/httprouter"
 )
 

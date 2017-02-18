@@ -6,6 +6,7 @@ import (
 
 	"github.com/juju/httprequest"
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 

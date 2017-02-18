@@ -9,10 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rogpeppe/rjson"
 	errgo "gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/hydroserver"
-	"github.com/rogpeppe/rjson"
 )
 
 type Config struct {
