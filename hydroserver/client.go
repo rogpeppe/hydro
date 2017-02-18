@@ -44,7 +44,7 @@ var indexHTML = `<!DOCTYPE html>
 var prog = `
 	function kWfmt(watts) {
 		return (watts / 1000).toFixed(3) + "kW"
-	}
+	};
 	function wsURL(path) {
 		var loc = window.location, scheme;
 		if (loc.protocol === "https:") {
@@ -88,17 +88,21 @@ var prog = `
 				</table>
 				<table>
 				<thead>
-					<tr><th>Meter name</th><th>Address</th><th>Current power (kW)</th></tr>
+					<tr><th>Meter name</th><th>Address</th><th>Current power (kW)</th><th>Time lag</th></tr>
 				</thead>
 				<tbody>
 				{
 					meters.Meters && meters.Meters.map(function(meter){
+						var sample;
+						if(meters.Samples){
+							sample = meters.Samples[meter.Addr];
+						}
+						var sample = meters.Samples && meters.Samples[meter.Addr];
 						return <tr>
 							<td>{meter.Name}</td>
 							<td><a href={"http://" + meter.Addr}>{meter.Addr}</a></td>
-							<td>{
-								meters.Samples && meters.Samples[meter.Addr] === undefined ? "n/a" : kWfmt(meters.Samples[meter.Addr].ActivePower)
-							}</td>
+							<td>{sample ? kWfmt(sample.Power) : "n/a"}</td>
+							<td>{sample ? sample.TimeLag : ""}</td>
 						</tr>
 					})
 				}
@@ -110,7 +114,7 @@ var prog = `
 	var socket = new ReconnectingWebSocket(wsURL("/updates"));
 	socket.onmessage = function(event) {
 		var m = JSON.parse(event.data);
-		console.log("message", event.data)
+		console.log("message", event.data);
 		ReactDOM.render(
 			<div>
 				<a href="/config">Change configuration</a>

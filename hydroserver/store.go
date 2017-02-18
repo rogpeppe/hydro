@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/juju/utils/voyeur"
 	"gopkg.in/errgo.v1"
@@ -93,15 +94,15 @@ const (
 // meter holds a meter that can be read to find out what
 // the system is doing.
 type meter struct {
-	Name     string        `json:"name"`
-	Location meterLocation `json:"location"`
-	Addr     string        // host:port	`json:"addr"`
+	Name     string
+	Location meterLocation
+	Addr     string // host:port
 }
 
 // meterConfig defines the format used to persistently store
 // the meter configuration.
 type meterConfig struct {
-	Meters []meter `json:"meters"`
+	Meters []meter
 }
 
 // ConfigText returns the current configuration string.
@@ -193,6 +194,7 @@ func (s *store) WorkerState() *hydroworker.Update {
 
 // meterState holds a meter state.
 type meterState struct {
+	Time       time.Time
 	Chargeable hydroctl.PowerChargeable
 	Use        hydroctl.PowerUse
 	Meters     []meter
@@ -229,6 +231,7 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 	// else while we're talking on the network.
 	s.mu.Unlock()
 	samples := s.sampler.GetAll(ctx, addrs...)
+	now := time.Now()
 	samplesByAddr := make(map[string]*ndmeter.Sample)
 	for i, sample := range samples {
 		if sample != nil {
@@ -263,6 +266,7 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 	}
 	pc := hydroctl.ChargeablePower(pu.PowerUse)
 	s.meterState_ = &meterState{
+		Time:       now,
 		Chargeable: pc,
 		Use:        pu.PowerUse,
 		Meters:     s.meters,

@@ -11,6 +11,7 @@ import (
 	"gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/history"
+	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
@@ -117,7 +118,7 @@ func badRequest(w http.ResponseWriter, req *http.Request, err error) {
 }
 
 type update struct {
-	Meters *meterState         `json:",omitempty"`
+	Meters *clientMeterInfo    `json:",omitempty"`
 	Relays map[int]relayUpdate `json:",omitempty"`
 }
 
@@ -144,7 +145,7 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 
 type clientUpdate struct {
 	Relays []clientRelayInfo
-	Meters *meterState
+	Meters *clientMeterInfo
 }
 
 type clientRelayInfo struct {
@@ -154,16 +155,39 @@ type clientRelayInfo struct {
 	Since  time.Time
 }
 
+type clientSample struct {
+	TimeLag string
+	Power   float64
+}
+
+type clientMeterInfo struct {
+	Chargeable hydroctl.PowerChargeable
+	Use        hydroctl.PowerUse
+	Meters     []meter
+	Samples    map[string]clientSample
+}
+
 func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
 	cfg := h.store.CtlConfig()
 	meters := h.store.meterState()
 	var u clientUpdate
-	if ws == nil || len(ws.Relays) == 0 {
-		return clientUpdate{
-			Relays: []clientRelayInfo{}, // be nice to JS and don't give it null.
-			Meters: meters,
+	samples := make(map[string]clientSample)
+	for addr, s := range meters.Samples {
+		samples[addr] = clientSample{
+			TimeLag: lag(s.Time, meters.Time),
+			Power:   s.ActivePower,
 		}
+	}
+	u.Meters = &clientMeterInfo{
+		Chargeable: meters.Chargeable,
+		Use:        meters.Use,
+		Meters:     meters.Meters,
+		Samples:    samples,
+	}
+	if ws == nil || len(ws.Relays) == 0 {
+		u.Relays = []clientRelayInfo{} // be nice to JS and don't give it null.
+		return u
 	}
 	for i, r := range ws.Relays {
 		if r.Since.IsZero() && !r.On {
@@ -180,8 +204,22 @@ func (h *Handler) makeUpdate() clientUpdate {
 			Since:  r.Since,
 		})
 	}
-	u.Meters = meters
 	return u
+}
+
+func lag(t0, t1 time.Time) string {
+	d := t1.Sub(t0)
+	if d < hydroworker.Heartbeat {
+		return ""
+	}
+	var q time.Duration
+	switch {
+	case d < time.Minute:
+		q = time.Millisecond
+	default:
+		q = time.Second
+	}
+	return d.Round(q).String()
 }
 
 func serveIndex(w http.ResponseWriter, req *http.Request) {
