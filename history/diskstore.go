@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/rogpeppe/hydro/hydroctl"
@@ -17,6 +18,7 @@ import (
 type DiskStore struct {
 	path string
 	f    *os.File
+	mu   sync.Mutex
 	// events holds all events in the store.
 	events   []Event
 	toCommit []Event
@@ -100,12 +102,16 @@ func (s *DiskStore) Close() error {
 
 // Append implements Store.Append.
 func (s *DiskStore) Append(e Event) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.toCommit = append(s.toCommit, e)
 }
 
 // Commit commits all the events appended since the last
 // call to Commit.
 func (s *DiskStore) Commit() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	buf := make([]byte, 0, eventSize*len(s.toCommit))
 	for _, e := range s.toCommit {
 		buf = e.appendEvent(buf)
@@ -123,7 +129,14 @@ func (s *DiskStore) Commit() error {
 	return nil
 }
 
+// ReverseIterator returns an iterator that iterates
+// through the events in the history most recent first.
 func (s *DiskStore) ReverseIter() Iterator {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// Note that we don't need to hold the lock when
+	// iterating because we never mutate the
+	// elements of s.events in place.
 	return &eventsIter{
 		i:      len(s.events),
 		events: s.events,

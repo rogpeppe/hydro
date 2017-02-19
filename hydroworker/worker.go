@@ -80,8 +80,7 @@ var ErrNoRelayController = errgo.New("no relay controller configured")
 
 // MeterReader represents a meter reader.
 type MeterReader interface {
-	// ReadMeters returns the most recent state of the
-	// meters.
+	// ReadMeters returns the most recent state of the meters.
 	ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 }
 
@@ -162,11 +161,12 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		cancel()
 		if err != nil {
 			log.Printf("cannot get current meter reading: %v", err)
-			// TODO we should probably continue with calling Assess anyway
+			// TODO we should continue with calling Assess anyway
 			// even though we can't obtain a meter reading.
 			continue
 		}
 		if !haveRelays {
+			log.Printf("can't talk to relay server")
 			// No point in continuing if we can't talk to the relay server.
 			continue
 		}

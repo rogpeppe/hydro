@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script src="/js/jquery-1.11.1.min.js"></script>
+		<script type="text/javascript">
+			google.charts.load('current', {'packages':['timeline']});
+			google.charts.setOnLoadCallback(getData);
+			function getData() {
+				$.ajax({
+					url: "/history.json",
+					context: document,
+					success: function(data){
+						drawChart(this, data)
+					}
+				});
+			}
+			function drawChart(doc, data) {
+				console.log("drawing chart", data)
+				var container = document.getElementById('timeline');
+				var chart = new google.visualization.Timeline(container);
+				var dataTable = new google.visualization.DataTable(data);
+				chart.draw(dataTable);
+			}
+		</script>
+	</head>
+	<body>
+		<div id="timeline" style="height: 600px; with: 800px"></div>
+	</body>
+</html>
