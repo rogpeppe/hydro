@@ -136,6 +136,39 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
+	about: "relay on through midnight",
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{{
+			Mode: hydroctl.InUse,
+			InUse: []*hydroctl.Slot{{
+				Start:        22 * time.Hour,
+				SlotDuration: 4 * time.Hour,
+				Kind:         hydroctl.Exactly,
+				Duration:     4 * time.Hour,
+			}},
+		}},
+	},
+	assessNowTests: []assessNowTest{{
+		now: T(21),
+	}, {
+		// It should switch on at 1am exactly.
+		now:         T(22),
+		transition:  true,
+		expectState: mkRelays(0),
+	}, {
+		// ... and remain on for the duration.
+		now:         T(23),
+		expectState: mkRelays(0),
+	}, {
+		// ... and remain on for the duration.
+		now:         T(25),
+		expectState: mkRelays(0),
+	}, {
+		// and switches off at 2am.
+		now:        T(26),
+		transition: true,
+	}},
+}, {
 	about: "relay on for at least 2 hours between 1am and 5am",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{

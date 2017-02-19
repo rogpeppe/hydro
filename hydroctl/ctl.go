@@ -149,6 +149,13 @@ func (slot *Slot) ActiveAt(t time.Time) time.Time {
 	if !t.Before(start) && t.Before(end) {
 		return start
 	}
+	// It might still be in a slot from the previous day.
+	start = dayStart(t.Add(-24 * time.Hour)).Add(slot.Start)
+	end = start.Add(slot.SlotDuration)
+	if !t.Before(start) && t.Before(end) {
+		return start
+	}
+
 	return time.Time{}
 }
 
