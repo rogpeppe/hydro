@@ -71,21 +71,11 @@ func New(p Params) (*Handler, error) {
 	}
 	go h.configUpdater()
 	h.store.anyVal.Set(nil)
-	h.mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticData)))
-	h.mux.HandleFunc("/", h.serveSlash)
-	h.mux.HandleFunc("/index.html", serveIndex)
+	h.mux.Handle("/", http.FileServer(staticData))
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/config", h.serveConfig)
 	h.mux.Handle("/api/", newAPIHandler(h))
 	return h, nil
-}
-
-func (h *Handler) serveSlash(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path != "/" {
-		http.NotFound(w, req)
-		return
-	}
-	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
 }
 
 func (h *Handler) configUpdater() {
