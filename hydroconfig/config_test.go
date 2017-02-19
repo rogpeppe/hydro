@@ -74,6 +74,26 @@ somewhere on from 1am to 2am
 		}},
 	},
 }, {
+	about: "cohort with label",
+	config: `
+relay 1 is x (some label)
+
+x on from 1am to 2am
+`,
+	expect: &hydroconfig.Config{
+		Cohorts: []hydroconfig.Cohort{{
+			Name:   "some label",
+			Relays: []int{1},
+			Mode:   hydroctl.InUse,
+			InUseSlots: []*hydroctl.Slot{{
+				Start:        D("1h"),
+				SlotDuration: D("1h"),
+				Kind:         hydroctl.Exactly,
+				Duration:     D("1h"),
+			}},
+		}},
+	},
+}, {
 	about: "multiple slots",
 	config: `
 relay 6 is dining room

@@ -68,7 +68,7 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 // A sample config:
 //
 //	relay 6 is dining room
-//	relays 0, 4, 5 are bedrooms
+//	relays 0, 4, 5 are br (bedrooms)
 //
 //	relay 4 has max power 300w
 //	relays 0, 7, 8 have max power 5kw
@@ -83,6 +83,7 @@ func Parse(s string) (*Config, error) {
 	p := &configParser{
 		relayInfo:      make(map[int]Relay),
 		assignedRelays: make(map[int]string),
+		shortNames:     make(map[string]int),
 	}
 	for t := newText(s); t.s != ""; {
 		var line text
@@ -122,6 +123,7 @@ type configParser struct {
 	// cohort name that the relay is assigned to.
 	assignedRelays map[int]string
 	relayInfo      map[int]Relay
+	shortNames     map[string]int
 }
 
 func (p *configParser) addLine(t text) {
@@ -150,12 +152,21 @@ func (p *configParser) addLine(t text) {
 	// "dining room on from 14:30 to 20:45 for at least 20m"
 	// "bedrooms on from 17:00 to 20:00"
 	var found *Cohort
-	for i := range p.cohorts {
-		c := &p.cohorts[i]
-		if rest, ok := t.trimPrefix(c.Name); ok {
-			found = c
+	for shortName, index := range p.shortNames {
+		if rest, ok := t.trimPrefix(shortName); ok {
+			found = &p.cohorts[index]
 			t = rest
 			break
+		}
+	}
+	if found == nil {
+		for i := range p.cohorts {
+			c := &p.cohorts[i]
+			if rest, ok := t.trimPrefix(c.Name); ok {
+				found = c
+				t = rest
+				break
+			}
 		}
 	}
 	if found == nil {
@@ -396,14 +407,30 @@ func isDigit(r rune) bool {
 
 func (p *configParser) addCohort(t text, relays []int) {
 	name := t.trimSpace()
-	if name.s == "" {
-		p.errorf(t, "empty cohort name")
+	shortName := name
+	if i := strings.Index(name.s, "("); i != -1 {
+		name = name.slice(i+1, len(name.s))
+		if strings.HasSuffix(name.s, ")") {
+			name = name.slice(0, len(name.s)-1)
+		}
+		shortName = shortName.slice(0, i).trimSpace()
+	}
+	if shortName.s == "" {
+		p.errorf(shortName, "empty cohort name")
 		return
+	}
+	if name.s == "" {
+		p.errorf(name, "empty cohort name")
 	}
 	for _, c := range p.cohorts {
 		if strings.EqualFold(c.Name, name.s) {
 			p.errorf(name, "duplicate cohort name")
 			return
+		}
+	}
+	for s := range p.shortNames {
+		if strings.EqualFold(shortName.s, s) {
+			p.errorf(shortName, "duplicate cohort name")
 		}
 	}
 	for _, relay := range relays {
@@ -412,6 +439,9 @@ func (p *configParser) addCohort(t text, relays []int) {
 			p.errorf(t, "duplicate relay %d also in %q", relay, dupe)
 		}
 		p.assignedRelays[relay] = name.s
+	}
+	if name != shortName {
+		p.shortNames[shortName.s] = len(p.cohorts)
 	}
 	p.cohorts = append(p.cohorts, Cohort{
 		Name:   name.s,
