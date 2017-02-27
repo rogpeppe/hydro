@@ -1,5 +1,4 @@
 // Note: this is run through babel before being put into data/js/home.js
-
 function kWfmt(watts) {
 	return (watts / 1000).toFixed(3) + "kW"
 };
