@@ -1,0 +1,4 @@
+{
+	"presets": ["babili"],
+	"plugins": ["transform-react-jsx"]
+}

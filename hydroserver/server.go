@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rakyll/statik/fs"
 	"gopkg.in/errgo.v1"
+	"github.com/NYTimes/gziphandler"
 
 	"github.com/rogpeppe/hydro/googlecharts"
 	"github.com/rogpeppe/hydro/history"
@@ -75,7 +76,7 @@ func New(p Params) (*Handler, error) {
 	}
 	go h.configUpdater()
 	h.store.anyVal.Set(nil)
-	h.mux.Handle("/", http.FileServer(staticData))
+	h.mux.Handle("/", gziphandler.GzipHandler(http.FileServer(staticData)))
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/history.json", h.serveHistory)
 	h.mux.HandleFunc("/config", h.serveConfig)
