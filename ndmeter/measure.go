@@ -131,3 +131,16 @@ var measureNames = map[string]measure{
 	//	nv=480
 	//	ps=1
 }
+
+// These registers are the ones that arrive in the fast log.
+var registers = map[int] measure {
+	7688: mPhase1Current,
+	7689: mPhase2Current,
+	7690: mPhase3Current,
+	7691: mPhase1Voltage
+	7692: mPhase2Voltage
+	7693: mPhase3Voltage
+	7702: mPhase1kW
+	7703: mPhase2kW
+	7704: mPhase3kW
+}
