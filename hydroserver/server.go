@@ -248,7 +248,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 			Cohort: cohort,
 			Relay:  i,
 			On:     r.On,
-			Since:  r.Since,
+			Since:  r.Since.Round(time.Second),
 		})
 	}
 	return u
