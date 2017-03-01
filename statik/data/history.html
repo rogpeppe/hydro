@@ -1,18 +1,24 @@
 <html>
 	<head>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-		<script src="/js/jquery-1.11.1.min.js"></script>
 		<script type="text/javascript">
 			google.charts.load('current', {'packages':['timeline']});
 			google.charts.setOnLoadCallback(getData);
 			function getData() {
-				$.ajax({
-					url: "/history.json",
-					context: document,
-					success: function(data){
-						drawChart(this, data)
+				var request = new XMLHttpRequest();
+				request.open('GET', '/history.json', true);
+				request.onload = function() {
+					if (this.status != 200) {
+						console.log("got error status", this.status, this.response);
+						return
 					}
-				});
+					var data = JSON.parse(this.response);
+					drawChart(document, data)
+				};
+				request.onerror = function() {
+					console.log("connection error getting history.json")
+				};
+				request.send();
 			}
 			function drawChart(doc, data) {
 				console.log("drawing chart", data)

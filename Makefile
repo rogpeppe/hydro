@@ -1,0 +1,3 @@
+install:
+	(cd statik; ./gen.sh)
+	go install ./...
