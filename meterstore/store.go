@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/rogpeppe/hydro/meterstore/internal/meterstorepb"
 	errgo "gopkg.in/errgo.v1"
+
+	"github.com/rogpeppe/hydro/meterstore/internal/meterstorepb"
 )
 
 type Store struct {
@@ -60,8 +61,8 @@ func (r TimeRecord) data() []byte {
 		Meter:     uint32(r.Meter),
 		Readings:  uint32(r.Readings),
 		// TODO sort out correct scaling
-		SystemPower:  int32(r.SystemPower/100 + 0.5),
-		SystemEnergy: int32(r.SystemEnergy + 0.5),
+		SystemPower:  int32(r.SystemPower),
+		SystemEnergy: int32(r.SystemEnergy),
 	}
 	data, err := pbr.MarshalBinary()
 	if err != nil {
@@ -76,13 +77,13 @@ func (r *TimeRecord) unmarshalBinary(data []byte) error {
 		return errgo.Notef(err, "cannot unmarshal record")
 	}
 	*r = TimeRecord{
-		Time:     time.Unix(0, int64(pbr.Timestamp*1000)),
+		Time:     stampToTime(pbr.Timestamp),
 		InLog:    pbr.InLog,
 		Meter:    int(pbr.Meter),
 		Readings: Reading(pbr.Readings),
 		// TODO correct scaling
-		SystemPower:  float64(pbr.SystemPower) * 100,
-		SystemEnergy: float64(pbr.SystemEnergy) * 100,
+		SystemPower:  float64(pbr.SystemPower),
+		SystemEnergy: float64(pbr.SystemEnergy),
 	}
 	return nil
 }
@@ -161,13 +162,13 @@ func (r *TimeRecord) setReadings(r1 TimeRecord) {
 	}
 }
 
-// TimeIter returns an iterator that starts at the given time
+// Iter returns an iterator that starts at the given time
 // and returns records in time order from then.
-func (s *Store) TimeIter(start time.Time) *Iter {
+func (s *Store) Iter(start time.Time) *Iter {
 	return s.iter(start, true)
 }
 
-func (s *Store) ReverseTimeIter(start time.Time) *Iter {
+func (s *Store) ReverseIter(start time.Time) *Iter {
 	return s.iter(start, false)
 }
 
