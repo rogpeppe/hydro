@@ -1,7 +1,10 @@
 package meterstore_test
 
 import (
+	"io/ioutil"
+	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	jc "github.com/juju/testing/checkers"
@@ -46,5 +49,40 @@ func (*suite) TestTimestamp(c *gc.C) {
 	t1 := meterstore.StampToTime(stamp)
 	if !t.Equal(t1) {
 		c.Fatalf("got %v want %v", t, t1)
+	}
+}
+
+func BenchmarkInsert(b *testing.B) {
+	f, err := ioutil.TempFile("", "")
+	if err != nil {
+		b.Fatalf("cannot make temp file")
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+	store, err := meterstore.Open(f.Name())
+	if err != nil {
+		b.Fatalf("cannot open store")
+	}
+	b.ResetTimer()
+	t0 := time.Now()
+	for i := 0; i < b.N; i++ {
+		err := store.Add([]meterstore.TimeRecord{{
+			Time:         t0.Add(time.Duration(i) * 10 * time.Millisecond),
+			InLog:        true,
+			Meter:        2,
+			Readings:     meterstore.SystemPower | meterstore.SystemEnergy,
+			SystemPower:  1234567,
+			SystemEnergy: 123456,
+		}, {
+			Time:         t0.Add(time.Duration(i) * 10 * time.Millisecond + 5 * time.Millisecond),
+			InLog:        true,
+			Meter:        2,
+			Readings:     meterstore.SystemPower | meterstore.SystemEnergy,
+			SystemPower:  1234567,
+			SystemEnergy: 123456,
+		}}...)
+		if err != nil {
+			b.Fatalf("cannot add record %d: %v", i, err)
+		}
 	}
 }

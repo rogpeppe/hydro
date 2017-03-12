@@ -2,6 +2,9 @@
 function kWfmt(watts) {
 	return (watts / 1000).toFixed(3) + "kW"
 };
+function kWhfmt(wattHours) {
+	return kWfmt(wattHours) + "h"
+}
 function wsURL(path) {
 	var loc = window.location, scheme;
 	if (loc.protocol === "https:") {
@@ -45,7 +48,7 @@ var Meters = React.createClass({
 			</table>
 			<table>
 			<thead>
-				<tr><th>Meter name</th><th>Address</th><th>Current power (kW)</th><th>Time lag</th></tr>
+				<tr><th>Meter name</th><th>Address</th><th>Current power (kW)</th><th>Total energy (kWh)</th><th>Time lag</th></tr>
 			</thead>
 			<tbody>
 			{
@@ -59,6 +62,7 @@ var Meters = React.createClass({
 						<td>{meter.Name}</td>
 						<td><a href={"http://" + meter.Addr}>{meter.Addr}</a></td>
 						<td>{sample ? kWfmt(sample.Power) : "n/a"}</td>
+						<td>{sample ? kWhfmt(sample.TotalEnergy) : "n/a"}</td>
 						<td>{sample ? sample.TimeLag : ""}</td>
 					</tr>
 				})
@@ -68,7 +72,7 @@ var Meters = React.createClass({
 		</div>
 	}
 })
-var socket = new ReconnectingWebSocket(wsURL("/updates"));
+var socket = new ReconnectingWebSocket(wsURL("/updates", null, {timeoutInterval: 5000}));
 socket.onmessage = function(event) {
 	var m = JSON.parse(event.data);
 	console.log("message", event.data);

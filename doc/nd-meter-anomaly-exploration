@@ -1,0 +1,4131 @@
+
+% 
+% 
+% 
+% t
+-4h55m0s,1m0s,1,ok
+-4h55m0s,2m0s,2,ok
+-4h55m0s,3m0s,3,ok
+-4h55m0s,4m0s,4,ok
+-4h55m0s,5m0s,5,ok
+-4h55m0s,6m0s,6,ok
+-4h55m0s,7m0s,7,ok
+-4h55m0s,8m0s,8,ok
+-4h55m0s,9m0s,9,ok
+-4h55m0s,10m0s,10,ok
+-4h54m0s,1m0s,1,ok
+-4h54m0s,2m0s,2,ok
+-4h54m0s,3m0s,3,ok
+-4h54m0s,4m0s,4,ok
+-4h54m0s,5m0s,5,ok
+-4h54m0s,6m0s,6,ok
+-4h54m0s,7m0s,7,ok
+-4h54m0s,8m0s,8,ok
+-4h54m0s,9m0s,9,ok
+-4h54m0s,10m0s,10,ok
+-4h53m0s,1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,4m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,5m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,6m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,7m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,8m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,9m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,10m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+^?signal: interrupt
+% 
+% 
+% 
+% 
+% t
+# command-line-arguments
+./metersearch.go:36: syntax error: non-declaration statement outside function body
+% t
+# command-line-arguments
+./metersearch.go:26: cannot call non-function time.Minute (type time.Duration)
+./metersearch.go:29: undefined: d1
+./metersearch.go:31: undefined: d1
+% 
+% 
+% t
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+^?signal: interrupt
+% 
+% 
+% t
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+^?signal: interrupt
+% t
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+^?signal: interrupt
+% 
+% 
+% 
+% 
+% t
+
+2017-03-02 08:14:11.260006367 +0000 GMT m=+0.000871021
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:14:28.487965686 +0000 GMT m=+17.228830468
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:14:42.603379686 +0000 GMT m=+31.344244581
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:14:54.923710899 +0000 GMT m=+43.664575654
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:15:03.760259212 +0000 GMT m=+52.501124097
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+^?signal: interrupt
+% 
+% 
+% t
+
+2017-03-02 08:15:48.791907217 +0000 GMT m=+0.000912652
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:15:53.764696705 +0000 GMT m=+4.973702318
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:15:58.482143036 +0000 GMT m=+9.691148672
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:07.315221068 +0000 GMT m=+18.524226658
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:11.082911187 +0000 GMT m=+22.291916754
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:14.653759835 +0000 GMT m=+25.862765560
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:19.559238976 +0000 GMT m=+30.768244633
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:23.817501725 +0000 GMT m=+35.026507364
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:27.033113627 +0000 GMT m=+38.242119258
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:29.640621559 +0000 GMT m=+40.849627262
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:34.124349284 +0000 GMT m=+45.333354956
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:37.284632606 +0000 GMT m=+48.493638322
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:40.562019651 +0000 GMT m=+51.771025382
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:43.132093293 +0000 GMT m=+54.341099115
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:45.914300475 +0000 GMT m=+57.123306073
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:49.295011503 +0000 GMT m=+60.504017201
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:53.198728509 +0000 GMT m=+64.407734360
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:16:56.791627562 +0000 GMT m=+68.000633138
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:00.949994201 +0000 GMT m=+72.158999868
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:04.088796295 +0000 GMT m=+75.297802017
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:07.209106723 +0000 GMT m=+78.418112448
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:11.028065734 +0000 GMT m=+82.237071282
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:15.109260789 +0000 GMT m=+86.318266297
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:19.016622747 +0000 GMT m=+90.225628366
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:28.096441317 +0000 GMT m=+99.305447017
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:34.052798375 +0000 GMT m=+105.261803955
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:40.194151634 +0000 GMT m=+111.403157438
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:43.471496542 +0000 GMT m=+114.680502300
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:46.847704957 +0000 GMT m=+118.056710849
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:50.122415006 +0000 GMT m=+121.331420708
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:56.244191062 +0000 GMT m=+127.453196688
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:17:59.56545229 +0000 GMT m=+130.774457928
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:09.259732488 +0000 GMT m=+140.468738150
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:14.268269519 +0000 GMT m=+145.477275135
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:19.866154761 +0000 GMT m=+151.075160514
+^?signal: interrupt
+% 
+% 
+% 
+% t
+
+2017-03-02 08:18:31.227029645 +0000 GMT m=+0.000975351
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:39.147410583 +0000 GMT m=+7.921357514
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:49.334346064 +0000 GMT m=+18.108292026
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:18:56.482114945 +0000 GMT m=+25.256060651
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:01.102441741 +0000 GMT m=+29.876387427
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:04.628544489 +0000 GMT m=+33.402490172
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:11.553036667 +0000 GMT m=+40.326982505
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:20.037900294 +0000 GMT m=+48.811846252
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:23.830107146 +0000 GMT m=+52.604053231
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:32.415515038 +0000 GMT m=+61.189460949
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:36.494065135 +0000 GMT m=+65.268011041
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:40.525888977 +0000 GMT m=+69.299834921
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:43.4691906 +0000 GMT m=+72.243136583
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:47.344124645 +0000 GMT m=+76.118070562
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:54.251243327 +0000 GMT m=+83.025189141
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:19:58.328763235 +0000 GMT m=+87.102709066
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR bad time stamp "grid_cabinet" on line "grid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704"; body " Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704\r\ngrid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704\n170131_231700,741,651,712,2524,2542,2570,1798,1586,1713\n170131_231800,745,641,695,2528,2542,2584,1806,1570,1673\n170131_231900,745,641,697,2533,2539,2583,1810,1566,1678\n170131_232000,747,639,707,2528,2542,2585,1816,1563,1703\n170131_232100,748,624,716,2530,2561,2580,1827,1533,1708\n170131_232200,747,640,706,2534,2551,2583,1818,1568,1694\n170131_232300,750,637,707,2532,2550,2583,1826,1561,1693\n": parsing time "grid_cabinet" as "060102_150405": cannot parse "id_cabinet" as "06"
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:03.402006933 +0000 GMT m=+92.175952836
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:06.688469778 +0000 GMT m=+95.462415671
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:10.274529202 +0000 GMT m=+99.048475089
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:13.585646023 +0000 GMT m=+102.359591863
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:16.697648683 +0000 GMT m=+105.471594589
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:21.012351005 +0000 GMT m=+109.786296802
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:23.694840106 +0000 GMT m=+112.468786059
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:27.872293528 +0000 GMT m=+116.646239484
+^?signal: interrupt
+% t
+
+2017-03-02 08:20:29.186918298 +0000 GMT m=+0.000963515
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:34.08965408 +0000 GMT m=+4.903699629
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:42.063825072 +0000 GMT m=+12.877870488
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:45.63468168 +0000 GMT m=+16.448727164
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:49.208123439 +0000 GMT m=+20.022168953
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:20:54.793362718 +0000 GMT m=+25.607408224
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:17:00 +0000 UTC out of range
+
+2017-03-02 08:21:01.811303318 +0000 GMT m=+32.625348932
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+
+2017-03-02 08:21:17.994359058 +0000 GMT m=+48.808404356
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+^?signal: interrupt
+% t
+
+2017-03-02 08:21:36.009985549 +0000 GMT m=+0.001271816
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:21:55.508457098 +0000 GMT m=+19.499743550
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:22:15.66573304 +0000 GMT m=+39.657019558
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:22:31.483234913 +0000 GMT m=+55.474521393
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:22:48.301422218 +0000 GMT m=+72.292708728
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:23:03.881769652 +0000 GMT m=+87.873056245
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:23:17.353548463 +0000 GMT m=+101.344835010
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:23:34.037291415 +0000 GMT m=+118.028577927
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:23:48.014430951 +0000 GMT m=+132.005717231
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:23:59.888043844 +0000 GMT m=+143.879330303
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:24:16.173934438 +0000 GMT m=+160.165220923
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:24:29.580530985 +0000 GMT m=+173.571817449
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:24:46.767276671 +0000 GMT m=+190.758563132
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:25:00.771085571 +0000 GMT m=+204.762372111
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:25:19.882447626 +0000 GMT m=+223.873734063
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:25:33.526572392 +0000 GMT m=+237.517858887
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:25:44.855818421 +0000 GMT m=+248.847104698
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:25:58.333247828 +0000 GMT m=+262.324534254
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:26:14.786716348 +0000 GMT m=+278.778002860
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:26:34.822520573 +0000 GMT m=+298.813807108
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:26:48.862262336 +0000 GMT m=+312.853548731
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:27:01.67457302 +0000 GMT m=+325.665859525
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:27:16.40544292 +0000 GMT m=+340.396729381
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:27:29.145142247 +0000 GMT m=+353.136428769
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:27:42.399064932 +0000 GMT m=+366.390351439
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:27:57.437108827 +0000 GMT m=+381.428395259
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:28:09.249316094 +0000 GMT m=+393.240602624
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR bad time stamp "grid_cabinet" on line "grid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704"; body " Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704\r\ngrid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704\n170302_033800,481,391,397,2469,2451,2517,1147,948,932\n\n\n": parsing time "grid_cabinet" as "060102_150405": cannot parse "id_cabinet" as "06"
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:28:21.586017997 +0000 GMT m=+405.577304413
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:28:34.43481374 +0000 GMT m=+418.426100186
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:28:54.116169081 +0000 GMT m=+438.107455325
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:29:08.652779156 +0000 GMT m=+452.644065624
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:29:24.358739008 +0000 GMT m=+468.350025266
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:29:39.348131898 +0000 GMT m=+483.339418381
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:29:50.329311348 +0000 GMT m=+494.320597816
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:30:03.335579884 +0000 GMT m=+507.326866228
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:30:17.378958308 +0000 GMT m=+521.370244923
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:30:32.553224344 +0000 GMT m=+536.544510765
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:30:45.074876534 +0000 GMT m=+549.066162984
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h50m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:30:58.472727747 +0000 GMT m=+562.464014245
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:31:14.20998954 +0000 GMT m=+578.201276004
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:31:30.244014742 +0000 GMT m=+594.235301254
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:31:40.66825973 +0000 GMT m=+604.659546164
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:31:51.284914506 +0000 GMT m=+615.276200935
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:31:58.850577262 +0000 GMT m=+622.841863772
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:32:05.599161348 +0000 GMT m=+629.590447839
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:32:16.494423529 +0000 GMT m=+640.485709958
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:32:30.167706218 +0000 GMT m=+654.158992600
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:32:41.397024209 +0000 GMT m=+665.388310654
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:32:54.699073332 +0000 GMT m=+678.690359705
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:33:07.799710283 +0000 GMT m=+691.790996617
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:33:17.991783197 +0000 GMT m=+701.983069511
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:33:27.084380361 +0000 GMT m=+711.075666785
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:33:40.911897391 +0000 GMT m=+724.903183919
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:33:50.280036856 +0000 GMT m=+734.271324021
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:34:01.433659391 +0000 GMT m=+745.424945859
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:34:10.313935923 +0000 GMT m=+754.305222301
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:34:24.153201742 +0000 GMT m=+768.144488183
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:34:34.039882406 +0000 GMT m=+778.031168719
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:34:50.89031976 +0000 GMT m=+794.881606202
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:00.349450744 +0000 GMT m=+804.340737314
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:09.785042135 +0000 GMT m=+813.776329042
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:18.69302706 +0000 GMT m=+822.684313442
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:27.830027516 +0000 GMT m=+831.821313972
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:39.088307525 +0000 GMT m=+843.079593941
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:49.761481583 +0000 GMT m=+853.752768014
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:35:59.369640296 +0000 GMT m=+863.360926708
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:36:15.53547517 +0000 GMT m=+879.526761765
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:36:24.255533448 +0000 GMT m=+888.246819988
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:36:31.648207611 +0000 GMT m=+895.639494121
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:36:46.462968768 +0000 GMT m=+910.454255247
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:36:55.250579436 +0000 GMT m=+919.241865772
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:37:10.682515348 +0000 GMT m=+934.673801777
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:38:49.866606151 +0000 GMT m=+1033.857892659
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:38:58.179347009 +0000 GMT m=+1042.170633558
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:03.257627406 +0000 GMT m=+1047.248913817
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:10.213396887 +0000 GMT m=+1054.204683143
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:15.439249573 +0000 GMT m=+1059.430536023
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:21.620180848 +0000 GMT m=+1065.611467236
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:27.301075369 +0000 GMT m=+1071.292361884
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:32.647026629 +0000 GMT m=+1076.638313107
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:38.2884128 +0000 GMT m=+1082.279699282
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:45.375596493 +0000 GMT m=+1089.366882895
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:39:52.587496509 +0000 GMT m=+1096.578783066
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:05.095009257 +0000 GMT m=+1109.086295618
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:13.232026666 +0000 GMT m=+1117.223313098
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:18.037085568 +0000 GMT m=+1122.028371819
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:24.608740554 +0000 GMT m=+1128.600027158
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:29.168130269 +0000 GMT m=+1133.159416805
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:35.902604912 +0000 GMT m=+1139.893891345
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:41.393635539 +0000 GMT m=+1145.384921968
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:46.546367772 +0000 GMT m=+1150.537654211
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:40:52.447517086 +0000 GMT m=+1156.438803634
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:00.017899748 +0000 GMT m=+1164.009186368
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:06.303716349 +0000 GMT m=+1170.295002735
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:10.233378462 +0000 GMT m=+1174.224664985
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:14.271576272 +0000 GMT m=+1178.262862765
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:18.384911813 +0000 GMT m=+1182.376198301
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:22.067236232 +0000 GMT m=+1186.058522564
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:28.291139319 +0000 GMT m=+1192.282425840
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:35.389869091 +0000 GMT m=+1199.381155597
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:42.71060927 +0000 GMT m=+1206.701895726
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:48.405098894 +0000 GMT m=+1212.396385434
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:56.194863111 +0000 GMT m=+1220.186149592
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:38:00 +0000 UTC out of range
+
+2017-03-02 08:41:59.909044846 +0000 GMT m=+1223.900331072
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:42:24.392462988 +0000 GMT m=+1248.383749473
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:42:45.999199986 +0000 GMT m=+1269.990486308
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:42:58.799432475 +0000 GMT m=+1282.790719067
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:43:11.543427818 +0000 GMT m=+1295.534714367
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:43:25.003037048 +0000 GMT m=+1308.994323882
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:43:44.757194024 +0000 GMT m=+1328.748480281
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:44:00.812628769 +0000 GMT m=+1344.803915072
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:44:16.99282074 +0000 GMT m=+1360.984107346
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:44:34.660573875 +0000 GMT m=+1378.651860424
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:44:53.036086219 +0000 GMT m=+1397.027372494
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR bad time stamp "grid_cabinet" on line "grid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704"; body " Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704\r\ngrid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704\n170302_034800,469,403,403,2479,2460,2512,1121,975,957\n\n\n": parsing time "grid_cabinet" as "060102_150405": cannot parse "id_cabinet" as "06"
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:45:08.006748256 +0000 GMT m=+1411.998034841
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:45:25.463150775 +0000 GMT m=+1429.454437055
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:45:40.241787911 +0000 GMT m=+1444.233074187
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h44m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:45:56.563464695 +0000 GMT m=+1460.554750918
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:46:10.563696037 +0000 GMT m=+1474.554982515
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:46:25.51520838 +0000 GMT m=+1489.506495784
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:46:37.933899733 +0000 GMT m=+1501.925186307
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h45m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:46:50.349137358 +0000 GMT m=+1514.340423890
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:47:04.366713036 +0000 GMT m=+1528.357999500
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:47:18.164695218 +0000 GMT m=+1542.155981520
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:47:34.836586389 +0000 GMT m=+1558.827872674
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h46m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:47:51.606456973 +0000 GMT m=+1575.597743519
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:48:08.832752788 +0000 GMT m=+1592.824039152
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:48:25.2028743 +0000 GMT m=+1609.194160828
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h47m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:48:55.337400524 +0000 GMT m=+1639.328686952
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:49:17.047262897 +0000 GMT m=+1661.038549131
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:49:37.738460907 +0000 GMT m=+1681.729747391
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h48m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:49:54.315788645 +0000 GMT m=+1698.307075139
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,0,ERROR Post http://borla.ddns.net:8080/Inst_Data.csv: read tcp 192.168.0.239:48582->86.144.31.206:8080: read: connection reset by peer
+-4h50m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h49m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:52:48.833118648 +0000 GMT m=+1872.824405226
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h51m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:52:58.399327363 +0000 GMT m=+1882.390613651
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:53:09.92111585 +0000 GMT m=+1893.912402452
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:53:18.938093097 +0000 GMT m=+1902.929379723
+-5h6m0s,1,ok
+-5h5m0s,0,ERROR bad time stamp "grid_cabinet" on line "grid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704"; body " Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704\r\ngrid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704\n170302_034900,466,390,408,2473,2460,2511,1116,943,966\n\n\n": parsing time "grid_cabinet" as "060102_150405": cannot parse "id_cabinet" as "06"
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:53:29.513198483 +0000 GMT m=+1913.504484996
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:53:39.144436976 +0000 GMT m=+1923.135723336
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h52m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:53:52.075757727 +0000 GMT m=+1936.067044248
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:02.11546355 +0000 GMT m=+1946.106750254
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:10.700493001 +0000 GMT m=+1954.691779538
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:20.022677376 +0000 GMT m=+1964.013963788
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:29.507927107 +0000 GMT m=+1973.499213641
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:39.864490459 +0000 GMT m=+1983.855776832
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:54:48.231270696 +0000 GMT m=+1992.222557225
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h53m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:00.111818737 +0000 GMT m=+2004.103105003
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:12.563896768 +0000 GMT m=+2016.555183254
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:20.86605612 +0000 GMT m=+2024.857342746
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:30.147192997 +0000 GMT m=+2034.138479534
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:41.958410803 +0000 GMT m=+2045.949697218
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:55:51.992518384 +0000 GMT m=+2055.983804670
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h54m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:01.417650233 +0000 GMT m=+2065.408936462
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:08.723563741 +0000 GMT m=+2072.714850345
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:18.286361134 +0000 GMT m=+2082.277647650
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:27.370106547 +0000 GMT m=+2091.361393095
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:37.042706441 +0000 GMT m=+2101.033992685
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:45.763728859 +0000 GMT m=+2109.755015311
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h55m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:56:53.126468535 +0000 GMT m=+2117.117755049
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:03.808073379 +0000 GMT m=+2127.799359875
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:11.369671181 +0000 GMT m=+2135.360957788
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:18.60793723 +0000 GMT m=+2142.599223982
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:25.820143441 +0000 GMT m=+2149.811429889
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:34.048011297 +0000 GMT m=+2158.039297864
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:41.774383233 +0000 GMT m=+2165.765669726
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:57:51.777162086 +0000 GMT m=+2175.768448604
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h56m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:00.046638387 +0000 GMT m=+2184.037924622
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:07.059006608 +0000 GMT m=+2191.050293329
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:14.317964175 +0000 GMT m=+2198.309250542
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:22.7208585 +0000 GMT m=+2206.712144985
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:30.2509114 +0000 GMT m=+2214.242197918
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:38.37763348 +0000 GMT m=+2222.368919770
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:43.925637795 +0000 GMT m=+2227.916924108
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:58:55.544596074 +0000 GMT m=+2239.535882701
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h57m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:02.145823257 +0000 GMT m=+2246.137109808
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:08.436819726 +0000 GMT m=+2252.428106022
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:16.207594584 +0000 GMT m=+2260.198881115
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:22.481950579 +0000 GMT m=+2266.473237024
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:28.874389072 +0000 GMT m=+2272.865675548
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:35.548175465 +0000 GMT m=+2279.539461875
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:43.989339345 +0000 GMT m=+2287.980625797
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 08:59:56.118965262 +0000 GMT m=+2300.110251652
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h58m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:04.592832369 +0000 GMT m=+2308.584118879
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:10.81527214 +0000 GMT m=+2314.806558616
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:17.777010042 +0000 GMT m=+2321.768296501
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:24.683408333 +0000 GMT m=+2328.674694898
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:31.862676676 +0000 GMT m=+2335.853963129
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:37.478278209 +0000 GMT m=+2341.469564579
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:43.330617479 +0000 GMT m=+2347.321904016
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:00:49.502771831 +0000 GMT m=+2353.494058385
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-4h59m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:00.06614434 +0000 GMT m=+2364.057430589
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:07.364394715 +0000 GMT m=+2371.355681102
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:11.779697404 +0000 GMT m=+2375.770983713
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:16.013426605 +0000 GMT m=+2380.004712890
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:19.875695697 +0000 GMT m=+2383.866982030
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:24.183587558 +0000 GMT m=+2388.174873928
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:28.601672849 +0000 GMT m=+2392.592959143
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:32.692470689 +0000 GMT m=+2396.683757229
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:37.392615267 +0000 GMT m=+2401.383901757
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR bad time stamp "grid_cabinet" on line "grid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704"; body " Date & Time, 7688, 7689, 7690, 7691, 7692, 7693, 7702, 7703, 7704\r\ngrid_cabinet,7688,7689,7690,7691,7692,7693,7702,7703,7704\n170302_035900,468,366,410,2480,2475,2519,1131,892,960\n\n\n": parsing time "grid_cabinet" as "060102_150405": cannot parse "id_cabinet" as "06"
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:45.176952157 +0000 GMT m=+2409.168238598
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:50.099727174 +0000 GMT m=+2414.091013587
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:54.370194596 +0000 GMT m=+2418.361481024
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h0m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:01:59.742962519 +0000 GMT m=+2423.734248958
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:03.205284866 +0000 GMT m=+2427.196571317
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:07.233788703 +0000 GMT m=+2431.225075168
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:11.054105884 +0000 GMT m=+2435.045392115
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:14.778453837 +0000 GMT m=+2438.769740907
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:22.155265054 +0000 GMT m=+2446.146551447
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:26.408628576 +0000 GMT m=+2450.399915008
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:33.389711678 +0000 GMT m=+2457.380998057
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:37.677492497 +0000 GMT m=+2461.668779020
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:41.628763424 +0000 GMT m=+2465.620049861
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:45.906545956 +0000 GMT m=+2469.897832334
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:51.510685225 +0000 GMT m=+2475.501971581
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+
+2017-03-02 09:02:56.624749152 +0000 GMT m=+2480.616035612
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h2m0s,0,ERROR time 2017-01-31 23:59:00 +0000 UTC out of range
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+
+2017-03-02 09:03:14.518337391 +0000 GMT m=+2498.509623848
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+
+2017-03-02 09:03:32.223707915 +0000 GMT m=+2516.214994436
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,1,ok
+-4h43m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h41m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+
+2017-03-02 09:03:50.910080865 +0000 GMT m=+2534.901367348
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+-4h59m0s,1,ok
+-4h58m0s,1,ok
+-4h57m0s,1,ok
+-4h56m0s,1,ok
+-4h55m0s,1,ok
+-4h54m0s,1,ok
+-4h53m0s,1,ok
+-4h52m0s,1,ok
+-4h51m0s,1,ok
+-4h50m0s,1,ok
+-4h49m0s,1,ok
+-4h48m0s,1,ok
+-4h47m0s,1,ok
+-4h46m0s,1,ok
+-4h45m0s,1,ok
+-4h44m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h43m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+-4h42m0s,0,ERROR time 2017-02-01 00:20:00 +0000 UTC out of range
+
+2017-03-02 09:04:11.129322998 +0000 GMT m=+2555.120609284
+-5h6m0s,1,ok
+-5h5m0s,1,ok
+-5h4m0s,1,ok
+-5h3m0s,1,ok
+-5h2m0s,1,ok
+-5h1m0s,1,ok
+-5h0m0s,1,ok
+^?signal: interrupt
+% 

@@ -88,6 +88,13 @@ func (srv *Server) SetPower(power float64) {
 	srv.Power = power
 }
 
+func (srv *Server) SetEnergy(energy float64) {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+	srv.Energy = energy
+}
+	
+
 func (srv *Server) handler(p httprequest.Params) (handler, context.Context, error) {
 	return handler{srv}, p.Context, nil
 }
@@ -124,4 +131,13 @@ type setPowerReq struct {
 
 func (h handler) SetPower(req *setPowerReq) {
 	h.srv.SetPower(req.Value)
+}
+
+type setEnergyReq struct {
+	httprequest.Route `httprequest:"PUT /v/ae"`
+	Value             float64 `httprequest:"v,form"`
+}
+
+func (h handler) SetEnergy(req *setEnergyReq) {
+	h.srv.SetEnergy(req.Value)
 }

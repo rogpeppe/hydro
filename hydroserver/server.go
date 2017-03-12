@@ -205,6 +205,7 @@ type clientRelayInfo struct {
 type clientSample struct {
 	TimeLag string
 	Power   float64
+	TotalEnergy float64
 }
 
 type clientMeterInfo struct {
@@ -224,6 +225,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 		samples[addr] = clientSample{
 			TimeLag: lag(s.Time, meters.Time),
 			Power:   s.ActivePower,
+			TotalEnergy: s.TotalEnergy,
 		}
 	}
 	u.Meters = &clientMeterInfo{
