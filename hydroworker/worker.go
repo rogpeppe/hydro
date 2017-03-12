@@ -160,10 +160,7 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		currentPowerUse, err := w.meters.ReadMeters(ctx1)
 		cancel()
 		if err != nil {
-			log.Printf("cannot get current meter reading: %v", err)
-			// TODO we should continue with calling Assess anyway
-			// even though we can't obtain a meter reading.
-			continue
+			log.Printf("warning: cannot get current meter reading: %v", err)
 		}
 		if !haveRelays {
 			log.Printf("can't talk to relay server")
