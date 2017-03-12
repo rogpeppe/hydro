@@ -16,7 +16,7 @@ function wsURL(path) {
 };
 var Relays = React.createClass({
 	render: function() {
-		return <table>
+		return <table class="relays">
 			<thead>
 				<tr><th>Cohort</th><th>Relay</th><th>Status</th><th>Since</th></tr>
 			</thead>
@@ -34,7 +34,7 @@ var Meters = React.createClass({
 	render: function() {
 		var meters = this.props.meters
 		return <div>
-			<table>
+			<table class="chargeable">
 			<thead>
 				<tr><th>Name</th><th>Chargeable power</th></tr>
 			</thead>
@@ -46,7 +46,8 @@ var Meters = React.createClass({
 				<tr><td>import power used by Drynoch</td><td>{kWfmt(meters.Chargeable.ImportHere)}</td></tr>
 			</tbody>
 			</table>
-			<table>
+			<p/>
+			<table class="meters">
 			<thead>
 				<tr><th>Meter name</th><th>Address</th><th>Current power (kW)</th><th>Total energy (kWh)</th><th>Time lag</th></tr>
 			</thead>
@@ -80,10 +81,11 @@ socket.onmessage = function(event) {
 	console.log("toplev", toplev, "document", document)
 	ReactDOM.render(
 		<div>
-			<a href="/config">Change configuration</a>
+			<Meters meters={m.Meters}/>
 			<p/>
 			<Relays relays={m.Relays}/>
-			<Meters meters={m.Meters}/>
+			<p/>
+			<a href="/config">Change configuration</a>
 		</div>, toplev);
 };
 
