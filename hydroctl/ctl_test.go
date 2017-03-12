@@ -65,7 +65,7 @@ var assessTests = []struct {
 		now:         T(0),
 		expectState: mkRelays(0),
 	}, {
-		now:         T(0).Add(hydroctl.MinimumChangeDuration),
+		now:         T(0).Add(hydroctl.DefaultMinimumChangeDuration),
 		expectState: mkRelays(0, 5),
 		transition:  true,
 	}, {
@@ -368,9 +368,9 @@ var assessTests = []struct {
 		expectState: mkRelays(0),
 		transition:  true,
 	}, {
-		// After MeterReactionDuration, the other relay
+		// After DefaultMeterReactionDuration, the other relay
 		// turns on.
-		now:         T(1).Add(hydroctl.MeterReactionDuration),
+		now:         T(1).Add(hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
@@ -381,7 +381,7 @@ var assessTests = []struct {
 		transition:  true,
 	}, {
 		// Same for the second relay.
-		now:         T(3).Add(hydroctl.MeterReactionDuration),
+		now:         T(3).Add(hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(),
 		transition:  true,
 	}},
@@ -412,7 +412,7 @@ var assessTests = []struct {
 		transition:  true,
 	}, {
 		// The meter updates to reflect the new use.
-		now: T(1).Add(hydroctl.MeterReactionDuration),
+		now: T(1).Add(hydroctl.DefaultMeterReactionDuration),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 500,
@@ -502,7 +502,7 @@ var assessTests = []struct {
 		expectState: mkRelays(0),
 		transition:  true,
 	}, {
-		now: T(1).Add(hydroctl.MeterReactionDuration),
+		now: T(1).Add(hydroctl.DefaultMeterReactionDuration),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 3000,
@@ -512,7 +512,7 @@ var assessTests = []struct {
 		expectState: mkRelays(0, 1),
 		transition:  true,
 	}, {
-		now: T(1).Add(2 * hydroctl.MeterReactionDuration),
+		now: T(1).Add(2 * hydroctl.DefaultMeterReactionDuration),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 3000,
@@ -524,7 +524,7 @@ var assessTests = []struct {
 	}, {
 		// A little while after, we're using all the generated
 		// power but there's no problem with that.
-		now: T(1).Add(2*hydroctl.MeterReactionDuration + time.Minute),
+		now: T(1).Add(2*hydroctl.DefaultMeterReactionDuration + time.Minute),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 3000,
@@ -572,7 +572,7 @@ var assessTests = []struct {
 		expectState: mkRelays(2),
 		transition:  true,
 	}, {
-		now:         T(13).Add(hydroctl.MinimumChangeDuration),
+		now:         T(13).Add(hydroctl.DefaultMinimumChangeDuration),
 		expectState: mkRelays(2),
 		transition:  true,
 	}},
@@ -633,7 +633,7 @@ var assessTests = []struct {
 		transition:  true,
 	}, {
 		// The second relay switches on after the usual delay.
-		now: T(11).Add(-5 * time.Minute).Add(hydroctl.MinimumChangeDuration),
+		now: T(11).Add(-5 * time.Minute).Add(hydroctl.DefaultMinimumChangeDuration),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 1000,
@@ -644,7 +644,7 @@ var assessTests = []struct {
 		transition:  true,
 	}, {
 		// Both remain on for their allotted 5 minutes.
-		now: T(11).Add(-2 * time.Minute).Add(hydroctl.MinimumChangeDuration),
+		now: T(11).Add(-2 * time.Minute).Add(hydroctl.DefaultMinimumChangeDuration),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
 				Generated: 1000,
@@ -664,7 +664,7 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "Given three relays and only enough power for one of them, we'll cycle between them at CycleDuration frequency",
+	about: "Given three relays and only enough power for one of them, we'll cycle between them at DefaultCycleDuration frequency",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
@@ -708,7 +708,7 @@ var assessTests = []struct {
 	}, {
 		// We don't switch the second relay on because there's not enough spare
 		// power to accommodate it.
-		now:         T(10).Add(hydroctl.MeterReactionDuration),
+		now:         T(10).Add(hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(0),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -719,7 +719,7 @@ var assessTests = []struct {
 	}, {
 		// At the end of a cycle, the first relay turns off to
 		// regain some power.
-		now:         T(10).Add(hydroctl.CycleDuration),
+		now:         T(10).Add(hydroctl.DefaultCycleDuration),
 		expectState: mkRelays(),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -729,7 +729,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// When we see the power regained, we turn on the second meter.
-		now:         T(10).Add(hydroctl.CycleDuration + hydroctl.MeterReactionDuration),
+		now:         T(10).Add(hydroctl.DefaultCycleDuration + hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(1),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -739,7 +739,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// It stays on.
-		now:         T(10).Add(hydroctl.CycleDuration + 2*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(hydroctl.DefaultCycleDuration + 2*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(1),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -750,7 +750,7 @@ var assessTests = []struct {
 	}, {
 		// At the end of another cycle, the second meter turns off to
 		// make more power available.
-		now:         T(10).Add(2*hydroctl.CycleDuration + hydroctl.MeterReactionDuration),
+		now:         T(10).Add(2*hydroctl.DefaultCycleDuration + hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -760,7 +760,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// When we see the power regained, we turn on the third meter.
-		now:         T(10).Add(2*hydroctl.CycleDuration + 2*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(2*hydroctl.DefaultCycleDuration + 2*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(2),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -770,7 +770,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// It stays on.
-		now:         T(10).Add(2*hydroctl.CycleDuration + 3*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(2*hydroctl.DefaultCycleDuration + 3*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(2),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -781,7 +781,7 @@ var assessTests = []struct {
 	}, {
 		// At the end of another cycle, the third meter turns off to
 		// make more power available.
-		now:         T(10).Add(3*hydroctl.CycleDuration + 2*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(3*hydroctl.DefaultCycleDuration + 2*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -791,7 +791,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// When we see the power regained, we cycle back to the first meter again.
-		now:         T(10).Add(3*hydroctl.CycleDuration + 3*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(3*hydroctl.DefaultCycleDuration + 3*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(0),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{
@@ -801,7 +801,7 @@ var assessTests = []struct {
 		},
 	}, {
 		// It stays on.
-		now:         T(10).Add(3*hydroctl.CycleDuration + 4*hydroctl.MeterReactionDuration),
+		now:         T(10).Add(3*hydroctl.DefaultCycleDuration + 4*hydroctl.DefaultMeterReactionDuration),
 		expectState: mkRelays(0),
 		powerUse: hydroctl.PowerUseSample{
 			PowerUse: hydroctl.PowerUse{

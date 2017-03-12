@@ -28,18 +28,18 @@ import (
 
 var Debug = true
 
-// MinimumChangeDuration holds the minimum length of time
+// DefaultMinimumChangeDuration holds the default minimum length of time
 // between turning on relays.
-const MinimumChangeDuration = 5 * time.Second
+const DefaultMinimumChangeDuration = 5 * time.Second
 
-// CycleDuration holds the length of time that we will cycle
+// DefaultCycleDuration holds the default length of time that we will cycle
 // through relays using discretionary power.
-const CycleDuration = 5 * time.Minute
+const DefaultCycleDuration = 5 * time.Minute
 
-// MeterReactionDuration holds the length of time we wait
+// MeterReactionDuration holds the default length of time we wait
 // for the meters to react to relay changes before
 // we make further decisions.
-const MeterReactionDuration = 10 * time.Second
+const DefaultMeterReactionDuration = 10 * time.Second
 
 // Config holds the configuration of the control system.
 type Config struct {
@@ -47,6 +47,10 @@ type Config struct {
 	// in the system. The relay number is indicated by
 	// the index in the slice.
 	Relays []RelayConfig
+
+	CycleDuration         time.Duration
+	MeterReactionDuration time.Duration
+	MinimumChangeDuration time.Duration
 }
 
 // RelayConfig holds the configuration for a given relay.
@@ -260,7 +264,7 @@ func (a *assessor) canSetRelay(r *assessedRelay, on bool, now time.Time) bool {
 	if on == r.latestState {
 		return true
 	}
-	if r.latestStateDuration >= MinimumChangeDuration {
+	if r.latestStateDuration >= a.minimumChangeDuration {
 		return true
 	}
 	a.logf("too soon to set relay %v (latestState %v; delta %v)", r.relay, r.latestState, r.latestStateDuration)
@@ -274,6 +278,9 @@ type Logger interface {
 
 type assessor struct {
 	AssessParams
+	minimumChangeDuration time.Duration
+	cycleDuration         time.Duration
+	meterReactionDuration time.Duration
 }
 
 func (a *assessor) logf(f string, args ...interface{}) {
@@ -310,7 +317,10 @@ type PowerUseSample struct {
 // don't change its state too soon.
 func Assess(p AssessParams) RelayState {
 	a := &assessor{
-		AssessParams: p,
+		AssessParams:          p,
+		cycleDuration:         durationWithDefault(p.Config.CycleDuration, DefaultCycleDuration),
+		minimumChangeDuration: durationWithDefault(p.Config.MinimumChangeDuration, DefaultMinimumChangeDuration),
+		meterReactionDuration: durationWithDefault(p.Config.MeterReactionDuration, DefaultMeterReactionDuration),
 	}
 	newState := a.CurrentState
 	// assessed will hold all the relays that want discretionary power.
@@ -359,7 +369,7 @@ func Assess(p AssessParams) RelayState {
 	// relay because the last time we turned on any relay
 	// was long enough ago. We always allow turning relays
 	// off, but we turn them on slowly.
-	canTurnOn := !a.Now.Before(latestOnTime.Add(MinimumChangeDuration))
+	canTurnOn := !a.Now.Before(latestOnTime.Add(a.minimumChangeDuration))
 
 	if added != -1 && canTurnOn {
 		// Absolute priority requirements have resulted in
@@ -393,7 +403,7 @@ func Assess(p AssessParams) RelayState {
 		a.logf("meter readings out of date, leaving discretionary power unchanged; reading at %s, not after %s", a.PowerUseSample.T0, latestChangeTime)
 		return newState
 	}
-	settledTime := latestChangeTime.Add(MeterReactionDuration)
+	settledTime := latestChangeTime.Add(a.meterReactionDuration)
 	if a.PowerUseSample.T0.Before(settledTime) {
 		a.logf("meter readings not settled yet (settled in %v, reading %v ago)", settledTime.Sub(a.Now), a.Now.Sub(a.PowerUseSample.T0))
 		return newState
@@ -548,6 +558,9 @@ type assessedRelay struct {
 	// relay has been in its latest state, up to a maximum
 	// of 24 hours.
 	latestStateDuration time.Duration
+
+	// cycleDuration holds the cycle duration for this relay.
+	cycleDuration time.Duration
 }
 
 // assessedByPriority defines an ordering for relays
@@ -569,8 +582,8 @@ func (ap assessedByPriority) Less(i, j int) bool {
 	if a0.desiredState && a1.desiredState {
 		// Both relays want to be on.
 		// inCycle[01] holds whether a[01] is currently inside a cycle time.
-		inCycle0 := a0.latestState && a0.latestStateDuration < CycleDuration
-		inCycle1 := a1.latestState && a1.latestStateDuration < CycleDuration
+		inCycle0 := a0.latestState && a0.latestStateDuration < a0.cycleDuration
+		inCycle1 := a1.latestState && a1.latestStateDuration < a1.cycleDuration
 		if inCycle0 != inCycle1 {
 			// Only one of them is within its cycle time - the one
 			// that isn't gets less priority so that we will prefer
@@ -615,6 +628,8 @@ func (a *assessor) assessRelay(relay int, rc *RelayConfig) assessedRelay {
 		pri:                 pri,
 		latestState:         latestState,
 		latestStateDuration: 24 * time.Hour,
+		// TODO allow relay-specific cycle durations?
+		cycleDuration: a.cycleDuration,
 	}
 	if !latestChangeTime.IsZero() {
 		if d := a.Now.Sub(latestChangeTime); d < 24*time.Hour {
@@ -672,4 +687,11 @@ var epoch = time.Date(2000, 01, 01, 0, 0, 0, 0, time.UTC)
 // TODO delete me
 func D(t time.Time) time.Duration {
 	return t.Sub(epoch)
+}
+
+func durationWithDefault(d, def time.Duration) time.Duration {
+	if d == 0 {
+		return def
+	}
+	return d
 }
