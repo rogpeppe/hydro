@@ -1,0 +1,13 @@
+syntax="proto3";
+
+option go_package = "meterstorepb";
+
+message TimeRecord {
+	uint64 timestamp = 1;
+	bool inLog = 2;
+	uint32 meter = 3;
+	uint32 readings = 4;
+	int32 systemPower = 5;
+	int32 systemEnergy = 6;
+}
+
