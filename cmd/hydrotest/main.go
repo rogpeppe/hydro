@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/rogpeppe/hydro/eth8020test"

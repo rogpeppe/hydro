@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/websocket"
 	"github.com/rakyll/statik/fs"
 	"gopkg.in/errgo.v1"
-	"github.com/NYTimes/gziphandler"
 
 	"github.com/rogpeppe/hydro/googlecharts"
 	"github.com/rogpeppe/hydro/history"
@@ -199,12 +199,12 @@ type clientRelayInfo struct {
 	Cohort string
 	Relay  int
 	On     bool
-	Since  time.Time
+	Since  string
 }
 
 type clientSample struct {
-	TimeLag string
-	Power   float64
+	TimeLag     string
+	Power       float64
 	TotalEnergy float64
 }
 
@@ -223,8 +223,8 @@ func (h *Handler) makeUpdate() clientUpdate {
 	samples := make(map[string]clientSample)
 	for addr, s := range meters.Samples {
 		samples[addr] = clientSample{
-			TimeLag: lag(s.Time, meters.Time),
-			Power:   s.ActivePower,
+			TimeLag:     lag(s.Time, meters.Time),
+			Power:       s.ActivePower,
 			TotalEnergy: s.TotalEnergy,
 		}
 	}
@@ -246,11 +246,22 @@ func (h *Handler) makeUpdate() clientUpdate {
 		if cfg != nil && len(cfg.Relays) > i {
 			cohort = cfg.Relays[i].Cohort
 		}
+		var since string
+		now := time.Now()
+		switch howlong := now.Sub(r.Since); {
+		case howlong > 6*24*time.Hour:
+			since = r.Since.Format("2006-01-02 15:04")
+		case r.Since.Day() != now.Day():
+			since = r.Since.Format("Mon 15:04")
+		default:
+			since = r.Since.Format("15:04:05")
+		}
+
 		u.Relays = append(u.Relays, clientRelayInfo{
 			Cohort: cohort,
 			Relay:  i,
 			On:     r.On,
-			Since:  r.Since.Round(time.Second),
+			Since:  since,
 		})
 	}
 	return u

@@ -93,7 +93,6 @@ func (srv *Server) SetEnergy(energy float64) {
 	defer srv.mu.Unlock()
 	srv.Energy = energy
 }
-	
 
 func (srv *Server) handler(p httprequest.Params) (handler, context.Context, error) {
 	return handler{srv}, p.Context, nil

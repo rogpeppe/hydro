@@ -260,6 +260,20 @@ bedrooms on from 12pm to 3pm
 	about:  "empty config",
 	config: "",
 	expect: &hydroconfig.Config{},
+}, {
+	about: "config with config parameters",
+	config: `
+config fastest 5s
+config reaction 10s
+config cycle 20m
+`,
+	expect: &hydroconfig.Config{
+		Attrs: hydroconfig.Attrs{
+			MinimumChangeDuration: 5 * time.Second,
+			MeterReactionDuration: 10 * time.Second,
+			CycleDuration:         20 * time.Minute,
+		},
+	},
 }}
 
 // awkward failing test for now.

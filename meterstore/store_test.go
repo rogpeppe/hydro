@@ -74,7 +74,7 @@ func BenchmarkInsert(b *testing.B) {
 			SystemPower:  1234567,
 			SystemEnergy: 123456,
 		}, {
-			Time:         t0.Add(time.Duration(i) * 10 * time.Millisecond + 5 * time.Millisecond),
+			Time:         t0.Add(time.Duration(i)*10*time.Millisecond + 5*time.Millisecond),
 			InLog:        true,
 			Meter:        2,
 			Readings:     meterstore.SystemPower | meterstore.SystemEnergy,

@@ -18,6 +18,14 @@ import (
 type Config struct {
 	Cohorts []Cohort
 	Relays  map[int]Relay
+	Attrs   Attrs
+}
+
+// Attrs holds configuration attributes.
+type Attrs struct {
+	CycleDuration         time.Duration
+	MinimumChangeDuration time.Duration
+	MeterReactionDuration time.Duration
 }
 
 // Relay holds information specific to a relay.
@@ -76,6 +84,9 @@ func (c *Config) CtlConfig() *hydroctl.Config {
 //	dining room on from 14:30 to 20:45 for at least 20m
 //	bedrooms on from 17:00 to 20:00
 //
+//	config cycle 5m
+//	config reaction 10s
+//
 // If the time range is omitted, the slot lasts all day.
 func Parse(s string) (*Config, error) {
 	// TODO in use/not in use
@@ -113,6 +124,7 @@ func Parse(s string) (*Config, error) {
 	return &Config{
 		Cohorts: p.cohorts,
 		Relays:  p.relayInfo,
+		Attrs:   p.attrs,
 	}, nil
 }
 
@@ -124,6 +136,7 @@ type configParser struct {
 	assignedRelays map[int]string
 	relayInfo      map[int]Relay
 	shortNames     map[string]int
+	attrs          Attrs
 }
 
 func (p *configParser) addLine(t text) {
@@ -146,6 +159,11 @@ func (p *configParser) addLine(t text) {
 	// "relays 0, 4, 5 have max power 2kw"
 	if word.eq("relay") || word.eq("relays") {
 		p.addCohortOrMaxPower(rest)
+		return
+	}
+
+	if word.eq("config") {
+		p.addConfig(rest)
 		return
 	}
 
@@ -183,6 +201,33 @@ func (p *configParser) addLine(t text) {
 		}
 		found.InUseSlots = append(found.InUseSlots, slot)
 	}
+}
+
+func (p *configParser) addConfig(t text) {
+	attr, rest := t.word()
+	if attr.s == "" {
+		p.errorf(t, "expected attribute name")
+	}
+	val := rest.trimSpace()
+	switch strings.ToLower(attr.s) {
+	case "cycle":
+		p.attrs.CycleDuration = p.duration(val)
+	case "reaction":
+		p.attrs.MeterReactionDuration = p.duration(val)
+	case "fastest":
+		p.attrs.MinimumChangeDuration = p.duration(val)
+	default:
+		p.errorf(attr, `unknown attribute name (need "cycle", "reaction" or "fastest")`)
+	}
+}
+
+func (p *configParser) duration(t text) time.Duration {
+	d, err := time.ParseDuration(t.s)
+	if err != nil {
+		p.errorf(t, "bad duration: %v", err)
+		return 0
+	}
+	return d
 }
 
 var allDaySlot = hydroctl.Slot{

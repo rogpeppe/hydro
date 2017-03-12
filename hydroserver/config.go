@@ -81,6 +81,24 @@ no time at all if there's no available power.
 </ul>
 </p>
 <p>
+Additional configuration parameters can be set with lines starting
+with the word "config". Current parameters are:
+<ul>
+<li>
+"cycle" (default 5m): the length of time a relay will prefer to be on before switching
+to another with equal priority. This is just a preference - a relay might
+switch sooner if another has higher priority.
+</li>
+<li>
+"reaction" (default 10s): the length of time the system will wait after making
+a change for the meter readings to update.
+</li>
+<li>
+"fastest" (default 5s): the minimum length of time that the system will wait
+between turning on any relay. It will never turn on more than one relay
+at a time.
+</li>
+<p>
 For example:
 <p>
 <tt>
@@ -89,6 +107,9 @@ relays 0, 4, 5 are bedrooms<br>
 <br>
 dining room on from 14:30 to 20:45 for at least 20m<br>
 bedrooms on from 17:00 to 20:00<br>
+<br>
+config cycle 10m
+</br>
 </tt>
 </div>
 </body>
