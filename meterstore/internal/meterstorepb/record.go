@@ -15,3 +15,12 @@ func (r *TimeRecord) MarshalBinary() ([]byte, error) {
 func (r *TimeRecord) UnmarshalBinary(data []byte) error {
 	return proto.Unmarshal(data, r)
 }
+
+func (r *MeterRecord) MarshalBinary() ([]byte, error) {
+	return proto.Marshal(r)
+}
+
+// UnmarshalBinary implements encoding.UnmarshalBinary.
+func (r *MeterRecord) UnmarshalBinary(data []byte) error {
+	return proto.Unmarshal(data, r)
+}

@@ -85,7 +85,7 @@ func newStore(configPath, metersPath string) (*store, error) {
 type meterLocation int
 
 const (
-	_ meterLocation = iota
+	locUnknown meterLocation = iota
 	locGenerator
 	locNeighbour
 	locHere

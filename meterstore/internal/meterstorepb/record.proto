@@ -5,9 +5,17 @@ option go_package = "meterstorepb";
 message TimeRecord {
 	uint64 timestamp = 1;
 	bool inLog = 2;
-	uint32 meter = 3;
+	uint32 meterId = 3;
 	uint32 readings = 4;
 	int32 systemPower = 5;
 	int32 systemEnergy = 6;
 }
 
+message MeterInfo {
+	string addr = 1;
+	int32 location = 2;
+}
+
+message MeterRecord {
+	repeated MeterInfo meters = 1;
+}
