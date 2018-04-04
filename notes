@@ -1,3 +1,9 @@
+Thu 28 Dec 10:35:26 GMT 2017
+
+getting RTC board working. See:
+
+[Wednesday, 8 February 2017] [19:06:01 GMT] <mup>	Bug #1663001 opened: rc.local not writable, but i2c addon board needs special treatment <Snappy:New> <https://launchpad.net/bugs/1663001>
+
 Tue 14 Feb 07:35:36 GMT 2017
 
 On Zyxel router, port forwarding config in /etc/nat_pvc0/vserver*

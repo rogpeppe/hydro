@@ -69,7 +69,7 @@ func newStore(configPath, metersPath string) (*store, error) {
 	var mcfg meterConfig
 	err = readJSONFile(metersPath, &mcfg)
 	if err != nil && !os.IsNotExist(err) {
-		return nil, errgo.Mask(err)
+		return nil, errgo.Notef(err, "cannot read config from %q", metersPath)
 	}
 	return &store{
 		configPath:  configPath,
@@ -94,9 +94,10 @@ const (
 // meter holds a meter that can be read to find out what
 // the system is doing.
 type meter struct {
-	Name     string
-	Location meterLocation
-	Addr     string // host:port
+	Name       string
+	Location   meterLocation
+	Addr       string // host:port
+	AllowedLag time.Duration
 }
 
 // meterConfig defines the format used to persistently store
@@ -194,13 +195,20 @@ func (s *store) WorkerState() *hydroworker.Update {
 
 // meterState holds a meter state.
 type meterState struct {
+	// Time holds the time by which all the meter readings were
+	// acquired (>= max of all the sample times).
 	Time       time.Time
 	Chargeable hydroctl.PowerChargeable
 	Use        hydroctl.PowerUse
 	Meters     []meter
-	// Samples holds all the most readings, indexed
+	// Samples holds all the readings, indexed
 	// by meter address.
-	Samples map[string]*ndmeter.Sample
+	Samples map[string]*meterSample
+}
+
+type meterSample struct {
+	*ndmeter.Sample
+	AllowedLag time.Duration
 }
 
 // meterState returns the latest known meter state.
@@ -222,22 +230,28 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 	if s.meters == nil {
 		return s.allMaxPower(), nil
 	}
-	addrs := make([]string, len(s.meters))
+	places := make([]ndmeter.SamplePlace, len(s.meters))
 	for i, m := range s.meters {
-		addrs[i] = m.Addr
+		places[i] = ndmeter.SamplePlace{
+			Addr:       m.Addr,
+			AllowedLag: m.AllowedLag,
+		}
 	}
 	var failed []string
 	// Unlock so that we don't block everything
 	// else while we're talking on the network.
 	s.mu.Unlock()
-	samples := s.sampler.GetAll(ctx, addrs...)
+	samples := s.sampler.GetAll(ctx, places...)
 	now := time.Now()
-	samplesByAddr := make(map[string]*ndmeter.Sample)
+	samplesByAddr := make(map[string]*meterSample)
 	for i, sample := range samples {
 		if sample != nil {
-			samplesByAddr[addrs[i]] = sample
+			samplesByAddr[places[i].Addr] = &meterSample{
+				Sample:     sample,
+				AllowedLag: places[i].AllowedLag,
+			}
 		} else {
-			failed = append(failed, addrs[i])
+			failed = append(failed, places[i].Addr)
 		}
 	}
 	s.mu.Lock()
