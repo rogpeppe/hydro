@@ -16,8 +16,8 @@ import (
 	"github.com/rogpeppe/hydro/ndmetertest"
 )
 
-// bhttp put http://localhost:44443/v/ap 'v==200'
-// bhttp put http://localhost:44443/delay 'delay=2'		# in seconds
+// bhttp put http://localhost:44442/v/ap 'v==98654'
+// bhttp put http://localhost:44442/delay 'delay=25'		# in seconds
 
 const portBase = 44440
 

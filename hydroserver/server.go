@@ -228,8 +228,17 @@ func (h *Handler) makeUpdate() clientUpdate {
 	var u clientUpdate
 	samples := make(map[string]clientSample)
 	for addr, s := range meters.Samples {
+		// Allow 50% extra time for a round trip when the allowed lag is long,
+		// or a fairly arbitrary constant when it's short. We should probably
+		// do a bit better than this and estimate the usual round trip time so
+		// that we send a request sufficiently in advance of the allowed-lag
+		// deadline that it's rare to overrun it.
+		allowedLag := s.AllowedLag * 3 / 2
+		if allowedLag < expectedMaxRoundTrip {
+			allowedLag = expectedMaxRoundTrip
+		}
 		samples[addr] = clientSample{
-			TimeLag:     lag(s.Time, s.AllowedLag+expectedMaxRoundTrip, meters.Time),
+			TimeLag:     lag(s.Time, allowedLag, meters.Time),
 			Power:       s.ActivePower,
 			TotalEnergy: s.TotalEnergy,
 		}

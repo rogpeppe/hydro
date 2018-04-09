@@ -196,7 +196,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 		serveConfigError(w, req, err)
 		return
 	}
-	relayAddr := req.Form.Get("relayaddr")
+	relayAddr := req.Form.Get("relayAddr")
 	// TODO check that we can connect to the relay address?
 	h.controller.SetRelayAddr(relayAddr)
 
