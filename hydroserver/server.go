@@ -215,6 +215,12 @@ type clientMeterInfo struct {
 	Samples    map[string]clientSample
 }
 
+// expectedMaxRoundTrip holds the maximum duration we might normally expect
+// a meter request to take. If we've got a sample that's older than the allowed lag
+// plus the round trip time, we consider that it's useful to display the lag to the user
+// as a hint that all is not well.
+const expectedMaxRoundTrip = time.Second
+
 func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
 	cfg := h.store.CtlConfig()
@@ -223,7 +229,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 	samples := make(map[string]clientSample)
 	for addr, s := range meters.Samples {
 		samples[addr] = clientSample{
-			TimeLag:     lag(s.Time, meters.Time),
+			TimeLag:     lag(s.Time, s.AllowedLag+expectedMaxRoundTrip, meters.Time),
 			Power:       s.ActivePower,
 			TotalEnergy: s.TotalEnergy,
 		}
@@ -267,9 +273,12 @@ func (h *Handler) makeUpdate() clientUpdate {
 	return u
 }
 
-func lag(t0, t1 time.Time) string {
+// lag returns a human-readable representation of the lag for
+// a meter reading that was acquired at time t0 with the given
+// allowed lag, when the result was returned at time t1.
+func lag(t0 time.Time, allowedLag time.Duration, t1 time.Time) string {
 	d := t1.Sub(t0)
-	if d < hydroworker.Heartbeat {
+	if d <= allowedLag {
 		return ""
 	}
 	var q time.Duration

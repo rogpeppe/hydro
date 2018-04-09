@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"gopkg.in/errgo.v1"
@@ -27,10 +28,28 @@ var configTempl = newTemplate(`
 <textarea name="config" rows="30" cols="80">
 {{.Store.ConfigText}}
 </textarea><br>
-Relay controller address <input name="relayaddr" type="text" value="{{.Controller.RelayAddr}}"><br>
-Generator meter address <input name="genmeteraddr" type="text" value="{{.GeneratorMeterAddrs | joinSp}}"><br>
-Aliday meter address <input name="neighbourmeteraddr" type="text" value="{{.NeighbourMeterAddrs | joinSp}}"><br>
-Drynoch meter addresses (space separated) <input name="heremeteraddr" type="text" value="{{.HereMeterAddrs | joinSp}}"><br>
+
+Relay controller address <input name="relayAddr" type="text" value="{{.Controller.RelayAddr}}">
+<br>
+<table>
+<tr><th>Meter</th><th>Addresses (space separated)</th><th>Max lag</th></tr>
+<tr>
+	<td>Generator</td>
+	<td><input name="genMeterAddr" type="text" value="{{.GeneratorMeterAddrs | joinSp}}"></td>
+	<td><input name="genMeterLag" type="text" value="{{.GeneratorAllowedLag}}"></td>
+</tr>
+<tr>
+	<td>Aliday</td>
+	<td><input name="neighbourMeterAddr" type="text" value="{{.NeighbourMeterAddrs | joinSp}}"></td>
+	<td><input name="neighbourMeterLag" type="text" value="{{.NeighbourAllowedLag}}"></td>
+</tr>
+<tr>
+	<td>Drynoch</td>
+	<td><input name="hereMeterAddr" type="text" value="{{.HereMeterAddrs | joinSp}}"></td>
+	<td><input name="hereMeterLag" type="text" value="{{.HereAllowedLag}}"></td>
+</tr>
+</table>
+<br>
 <input type="submit" value="Save">
 <div class=instructions>
 <p>
@@ -129,11 +148,17 @@ func (h *Handler) serveConfig(w http.ResponseWriter, req *http.Request) {
 }
 
 type configTemplateParams struct {
-	Store               *store
-	Controller          *relayCtl
+	Store      *store
+	Controller *relayCtl
+
 	GeneratorMeterAddrs []string
+	GeneratorAllowedLag time.Duration
+
 	NeighbourMeterAddrs []string
-	HereMeterAddrs      []string
+	NeighbourAllowedLag time.Duration
+
+	HereMeterAddrs []string
+	HereAllowedLag time.Duration
 }
 
 func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
@@ -145,10 +170,13 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 		switch m.Location {
 		case locGenerator:
 			p.GeneratorMeterAddrs = append(p.GeneratorMeterAddrs, m.Addr)
+			p.GeneratorAllowedLag = m.AllowedLag
 		case locNeighbour:
 			p.NeighbourMeterAddrs = append(p.NeighbourMeterAddrs, m.Addr)
+			p.NeighbourAllowedLag = m.AllowedLag
 		case locHere:
 			p.HereMeterAddrs = append(p.HereMeterAddrs, m.Addr)
+			p.HereAllowedLag = m.AllowedLag
 		}
 	}
 
@@ -174,7 +202,15 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 
 	var meters []meter
 	for p, info := range meterInfo {
-		addrs := strings.Fields(req.Form.Get(p))
+		addrField := p + "Addr"
+		lagField := p + "Lag"
+		lagStr := req.Form.Get(lagField)
+		allowedLag, err := time.ParseDuration(lagStr)
+		if err != nil {
+			badRequest(w, req, errgo.Notef(err, "invalid allowed lag duration %q (field %q; form %q)", lagStr, lagField, req.Form))
+			return
+		}
+		addrs := strings.Fields(req.Form.Get(addrField))
 		for i, addr := range addrs {
 			if _, _, err := net.SplitHostPort(addr); err != nil {
 				badRequest(w, req, errgo.Newf("invalid meter address %q (must be of the form host:port)", addr))
@@ -185,9 +221,10 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 				name = fmt.Sprintf("%s #%d", name, i+1)
 			}
 			meters = append(meters, meter{
-				Name:     name,
-				Location: info.location,
-				Addr:     addr,
+				Name:       name,
+				Location:   info.location,
+				Addr:       addr,
+				AllowedLag: allowedLag,
 			})
 		}
 	}
@@ -203,15 +240,15 @@ var meterInfo = map[string]struct {
 	name     string
 	location meterLocation
 }{
-	"genmeteraddr": {
+	"genMeter": {
 		name:     "Generator",
 		location: locGenerator,
 	},
-	"heremeteraddr": {
+	"hereMeter": {
 		name:     "Drynoch",
 		location: locHere,
 	},
-	"neighbourmeteraddr": {
+	"neighbourMeter": {
 		name:     "Aliday",
 		location: locNeighbour,
 	},

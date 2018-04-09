@@ -1,17 +1,22 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/rogpeppe/hydro/eth8020test"
 	"github.com/rogpeppe/hydro/hydroserver"
 	"github.com/rogpeppe/hydro/ndmetertest"
 )
+
+// bhttp put --json http://localhost:44441/ae/v 'Value:=200'
 
 const portBase = 44440
 
@@ -27,9 +32,14 @@ func main() {
 	dir := flag.Arg(0)
 	if dir == "" {
 		dir = "/tmp/hydro"
-		os.MkdirAll(dir, 0777)
 	}
-	fmt.Printf("directory %v\n", dir)
+	if _, err := os.Stat(dir); err == nil {
+		fmt.Printf("existing directory %v\n", dir)
+	} else {
+		if err := initDir(dir); err != nil {
+			log.Fatal(err)
+		}
+	}
 	srv, err := eth8020test.NewServer(fmt.Sprintf("localhost:%d", portBase+1))
 	if err != nil {
 		log.Fatal(err)
@@ -57,4 +67,64 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+var fileContents = map[string]string{
+	"relayaddr": `{"Addr":"localhost:{{add .PortBase 1}}"}`,
+	"meterconfig": `{
+	"Meters": [
+		{
+			"Addr": "localhost:{{add .PortBase 2}}",
+			"Location": 1,
+			"Name": "Generator",
+			"AllowedLag": 5000000000
+		},
+		{
+			"Addr": "localhost:{{add .PortBase 3}}",
+			"Location": 2,
+			"Name": "Aliday"
+		},
+		{
+			"Addr": "localhost:{{add .PortBase 4}}",
+			"Location": 3,
+			"Name": "Drynoch #1"
+		},
+		{
+			"Addr": "localhost:{{add .PortBase 5}}",
+			"Location": 3,
+			"Name": "Drynoch #2"
+		}
+	]
+}`,
+}
+
+type params struct {
+	PortBase int
+}
+
+func initDir(dir string) error {
+	fmt.Printf("initializing %v", dir)
+	if err := os.MkdirAll(dir, 0777); err != nil {
+		return err
+	}
+	for name, cfg := range fileContents {
+		tmpl, err := template.New("").Funcs(template.FuncMap{"add": add}).Parse(cfg)
+		if err != nil {
+			return err
+		}
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, params{
+			PortBase: portBase,
+		}); err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(filepath.Join(dir, name), buf.Bytes(), 0666); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func add(a, b int) int {
+	return a + b
 }

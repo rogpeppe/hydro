@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/juju/httprequest"
 	"github.com/julienschmidt/httprouter"
+	"gopkg.in/httprequest.v1"
 
 	"github.com/rogpeppe/hydro/hydroctl"
 )

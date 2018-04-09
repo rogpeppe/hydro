@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juju/httprequest"
 	"github.com/julienschmidt/httprouter"
+	"gopkg.in/httprequest.v1"
 )
 
 var valuesTmpl = template.Must(template.New("").Parse(`
@@ -85,12 +85,14 @@ func NewServer(addr string) (*Server, error) {
 func (srv *Server) SetPower(power float64) {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
+	log.Printf("%s set power to %v", srv.Addr, power)
 	srv.Power = power
 }
 
 func (srv *Server) SetEnergy(energy float64) {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
+	log.Printf("%s set energy to %v", srv.Addr, energy)
 	srv.Energy = energy
 }
 
