@@ -92,6 +92,11 @@ func (sampler *Sampler) GetAll(ctx context.Context, places ...SamplePlace) []*Sa
 			// Fill any samples with previously retrieved data when we have some.
 			sampler.mu.Lock()
 			defer sampler.mu.Unlock()
+			for i, s := range samples {
+				if s == nil {
+					samples[i] = sampler.recent[places[i].Addr]
+				}
+			}
 			return samples
 		case s := <-results:
 			samples[s.index] = s.sample

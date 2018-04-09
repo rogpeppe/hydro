@@ -61,6 +61,7 @@ type Server struct {
 	mu     sync.Mutex
 	Power  float64
 	Energy float64
+	Delay  time.Duration
 }
 
 var reqServer = &httprequest.Server{}
@@ -96,6 +97,12 @@ func (srv *Server) SetEnergy(energy float64) {
 	srv.Energy = energy
 }
 
+func (srv *Server) SetDelay(delay float64) {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+	srv.Delay = time.Duration(delay * float64(time.Second))
+}
+
 func (srv *Server) handler(p httprequest.Params) (handler, context.Context, error) {
 	return handler{srv}, p.Context, nil
 }
@@ -113,6 +120,13 @@ type liveValuesReq struct {
 }
 
 func (h handler) LiveValues(p httprequest.Params, req *liveValuesReq) {
+	h.srv.mu.Lock()
+	delay := h.srv.Delay
+	h.srv.mu.Unlock()
+	if delay > 0 {
+		log.Printf("ndmeter sleeping for %v", delay)
+		time.Sleep(delay)
+	}
 	h.srv.mu.Lock()
 	defer h.srv.mu.Unlock()
 	p.Response.Header().Set("Content-Type", "text/html")
@@ -132,6 +146,15 @@ type setPowerReq struct {
 
 func (h handler) SetPower(req *setPowerReq) {
 	h.srv.SetPower(req.Value)
+}
+
+type setDelayReq struct {
+	httprequest.Route `httprequest:"PUT /delay"`
+	Delay             float64 `httprequest:"delay,form"`
+}
+
+func (h handler) SetDelay(req *setDelayReq) {
+	h.srv.SetDelay(req.Delay)
 }
 
 type setEnergyReq struct {
