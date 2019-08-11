@@ -1,3 +1,5 @@
+// Package hydroctl holds the core logic for determining which relays will
+// be turned on.
 package hydroctl
 
 /*

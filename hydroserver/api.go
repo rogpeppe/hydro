@@ -14,10 +14,10 @@ var reqServer httprequest.Server
 
 func newAPIHandler(h *Handler) http.Handler {
 	r := httprouter.New()
-	for _, h := range reqServer.Handlers(func(p httprequest.Params) (*apiHandler, context.Context, error) {
+	for _, hh := range reqServer.Handlers(func(p httprequest.Params) (*apiHandler, context.Context, error) {
 		return &apiHandler{h}, p.Context, nil
 	}) {
-		r.Handle(h.Method, h.Path, h.Handle)
+		r.Handle(hh.Method, hh.Path, hh.Handle)
 	}
 	return r
 }

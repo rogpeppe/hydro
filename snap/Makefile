@@ -1,3 +1,5 @@
+# snapcraft clean && snapcraft snap && scp -P 222 *.snap rogpeppe@drynoch.ddns.net:~
+
 .PHONY: all install
 
 all:

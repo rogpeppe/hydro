@@ -1,3 +1,19 @@
+Sun 15 Apr 11:49:37 BST 2018
+
+For recording samples, what do we do?
+Say we have 30 samples in a minute. Do we record all the samples? (probably not,
+as that's way overkill). Do we record one sample (the median? the mode? the max/min ?)
+Do we record some stats about what happened, without any of the actual samples?
+Problem with that is that we have some data but because we're interpolating, none
+of the actual values sampled are recorded.
+
+What about:
+
+	we record all samples to a temporary space.
+	then sporadically assess those samples and summarise them into a more permanent table
+
+Or... 
+
 Thu 28 Dec 10:35:26 GMT 2017
 
 getting RTC board working. See:
