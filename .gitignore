@@ -1,6 +1,8 @@
 /snap/bin/*
 /snap/*.bz2
 /snap/*.snap
+/snap/*.xdelta3
+/snap/snap
 /snap/parts
 /snap/prime
 /snap/stage

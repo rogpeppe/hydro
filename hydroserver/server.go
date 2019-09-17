@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -81,6 +82,12 @@ func New(p Params) (*Handler, error) {
 	h.mux.HandleFunc("/history.json", h.serveHistory)
 	h.mux.HandleFunc("/config", h.serveConfig)
 	h.mux.Handle("/api/", newAPIHandler(h))
+	// Let's see what's going on.
+	h.mux.HandleFunc("/debug/pprof/", pprof.Index)
+	h.mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	h.mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	h.mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	h.mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	return h, nil
 }
 
