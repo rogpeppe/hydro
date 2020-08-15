@@ -1,3 +1,93 @@
+Sat 15 Aug 13:25:27 BST 2020
+
+remote monitor:
+
+	in loop:
+		poll meter. append result to file. one file for each uptime, holding readings for a maximum of some time (a day?)
+		with name signifying the start time (use unix milliseconds? or format "2006-01-02T150405.000Z0700" to retain Windows compatibility)
+	http server:
+		GET /readings/...
+			http.Dir on result directory
+		GET /readings
+			JSON listing of files in directory
+		DELETE /readings/...
+			remove all but the most recent file?
+		GET /reading
+			make call to meter to get latest reading and return it.
+
+
+in controller:
+	twice a day:
+		gather new readings from meters:
+			for all meters, list available readings files, get any files which started before 24h ago
+			and store them locally, then delete them once stored. could also potentially upload
+			the data to the cloud
+		if a report is due (we're at least one day after the end of the month):
+			if latest readings are available from all meters, produce report:
+				for each time quantum (1 minute?)
+					use linear interpolation between known points.
+					we require at least one data point at either end of the report period.
+					calculate chargeable power for that minute.
+					add all minutes together within an hour and produce the hour-by-hour numbers as the final report.
+
+latest reading is available if there's at least one sample point after the end of the report period.
+start with the latest sample prior to the report period.
+
+
+	type SampleReader struct{}
+
+	func (r *SampleReader) ReadSample() (*ndmeter.Sample, error)
+
+
+	func QuantizedUsage(r *SampleReader, start time.Time, quantum time.Duration) *UsageReader
+
+	type UsageReader struct{...}
+
+	func (r *PowerUsageReader) ReadUsage() (float64, error)
+
+Thu 13 Aug 15:29:20 BST 2020
+
+ntp-reading: absolute-time monotonic-timestamp
+reading: active-power total-energy monotonic-timestamp
+
+what do we do if we didn't manage to contact an NTP server for entire uptime of the machine?
+- perhaps there's nothing we can do apart from discard those readings and replace them by
+the estimated readings through the lifetime of the machine.
+
+also, say we've got this sequence of readings:
+
+	ntp-reading: t0
+	reading: r0
+	reading: r1
+	reading: r2
+	ntp-reading: t1
+	reading: r3
+
+what absolute values do we choose for the readings? If we just switch abruptly
+when we get the second meter reading, we run the risk of swapped readings.
+
+How about assuming that the clock is accurate enough and that we only require
+a single NTP reading for the entire lifetime of the Pi?
+We could periodically poll NTP and if the difference is too bad,
+start another era.
+
+An era has a sequential set of readings within a particular uptime.
+It's associated with a single absolute time that provides the
+absolute NTP-provided time for a given timestamp.
+
+We could store the readings in a file named after the absolute time of the
+first reading. If the time isn't known initially, then we don't provide the readings.
+We don't need to because this isn't crucial for the moment-to-moment operation
+of the system.
+
+Tue  4 Aug 10:45:21 BST 2020
+
+call:
+	Aliday meter not working
+
+	use existing raspberry pis
+
+
 Sun 15 Apr 11:49:37 BST 2018
 
 For recording samples, what do we do?
@@ -12,7 +102,18 @@ What about:
 	we record all samples to a temporary space.
 	then sporadically assess those samples and summarise them into a more permanent table
 
-Or... 
+Or...
+
+currently take total used, work out proportional to import
+-
+
+daylight savings adjustments
+monotonic time
+upload to google sheets (or provide CSV download)
+hourly intervals
+
+fleet of knives
+
 
 Thu 28 Dec 10:35:26 GMT 2017
 
@@ -38,7 +139,7 @@ To decompile a device overlay file:
 
 overlays are in /boot/uboot/pi2-kernel_22.snap/dtbs/overlays.tgz
 
-	dtc -I dtb -O dts i2c-rtc.dtbo 
+	dtc -I dtb -O dts i2c-rtc.dtbo
 
 systemctl --global enable unit...
 
@@ -47,7 +148,7 @@ Sat  4 Feb 19:35:47 GMT 2017
 build snap:
 
 	remember to update version field if not using the store.
-	
+
 	cd snap
 	snapcraft clean
 	snapcraft build
@@ -55,7 +156,7 @@ build snap:
 
 to install directly from .snap file:
 	snap install --dangerous $snap.snap
-	
+
 
 enable ntp:
 
@@ -110,7 +211,7 @@ How are we going to manage timeslots?
 
 watcher:
 
-func (w *Watcher) Next() bool	
+func (w *Watcher) Next() bool
 func (w *Watcher) Look() io.Closer
 func (w *Watcher) Change() io.Closer
 
@@ -151,46 +252,46 @@ babelify Makefile:
 
 	SHELL = /bin/bash
 	.DEFAULT_GOAL := all
-	
+
 	BABEL := node_modules/.bin/babel
 	ESLINT := node_modules/.bin/eslint
-	
+
 	BUILD_DIR := build/
 	RAW_JS_FILES := $(shell find app -type f -name '*.js')
 	BUILT_RAW_JS_FILES := $(patsubst app/%, $(BUILD_DIR)%, $(RAW_JS_FILES))
-	
+
 	define colorecho
 		@tput setaf 2
 		@echo $(1)
 		@tput sgr0
 	endef
-	
+
 	$(BUILD_DIR):
 		@echo -n "Generating build directory. "
 		@mkdir -p $(BUILD_DIR)
 		$(call colorecho,"Done.")
-	
+
 	$(BUILD_DIR)%.js: app/%.js
 		@echo -n "Creating $^. "
 		@mkdir -p $(@D)
 		@$(BABEL) $^ -o $@ --source-maps
 		$(call colorecho,"Done.")
-	
+
 	.PHONY: all
 	all: $(BUILD_DIR) deps babelize
-	
+
 	.PHONY: deps
 	deps:
 		@echo "Installing dependencies."
 		@npm install
 		$(call colorecho,"Done installing dependencies.")
-	
+
 	.PHONY: babelize
 	babelize: $(BUILD_DIR)
 		@echo "Running source files through babeljs."
 		@$(BABEL) app --source-maps --out-dir=$(BUILD_DIR)
 		$(call colorecho,"Done babeljs processing.")
-	
+
 	.PHONY: clean
 	clean:
 		@echo -n "Removing built files. "

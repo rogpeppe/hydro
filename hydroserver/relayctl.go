@@ -91,6 +91,7 @@ func (ctl *relayCtl) Relays() (hydroctl.RelayState, error) {
 	return ctl.currentState, nil
 }
 
+// SetRelays implements hydroworker.RelayController.SetRelays.
 func (ctl *relayCtl) SetRelays(state hydroctl.RelayState) error {
 	ctl.mu.Lock()
 	defer ctl.mu.Unlock()

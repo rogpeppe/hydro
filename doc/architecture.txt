@@ -1,0 +1,126 @@
+# Hydro packages and their relationships to one another:
+
+## Configuration:
+
+```cue
+#Config: {
+	// ListenAddr holds the host:port network address to run
+	// the public web server.
+	ListenAddr: string
+	// StateDir holds the path to the directory holding all the
+	// configuration files used by the server.
+	StateDir: string
+}
+
+#Params: {
+	RelayAddrPath: string
+	ConfigPath: string
+	MeterConfigPath: string
+	HistoryPath: string
+}
+
+// RelayAddrFile holds the contents of the relayaddr file of the
+#RelayAddrFile: {
+	Addr: string
+	// TODO: add password too.
+}
+
+// ConfigFile holds the textual-format configuration, designed
+// for users to edit directly.
+#ConfigFile string
+```
+
+// MeterFile holds the information about the relays to poll.
+#MeterFile: {
+	Meters: [... #Meter]
+}
+
+#Location: {
+	generator: 1
+	neighbour: 2
+	here: 3
+}
+
+#Meter: {
+	Name: string
+	Location: #Location.unknown | #Location.neighbour | #Location.here
+	Addr: net.HostPort
+	AllowedLag: int		// In nanoseconds.
+}
+
+### cmd/hydroserver
+
+This is the main package for the running daemon that
+controls the relay device, polls all the meters and
+serves the web page for the device.
+
+It reads a configuration file which contains the names
+of other configuration and data files.
+
+	relayaddr
+
+### github.com/rogpeppe/hydro/cmd/metersrv
+
+This command starts up a server for faking eth8020 meters using
+the ndmetertest package.
+
+### github.com/rogpeppe/hydro/cmd/relaysrv
+
+This command starts up a server for faking the eth8020 relay
+board using the eth8020test package.
+
+### github.com/rogpeppe/hydro/eth8020
+
+Controller for the ETH8020 relay board.
+
+### github.com/rogpeppe/hydro/googlecharts
+
+Reflection-based API for creating Google Charts info.
+
+### github.com/rogpeppe/hydro/history
+
+Package history provides an implementation of the hydroctl.History
+interface layered on top of a generic database interface (Store).
+The database implementation must provide the ability to
+append new events and iterate backwards from the end of the events.
+
+### github.com/rogpeppe/hydro/hydroconfig
+
+Package hydroconfig implements a parser for the textual relay configuration format.
+
+### github.com/rogpeppe/hydro/hydroctl
+
+Package hydroctl holds the core logic for determining which relays will be
+turned on. It's implemented as a stateless single function (Assess) which can be
+called as many times as desired to assess when relays should be
+turned on or off. It uses an implementation of the History interface
+to find out what has happened recently (to avoid switching a relay
+on and off too often, for example).
+
+### github.com/rogpeppe/hydro/hydrodb
+
+Package hydrodb is a nascent package for storing
+meter data.
+
+### github.com/rogpeppe/hydro/hydroworker
+
+Package hydroworker implements the long-running worker that controls the
+electrics. It reads the meters and passes the configuration and meter
+readings to the hydroctl package, which will make the actual decisions.
+
+### github.com/rogpeppe/hydro/hydroserver
+
+Package hydroserver implements the functionality exposed
+by the hydroserver command. It exposes an HTTP server
+that serves the GUI interface and starts the worker to poll
+the meters and control the relays.
+
+### github.com/rogpeppe/hydro/meterstore
+### github.com/rogpeppe/hydro/meterstore/internal/meterstorepb
+### github.com/rogpeppe/hydro/ndmeter
+### github.com/rogpeppe/hydro/statik
+
+### github.com/rogpeppe/hydro/cmd/test8020
+### github.com/rogpeppe/hydro/eth8020test
+### github.com/rogpeppe/hydro/cmd/hydrotest
+### github.com/rogpeppe/hydro/ndmetertest

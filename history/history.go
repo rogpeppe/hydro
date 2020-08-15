@@ -1,4 +1,4 @@
-// Package history provides an implementation of the ctl.History
+// Package history provides an implementation of the hydroctl.History
 // interface layered on top of a generic database interface.
 package history
 
@@ -12,7 +12,7 @@ import (
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 
-// Store represents a store of relay-changed events.
+// Store represents a persistent store of relay-changed events.
 type Store interface {
 	// Append adds the given event to the database.
 	// Note that this will not actually write the event to

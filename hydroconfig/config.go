@@ -1,3 +1,4 @@
+// Package hydroconfig implements a parser for the textual relay configuration format.
 package hydroconfig
 
 import (

@@ -12,7 +12,9 @@ require (
 	github.com/cznic/mathutil v0.0.0-20150605115324-a804f0f2d852
 	github.com/cznic/sortutil v0.0.0-20150617083342-4c7342852e65
 	github.com/cznic/zappy v0.0.0-20140820082020-47331054e4f9
+	github.com/frankban/quicktest v1.1.0
 	github.com/golang/protobuf v1.3.2
+	github.com/google/go-cmp v0.2.0
 	github.com/gorilla/websocket v0.0.0-20150923222930-13e4d0621caa
 	github.com/juju/ansiterm v0.0.0-20160907234532-b99631de12cf
 	github.com/juju/httprequest v1.0.1-0.20170202181139-3ea2b017bff2
