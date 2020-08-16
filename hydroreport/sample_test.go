@@ -12,9 +12,7 @@ import (
 
 var approxDeepEquals = qt.CmpEquals(cmpopts.EquateApprox(0, 0.001))
 
-var epoch = time.Date(2000, 01, 02, 12, 0, 0, 0, time.UTC)
-
-const epochTimestamp = 946814400
+var epoch = time.Unix(946814400, 0) // 2000-01-02 12:00:00Z
 
 func TestSampleReader(t *testing.T) {
 	c := qt.New(t)
@@ -23,17 +21,9 @@ func TestSampleReader(t *testing.T) {
 946814410005,1010
 946814415000,23456
 `[1:]))
-	var samples []Sample
-	for {
-		s, err := r.ReadSample()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			c.Fatalf("error reading sample: %v", err)
-		}
-		samples = append(samples, s)
-	}
+	samples, err := readAll(r)
+	c.Assert(err, qt.IsNil)
+
 	c.Assert(samples, qt.DeepEquals, []Sample{{
 		Time:        epoch,
 		TotalEnergy: 1000,
@@ -43,6 +33,40 @@ func TestSampleReader(t *testing.T) {
 	}, {
 		Time:        epoch.Add(15 * time.Second),
 		TotalEnergy: 23456,
+	}})
+}
+
+func TestMultiReader(t *testing.T) {
+	c := qt.New(t)
+	r0 := NewSampleReader(strings.NewReader(`
+946814400000,1000
+946814410005,1010
+946814415000,23456
+`[1:]))
+	r1 := NewMemSampleReader([]Sample{{
+		Time:        epoch.Add(30 * time.Second),
+		TotalEnergy: 3000,
+	}, {
+		Time:        epoch.Add(36 * time.Second),
+		TotalEnergy: 4000,
+	}})
+	samples, err := readAll(MultiSampleReader(r0, r1))
+	c.Assert(err, qt.IsNil)
+	c.Assert(samples, qt.DeepEquals, []Sample{{
+		Time:        epoch,
+		TotalEnergy: 1000,
+	}, {
+		Time:        epoch.Add(10*time.Second + 5*time.Millisecond),
+		TotalEnergy: 1010,
+	}, {
+		Time:        epoch.Add(15 * time.Second),
+		TotalEnergy: 23456,
+	}, {
+		Time:        epoch.Add(30 * time.Second),
+		TotalEnergy: 3000,
+	}, {
+		Time:        epoch.Add(36 * time.Second),
+		TotalEnergy: 4000,
 	}})
 }
 
@@ -142,5 +166,19 @@ func TestUsageReader(t *testing.T) {
 			c.Assert(samples, approxDeepEquals, test.expect)
 			c.Assert(total, approxDeepEquals, test.expectTotal)
 		})
+	}
+}
+
+func readAll(r SampleReader) ([]Sample, error) {
+	var samples []Sample
+	for {
+		s, err := r.ReadSample()
+		if err != nil {
+			if err == io.EOF {
+				return samples, nil
+			}
+			return samples, err
+		}
+		samples = append(samples, s)
 	}
 }
