@@ -103,7 +103,7 @@ func WriteReport(w io.Writer, p ReportParams) error {
 }
 
 func powerStr(f float64) string {
-	return fmt.Sprintf("%.0f", math.RoundToEven(f)/1000)
+	return fmt.Sprintf("%.3f", math.RoundToEven(f)/1000)
 }
 
 func wholeHour(t time.Time) bool {

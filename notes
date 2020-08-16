@@ -1,3 +1,9 @@
+Sun 16 Aug 08:42:06 BST 2020
+
+We'd quite like to be able to combine arbitrary sample sets from the same meter
+without worrying about whether they overlap or not.
+Well, that wasn't too hard, was it?
+
 Sat 15 Aug 13:25:27 BST 2020
 
 remote monitor:
