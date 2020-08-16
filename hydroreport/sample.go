@@ -45,37 +45,86 @@ func (r *memSampleReader) ReadSample() (Sample, error) {
 }
 
 // MultiSampleReader returns a SampleReader that returns samples
-// from all the given readers in sequence.
+// from all the given readers, earliest samples first.
+// It ensures that the total energy samples are monontonically
+// increasing, discarding samples that don't.
 func MultiSampleReader(rs ...SampleReader) SampleReader {
 	return &multiReader{
 		readers: rs,
+		samples: make([]Sample, len(rs)),
 	}
 }
 
 type multiReader struct {
 	err     error
 	readers []SampleReader
+	samples []Sample
+	prev    Sample
 }
 
 func (r *multiReader) ReadSample() (Sample, error) {
+	for {
+		s, err := r.readSample()
+		if err != nil {
+			return Sample{}, err
+		}
+		if s.TotalEnergy < r.prev.TotalEnergy || !s.Time.After(r.prev.Time) {
+			// It's not monotonically increasing so discard it.
+			continue
+		}
+		r.prev = s
+		return s, nil
+	}
+}
+
+// readSample is like ReadSample except that it doesn't discard
+// samples that aren't monotonic.
+func (r *multiReader) readSample() (Sample, error) {
 	if r.err != nil {
 		return Sample{}, r.err
 	}
-	for {
-		if len(r.readers) == 0 {
-			r.err = io.EOF
-			return Sample{}, r.err
+	// First make sure we've got at least one sample
+	// from each reader.
+	// Note: don't use range because we mutate the slice
+	// in the loop.
+	for i := 0; i < len(r.samples); i++ {
+		s := &r.samples[i]
+		if !s.Time.IsZero() {
+			continue
 		}
-		s, err := r.readers[0].ReadSample()
+		s1, err := r.readers[i].ReadSample()
 		if err == nil {
-			return s, nil
+			r.samples[i] = s1
+			continue
 		}
-		if err != io.EOF {
-			r.err = err
-			return Sample{}, r.err
+		if err == io.EOF {
+			// reader terminated. remove it from the slice.
+			copy(r.readers[i:], r.readers[i+1:])
+			r.readers[len(r.readers)-1] = nil
+			r.readers = r.readers[0 : len(r.readers)-1]
+			copy(r.samples[i:], r.samples[i+1:])
+			r.samples = r.samples[0 : len(r.samples)-1]
+			continue
 		}
-		r.readers = r.readers[1:]
+		// TODO we might want this to be more resilient to errors
+		// and just ignore them?
+		r.err = err
+		return Sample{}, r.err
 	}
+	if len(r.readers) == 0 {
+		return Sample{}, io.EOF
+	}
+	// Find the sample with the smallest time.
+	minSampleIndex := 0
+	for i := 1; i < len(r.samples); i++ {
+		s := &r.samples[i]
+		if s.Time.Before(r.samples[minSampleIndex].Time) {
+			minSampleIndex = i
+		}
+	}
+	s := r.samples[minSampleIndex]
+	r.samples[minSampleIndex] = Sample{}
+	return s, nil
 }
 
 // NewSampleReader returns a SampleReader that reads samples from
