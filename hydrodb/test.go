@@ -1,3 +1,5 @@
+// +build ignore
+
 package main
 
 // log-timestamp 	324245		-- current timestamp

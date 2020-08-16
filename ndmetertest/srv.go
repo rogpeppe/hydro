@@ -30,7 +30,7 @@ var valuesTmpl = template.Must(template.New("").Parse(`
 	<td id='v3'>2595</td>
 	<td id='i3'>44</td>
 	<td id='pf3'>1000</td>
-	<td id='p3'>114</td>	
+	<td id='p3'>114</td>
 	<td id='ae'>{{.SystemKWh}}</td>
 	<td id='re'>25743</td>
 	<td id='ascale'>2</td>
@@ -86,14 +86,12 @@ func NewServer(addr string) (*Server, error) {
 func (srv *Server) SetPower(power float64) {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
-	log.Printf("%s set power to %v", srv.Addr, power)
 	srv.Power = power
 }
 
 func (srv *Server) SetEnergy(energy float64) {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
-	log.Printf("%s set energy to %v", srv.Addr, energy)
 	srv.Energy = energy
 }
 
@@ -124,7 +122,6 @@ func (h handler) LiveValues(p httprequest.Params, req *liveValuesReq) {
 	delay := h.srv.Delay
 	h.srv.mu.Unlock()
 	if delay > 0 {
-		log.Printf("ndmeter sleeping for %v", delay)
 		time.Sleep(delay)
 	}
 	h.srv.mu.Lock()
