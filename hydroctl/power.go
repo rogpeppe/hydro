@@ -3,11 +3,16 @@ package hydroctl
 // PowerChargeable holds power as it will be allocated to
 // chargeable units.
 type PowerChargeable struct {
-	ExportGrid      float64
+	// ExportGrid holds the power exported to the grid (W).
+	ExportGrid float64
+	// ExportNeighbour holds the exported power used next door (W).
 	ExportNeighbour float64
-	ExportHere      float64
+	// ExportHere holds the exported power used by here (W).
+	ExportHere float64
+	// ImportNeighbour holds the import power used next door (W).
 	ImportNeighbour float64
-	ImportHere      float64
+	// ImportHere holds the import power used here (W).
+	ImportHere float64
 }
 
 // PowerUse holds how power is being

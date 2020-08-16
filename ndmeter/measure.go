@@ -85,10 +85,10 @@ func Get(host string) (Reading, error) {
 }
 
 type Reading struct {
-	// ActivePower holds the currently generated
+	// ActivePower holds the currently used/generated
 	// power in W.
 	ActivePower float64
-	// TotalEnergy holds the total generated energy
+	// TotalEnergy holds the total used/generated energy
 	// in WH.
 	TotalEnergy float64
 }

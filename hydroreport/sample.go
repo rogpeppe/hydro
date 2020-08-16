@@ -11,7 +11,10 @@ import (
 
 // Sample represents an energy sample reading from a meter.
 type Sample struct {
-	Time        time.Time
+	// Time holds the time that the sample was taken.
+	Time time.Time
+	// TotalEnergy holds the total energy generated up until the sample was
+	// taken, in WH.
 	TotalEnergy float64
 }
 

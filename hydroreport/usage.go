@@ -5,8 +5,25 @@ import (
 	"time"
 )
 
-// UsageReader produces a sequence of energy usage values from a point sample source.
-type UsageReader struct {
+// UsageReader produces a sequence of energy usage values at regular
+// intervals from a point sample source
+type UsageReader interface {
+	// ReadUsage reads the energy used in the previous quantum of time
+	// and advances to the next quantum interval.
+	// It returns io.EOF when there are no more samples available.
+	ReadUsage() (float64, error)
+
+	// Time returns the start of the interval that the next ReadUsage
+	// call will return the usage from. It increments by the interval
+	// quantum each time ReadUsage is called.
+	Time() time.Time
+
+	// Quantum returns the interval quantum. It always returns the
+	// same value for a given UsageReader.
+	Quantum() time.Duration
+}
+
+type usageReader struct {
 	r SampleReader
 	// quantum holds the sampling interval.
 	quantum time.Duration
@@ -29,20 +46,31 @@ type UsageReader struct {
 //
 // The SampleReader r must hold samples that monotonically increase over time
 // and include at least one sample that's not after the start time.
-func NewUsageReader(r SampleReader, start time.Time, quantum time.Duration) *UsageReader {
+func NewUsageReader(r SampleReader, start time.Time, quantum time.Duration) UsageReader {
 	if quantum == 0 {
 		panic("zero quantum")
 	}
-	return &UsageReader{
+	return &usageReader{
 		r:       r,
 		current: start,
 		quantum: quantum,
 	}
 }
 
+func (r *usageReader) Time() time.Time {
+	if !r.started {
+		return r.current
+	}
+	return r.current.Add(-r.quantum)
+}
+
+func (r *usageReader) Quantum() time.Duration {
+	return r.quantum
+}
+
 // ReadUsage reads the energy used in the previous quantum of time
 // and advances to the next quantum interval.
-func (r *UsageReader) ReadUsage() (float64, error) {
+func (r *usageReader) ReadUsage() (float64, error) {
 	if err := r.init(); err != nil {
 		return 0, err
 	}
@@ -64,7 +92,7 @@ func (r *UsageReader) ReadUsage() (float64, error) {
 
 // init acquires the first pair of samples that tell us the
 // initial energy reading.
-func (r *UsageReader) init() error {
+func (r *usageReader) init() error {
 	if r.started {
 		return r.err
 	}
@@ -84,7 +112,7 @@ func (r *UsageReader) init() error {
 }
 
 // acquireSamples acquires two samples that closest bracket r.current.
-func (r *UsageReader) acquireSamples() error {
+func (r *usageReader) acquireSamples() error {
 	r.s0 = r.s1
 	for {
 		sample, err := r.r.ReadSample()
@@ -115,7 +143,7 @@ func (r *UsageReader) acquireSamples() error {
 
 // energyAt returns the interpolated energy reading at the given
 // time, which must be between r.s0.Time and r.s1.Time.
-func (r *UsageReader) energyAt(t time.Time) float64 {
+func (r *usageReader) energyAt(t time.Time) float64 {
 	if t.Before(r.s0.Time) || t.After(r.s1.Time) {
 		panic("time out of bounds")
 	}
@@ -129,4 +157,67 @@ func (r *UsageReader) energyAt(t time.Time) float64 {
 	sde := r.s1.TotalEnergy - r.s0.TotalEnergy
 	dt := t.Sub(r.s0.Time)
 	return float64(sde)/float64(sdt)*float64(dt) + r.s0.TotalEnergy
+}
+
+// SumUsage sums the usage readings from all the given readers.
+// It panics if any of the given readers start at different times or have different quantum
+// interval values.
+//
+// The reader will stop returning samples when any of the given
+// readers stop returning samples.
+// TODO would it be better to continue while there are samples
+// from any reader?
+func SumUsage(rs ...UsageReader) UsageReader {
+	if err := checkUsageReaderConsistency(rs...); err != nil {
+		panic(err)
+	}
+	return &sumUsageReader{
+		readers: rs,
+	}
+}
+
+func checkUsageReaderConsistency(rs ...UsageReader) error {
+	if len(rs) == 0 {
+		return fmt.Errorf("no UsageReaders provided")
+	}
+	startTime := rs[0].Time()
+	quantum := rs[0].Quantum()
+	for _, r := range rs {
+		if !r.Time().Equal(startTime) {
+			return fmt.Errorf("inconsistent start time")
+		}
+		if r.Quantum() != quantum {
+			return fmt.Errorf("inconsistent quantum")
+		}
+	}
+	return nil
+}
+
+type sumUsageReader struct {
+	err     error
+	readers []UsageReader
+}
+
+func (ur *sumUsageReader) Time() time.Time {
+	return ur.readers[0].Time()
+}
+
+func (ur *sumUsageReader) Quantum() time.Duration {
+	return ur.readers[0].Quantum()
+}
+
+func (ur *sumUsageReader) ReadUsage() (float64, error) {
+	if ur.err != nil {
+		return 0, ur.err
+	}
+	sum := 0.0
+	for _, r := range ur.readers {
+		usage, err := r.ReadUsage()
+		if err != nil {
+			ur.err = err
+			return 0, err
+		}
+		sum += usage
+	}
+	return sum, nil
 }
