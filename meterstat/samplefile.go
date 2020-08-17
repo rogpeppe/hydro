@@ -6,72 +6,21 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"time"
 )
 
-// SampleFileTimeRange returns the times of the oldest and newest samples
-// in the sample file at the given path, assuming that all sample times in the file
-// are monotonically increasing.
-func SampleFileTimeRange(path string) (t0, t1 time.Time, err error) {
-	f, err := os.Open(path)
+func OpenSampleFile(path string) (*SampleFile, error) {
+	info, err := SampleFileInfo(path)
 	if err != nil {
-		return time.Time{}, time.Time{}, err
+		return nil, err
 	}
-	defer f.Close()
-	r := NewSampleReader(f)
-	s0, err := r.ReadSample()
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("cannot read initial sample: %v", err)
-	}
-	info, err := f.Stat()
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("cannot get file info: %v", err)
-	}
-	// Read the last part of the file to find the final line.
-	const maxLineLen = 50 // overkill - it's just an int and a float.
-	if info.Size() > maxLineLen {
-		_, err := f.Seek(-maxLineLen, io.SeekEnd)
-		if err != nil {
-			return time.Time{}, time.Time{}, fmt.Errorf("cannot seek to end of file: %v", err)
-		}
-	} else {
-		_, err := f.Seek(0, io.SeekStart)
-		if err != nil {
-			return time.Time{}, time.Time{}, fmt.Errorf("cannot seek to start of file: %v", err)
-		}
-	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("cannot read last part of sample file: %v", err)
-	}
-	i := bytes.LastIndexByte(data, '\n')
-	if i != -1 && i < len(data)-1 {
-		// The file doesn't end with a newline, so it probably ends with an invalid record,
-		// so ignore it.
-		data = data[0 : i+1]
-	}
-	i = bytes.LastIndexByte(data[0:len(data)-1], '\n')
-	if i == -1 {
-		// There's only one line in the file, which means that there's
-		// only one sample, so just return that.
-		return s0.Time, s0.Time, nil
-	}
-	r = NewSampleReader(bytes.NewReader(data[i+1:]))
-	s1, err := r.ReadSample()
-	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("cannot read final sample: %v", err)
-	}
-	return s0.Time, s1.Time, nil
+	return info.Open(), nil
 }
 
-// OpenSampleFile returns a SampleReader implementation that
-// reads samples from the given file. The file is only kept open
-// after the second sample has been read, which means that many
-// SampleFile instances can be kept open without keeping their
-// respective files open (for example to pass to MultiSampleReader).
+// OpenSampleFile returns information on a sample file.
 //
-// The SampleFile should be closed after use.
-func OpenSampleFile(path string) (*SampleFile, error) {
+// Empty sample files are considered to be invalid - an error
+// will be returned if there are no samples in the file.
+func SampleFileInfo(path string) (*FileInfo, error) {
 	// Open the file, read the first sample from it, then close it.
 	// This means we'll be able to open many sample files at once
 	// without hitting open file limits.
@@ -80,42 +29,84 @@ func OpenSampleFile(path string) (*SampleFile, error) {
 		return nil, err
 	}
 	defer f.Close()
-	s, err := NewSampleReader(f).ReadSample()
-	if err != nil && err != io.EOF {
+	s0, err := NewSampleReader(f).ReadSample()
+	if err != nil {
+		if err == io.EOF {
+			err = fmt.Errorf("no samples in file")
+		}
 		return nil, fmt.Errorf("cannot read first sample from %q: %v", path, err)
 	}
-	if err == nil && s.Time.IsZero() {
+	if err == nil && s0.Time.IsZero() {
 		// A valid sample should never have the zero time.
 		return nil, fmt.Errorf("sample has zero time")
 	}
-	return &SampleFile{
+	s1, err := readLastSample(f)
+	if err != nil {
+		return nil, err
+	}
+	return &FileInfo{
 		path:        path,
-		firstSample: s,
+		firstSample: s0,
+		lastSample:  s1,
 	}, nil
 }
 
-type SampleFile struct {
-	doneFirst   bool
+type FileInfo struct {
 	firstSample Sample
-	closed      bool
+	lastSample  Sample
 	path        string
-	r           SampleReader
-	f           *os.File
 }
 
+// Path returns the path to the sample file.
+func (info *FileInfo) Path() string {
+	return info.path
+}
+
+// FirstSample returns the first sample in the file.
+func (info *FileInfo) FirstSample() Sample {
+	return info.firstSample
+}
+
+// LastSample returns the last sample in the file. It always returns
+// the sample that was last when the file was first opened - ignoring
+// anything added after that.
+func (info *FileInfo) LastSample() Sample {
+	return info.lastSample
+}
+
+// Open opens the file for reading samples. The returned value
+// should be closed after use. Note that the actual file is not
+// opened until ReadSample is called for the second time - the
+// sample already read is used to satisfy the first read.
+func (info *FileInfo) Open() *SampleFile {
+	return &SampleFile{
+		info: info,
+	}
+}
+
+// SampleFile represents an open sample file.
+type SampleFile struct {
+	doneFirst bool
+	closed    bool
+	info      *FileInfo
+	r         SampleReader
+	f         *os.File
+}
+
+// ReadSample implements SampleReader.ReadSample.
 func (sf *SampleFile) ReadSample() (Sample, error) {
 	if sf.closed {
-		return Sample{}, fmt.Errorf("sample file %q: read after close", sf.path)
+		return Sample{}, fmt.Errorf("sample file %q: read after close", sf.info.path)
 	}
 	if !sf.doneFirst {
 		sf.doneFirst = true
-		if sf.firstSample.Time.IsZero() {
+		if sf.info.firstSample.Time.IsZero() {
 			return Sample{}, io.EOF
 		}
-		return sf.firstSample, nil
+		return sf.info.firstSample, nil
 	}
 	if sf.r == nil {
-		f, err := os.Open(sf.path)
+		f, err := os.Open(sf.info.path)
 		if err != nil {
 			return Sample{}, err
 		}
@@ -124,7 +115,7 @@ func (sf *SampleFile) ReadSample() (Sample, error) {
 		// Read and discard the first sample that we've already returned.
 		_, err = sf.r.ReadSample()
 		if err != nil {
-			return Sample{}, fmt.Errorf("cannot discard first sample from %q: %v", sf.path, err)
+			return Sample{}, fmt.Errorf("cannot discard first sample from %q: %v", sf.info.path, err)
 		}
 	}
 	s, err := sf.r.ReadSample()
@@ -141,7 +132,7 @@ func (sf *SampleFile) ReadSample() (Sample, error) {
 		sf.r = eofReader{}
 		return Sample{}, io.EOF
 	}
-	return Sample{}, fmt.Errorf("cannot read sample from %q: %v", sf.path, err)
+	return Sample{}, fmt.Errorf("cannot read sample from %q: %v", sf.info.path, err)
 }
 
 // Close closes the SampleFile.
@@ -154,6 +145,47 @@ func (sf *SampleFile) Close() error {
 	}
 	sf.closed = true
 	return err
+}
+
+// readLastSample returns the last sample in the file.
+func readLastSample(f *os.File) (Sample, error) {
+	info, err := f.Stat()
+	if err != nil {
+		return Sample{}, fmt.Errorf("cannot get file info: %v", err)
+	}
+	// Read the last part of the file to find the final line.
+	const maxLineLen = 50 // overkill - it's just an int and a float.
+	if info.Size() > maxLineLen {
+		_, err := f.Seek(-maxLineLen, io.SeekEnd)
+		if err != nil {
+			return Sample{}, fmt.Errorf("cannot seek to end of file: %v", err)
+		}
+	} else {
+		_, err := f.Seek(0, io.SeekStart)
+		if err != nil {
+			return Sample{}, fmt.Errorf("cannot seek to start of file: %v", err)
+		}
+	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return Sample{}, fmt.Errorf("cannot read last part of sample file: %v", err)
+	}
+	i := bytes.LastIndexByte(data, '\n')
+	if i != -1 && i < len(data)-1 {
+		// The file doesn't end with a newline, so it probably ends with an invalid record,
+		// so ignore it.
+		data = data[0 : i+1]
+	}
+	i = bytes.LastIndexByte(data[0:len(data)-1], '\n')
+	if i >= 0 {
+		data = data[i+1:]
+	}
+	r := NewSampleReader(bytes.NewReader(data))
+	s, err := r.ReadSample()
+	if err != nil {
+		return Sample{}, fmt.Errorf("cannot read final sample: %v", err)
+	}
+	return s, nil
 }
 
 type eofReader struct{}

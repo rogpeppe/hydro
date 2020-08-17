@@ -111,8 +111,9 @@ func TestSampleFile(t *testing.T) {
 946814415000,1200
 `[1:]), 0666)
 	c.Assert(err, qt.IsNil)
-	sf, err := OpenSampleFile(path)
+	info, err := SampleFileInfo(path)
 	c.Assert(err, qt.IsNil)
+	sf := info.Open()
 	defer func() {
 		c.Check(sf.Close(), qt.IsNil)
 	}()
@@ -141,13 +142,8 @@ func TestSampleFileEmpty(t *testing.T) {
 	err := ioutil.WriteFile(path, nil, 0666)
 	c.Assert(err, qt.IsNil)
 	sf, err := OpenSampleFile(path)
-	c.Assert(err, qt.IsNil)
-	defer func() {
-		c.Check(sf.Close(), qt.IsNil)
-	}()
-	samples, err := readAll(sf)
-	c.Assert(err, qt.IsNil)
-	c.Assert(samples, qt.IsNil)
+	c.Assert(err, qt.ErrorMatches, `cannot read first sample from ".*": no samples in file`)
+	c.Assert(sf, qt.IsNil)
 }
 
 func TestSampleFileMulti(t *testing.T) {
@@ -195,10 +191,10 @@ func TestSampleFileRange(t *testing.T) {
 946814415000,1200
 `[1:]), 0666)
 	c.Assert(err, qt.IsNil)
-	t0, t1, err := SampleFileTimeRange(path)
+	info, err := SampleFileInfo(path)
 	c.Assert(err, qt.IsNil)
-	c.Assert(t0, qt.DeepEquals, epoch)
-	c.Assert(t1, qt.DeepEquals, epoch.Add(15*time.Second))
+	c.Assert(info.FirstSample().Time, qt.DeepEquals, epoch)
+	c.Assert(info.LastSample().Time, qt.DeepEquals, epoch.Add(15*time.Second))
 }
 
 func TestSampleFileRangeSingleSample(t *testing.T) {
@@ -208,10 +204,10 @@ func TestSampleFileRangeSingleSample(t *testing.T) {
 946814400000,1000
 `[1:]), 0666)
 	c.Assert(err, qt.IsNil)
-	t0, t1, err := SampleFileTimeRange(path)
+	info, err := SampleFileInfo(path)
 	c.Assert(err, qt.IsNil)
-	c.Assert(t0, qt.DeepEquals, epoch)
-	c.Assert(t1, qt.DeepEquals, epoch)
+	c.Assert(info.FirstSample().Time, qt.DeepEquals, epoch)
+	c.Assert(info.LastSample().Time, qt.DeepEquals, epoch)
 }
 
 func TestSampleFileRangeIncompleteLastLine(t *testing.T) {
@@ -222,10 +218,10 @@ func TestSampleFileRangeIncompleteLastLine(t *testing.T) {
 946814410000,12345
 456`[1:]), 0666)
 	c.Assert(err, qt.IsNil)
-	t0, t1, err := SampleFileTimeRange(path)
+	info, err := SampleFileInfo(path)
 	c.Assert(err, qt.IsNil)
-	c.Assert(t0, qt.DeepEquals, epoch)
-	c.Assert(t1, qt.DeepEquals, epoch.Add(10*time.Second))
+	c.Assert(info.FirstSample().Time, qt.DeepEquals, epoch)
+	c.Assert(info.LastSample().Time, qt.DeepEquals, epoch.Add(10*time.Second))
 }
 
 func readAll(r SampleReader) ([]Sample, error) {

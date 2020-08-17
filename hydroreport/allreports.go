@@ -3,10 +3,7 @@ package hydroreport
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/rogpeppe/hydro/meterstat"
@@ -49,22 +46,22 @@ func AllReports(dir string, meterNames map[MeterLocation][]string, tz *time.Loca
 	t0loc := make(map[MeterLocation]time.Time)
 	// t0loc holds the earliest end time of for each of a given location's sample directories.
 	t1loc := make(map[MeterLocation]time.Time)
-	meterDirs := make(map[MeterLocation][]*meterSampleDir)
+	meterDirs := make(map[MeterLocation][]*meterstat.MeterSampleDir)
 	for location, names := range meterNames {
 		for _, name := range names {
 			meterDir := filepath.Join(dir, name)
-			sd, err := readMeterDir(meterDir)
+			sd, err := meterstat.ReadSampleDir(meterDir, "*.sample")
 			if err != nil {
-				return nil, fmt.Errorf("cannot read meter dir %v: %v", meterDir, err)
+				return nil, fmt.Errorf("cannot read sample dir %v: %v", meterDir, err)
 			}
 			meterDirs[location] = append(meterDirs[location], sd)
 			t0, ok := t0loc[location]
-			if !ok || sd.t0.After(t0) {
-				t0loc[location] = sd.t0
+			if !ok || sd.T0.After(t0) {
+				t0loc[location] = sd.T0
 			}
 			t1, ok := t1loc[location]
-			if !ok || sd.t1.Before(t1) {
-				t1loc[location] = sd.t1
+			if !ok || sd.T1.Before(t1) {
+				t1loc[location] = sd.T1
 			}
 		}
 	}
@@ -110,63 +107,8 @@ func AllReports(dir string, meterNames map[MeterLocation][]string, tz *time.Loca
 	return reports, nil
 }
 
-var errNoSamples = fmt.Errorf("no samples found")
-
-func readMeterDir(dir string) (*meterSampleDir, error) {
-	infos, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-	var files []sampleFile
-	t0 := time.Now()
-	var t1 time.Time
-	for _, info := range infos {
-		if (info.Mode() & os.ModeType) != 0 {
-			continue
-		}
-		if !strings.HasSuffix(info.Name(), ".sample") {
-			continue
-		}
-		path := filepath.Join(dir, info.Name())
-		t0f, t1f, err := meterstat.SampleFileTimeRange(path)
-		if err != nil {
-			continue
-		}
-		files = append(files, sampleFile{
-			path: path,
-			t0:   t0f,
-			t1:   t1f,
-		})
-		if t0f.Before(t0) {
-			t0 = t0f
-		}
-		if t1f.After(t1) {
-			t1 = t1f
-		}
-	}
-	if t1.IsZero() {
-		// No valid files found.
-		return nil, errNoSamples
-	}
-	return &meterSampleDir{
-		files: files,
-		t0:    t0,
-		t1:    t1,
-	}, nil
-}
-
-type meterSampleDir struct {
-	files  []sampleFile
-	t0, t1 time.Time
-}
-
-type sampleFile struct {
-	path   string
-	t0, t1 time.Time
-}
-
 type Report struct {
-	meterDirs map[MeterLocation][]*meterSampleDir
+	meterDirs map[MeterLocation][]*meterstat.MeterSampleDir
 	// t0 and t1 hold the time range of the report.
 	t0, t1 time.Time
 	tz     *time.Location
@@ -181,12 +123,9 @@ func (r *Report) Write(w io.Writer) error {
 	for loc, sds := range r.meterDirs {
 		usageReaders := make([]meterstat.UsageReader, 0, len(sds))
 		for _, sd := range sds {
-			sampleReaders := make([]meterstat.SampleReader, 0, len(sd.files))
-			for _, file := range relevantFiles(sd.files, r.t0, r.t1) {
-				f, err := meterstat.OpenSampleFile(file.path)
-				if err != nil {
-					return err
-				}
+			sampleReaders := make([]meterstat.SampleReader, 0, len(sd.Files))
+			for _, info := range relevantFiles(sd.Files, r.t0, r.t1) {
+				f := info.Open()
 				defer f.Close()
 				sampleReaders = append(sampleReaders, f)
 			}
@@ -213,29 +152,30 @@ func (r *Report) Write(w io.Writer) error {
 // We only need to keep files that have data ranges that overlap
 // the interval or that are directly before or after it if we
 // don't yet have a file that overlaps [t0, t0] or [t1, t1] respectively.
-func relevantFiles(sds []sampleFile, t0, t1 time.Time) []sampleFile {
-	result := make([]sampleFile, 0, len(sds))
+func relevantFiles(sds []*meterstat.FileInfo, t0, t1 time.Time) []*meterstat.FileInfo {
+	result := make([]*meterstat.FileInfo, 0, len(sds))
 	haveStart := false
 	haveEnd := false
-	var start, end sampleFile
+	var start, end *meterstat.FileInfo
 	for _, sd := range sds {
-		if timeOverlaps(sd.t0, sd.t1, t0, t1) {
+		sdt0, sdt1 := sd.FirstSample().Time, sd.LastSample().Time
+		if timeOverlaps(sdt0, sdt1, t0, t1) {
 			result = append(result, sd)
-			haveStart = haveStart || timeOverlaps(sd.t0, sd.t1, t0, t0)
-			haveEnd = haveEnd || timeOverlaps(sd.t0, sd.t1, t1, t1)
+			haveStart = haveStart || timeOverlaps(sdt0, sdt1, t0, t0)
+			haveEnd = haveEnd || timeOverlaps(sdt0, sdt1, t1, t1)
 			continue
 		}
-		if !haveStart && (start.path == "" || sd.t1.After(start.t1)) {
+		if !haveStart && (start == nil || sdt1.After(start.LastSample().Time)) {
 			start = sd
 		}
-		if !haveEnd && (end.path == "" || sd.t0.Before(end.t0)) {
+		if !haveEnd && (end == nil || sdt0.Before(end.FirstSample().Time)) {
 			end = sd
 		}
 	}
-	if !haveStart && start.path != "" {
+	if !haveStart && start != nil {
 		result = append(result, start)
 	}
-	if !haveEnd && end.path != "" {
+	if !haveEnd && end != nil {
 		result = append(result, end)
 	}
 	return result
