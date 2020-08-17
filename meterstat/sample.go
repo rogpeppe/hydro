@@ -168,3 +168,26 @@ func (r *fileSampleReader) ReadSample() (Sample, error) {
 		TotalEnergy: energy,
 	}, nil
 }
+
+// WriteSamples reads all the samples from r and writes them to w
+// in the format understood by NewSampleReader.
+func WriteSamples(w io.Writer, r SampleReader) error {
+	for {
+		s, err := r.ReadSample()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return fmt.Errorf("error reading sample: %v", err)
+		}
+		if err := WriteSample(w, s); err != nil {
+			return fmt.Errorf("error writing sample: %v", err)
+		}
+	}
+}
+
+// WriteSample writes a single sample to w in the format understood by NewSampleReader.
+func WriteSample(w io.Writer, s Sample) error {
+	_, err := fmt.Fprintf(w, "%d,%.0f\n", s.Time.UnixNano() / 1e6, s.TotalEnergy)
+	return err
+}

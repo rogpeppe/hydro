@@ -1,6 +1,7 @@
 package meterstat
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -33,6 +34,20 @@ func TestSampleReader(t *testing.T) {
 		Time:        epoch.Add(15 * time.Second),
 		TotalEnergy: 23456,
 	}})
+}
+
+func TestWriteSamples(t *testing.T) {
+	c := qt.New(t)
+	data := `
+946814400000,1000
+946814410005,1010
+946814415000,23456
+`[1:]
+	r := NewSampleReader(strings.NewReader(data))
+	var buf bytes.Buffer
+	err := WriteSamples(&buf, r)
+	c.Assert(err, qt.IsNil)
+	c.Assert(buf.String(), qt.Equals, data)
 }
 
 func TestMultiReader(t *testing.T) {
