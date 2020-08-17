@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rogpeppe/hydro/hydroctl"
+	"github.com/rogpeppe/hydro/meterstat"
 )
 
 type ReportParams struct {
@@ -15,9 +16,9 @@ type ReportParams struct {
 	// They must all start at the same instance, have the same quantum
 	// and provide usage information at least until after the end time.
 	// Additionally, the quantum must evenly divide an hour.
-	Generator UsageReader
-	Neighbour UsageReader
-	Here      UsageReader
+	Generator meterstat.UsageReader
+	Neighbour meterstat.UsageReader
+	Here      meterstat.UsageReader
 	// EndTime holds the time that the report will end.
 	// It must be a whole hour multiple.
 	EndTime time.Time

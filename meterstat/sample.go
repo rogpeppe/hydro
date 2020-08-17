@@ -1,4 +1,4 @@
-package hydroreport
+package meterstat
 
 import (
 	"bufio"

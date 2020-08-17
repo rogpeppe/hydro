@@ -2,11 +2,16 @@ package hydroreport
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 	"time"
 
 	qt "github.com/frankban/quicktest"
+
+	"github.com/rogpeppe/hydro/meterstat"
 )
+
+var epoch = time.Unix(946814400, 0) // 2000-01-02 12:00:00Z
 
 func TestWriteReport(t *testing.T) {
 	c := qt.New(t)
@@ -22,7 +27,7 @@ func TestWriteReport(t *testing.T) {
 		16h	neighbour importing				50000	15000	70000
 		18h	both importing					50000	60000	70000
 	*/
-	generatorSamples := NewMemSampleReader([]Sample{{
+	generatorSamples := meterstat.NewMemSampleReader([]meterstat.Sample{{
 		Time:        epoch,
 		TotalEnergy: 0,
 	}, {
@@ -32,7 +37,7 @@ func TestWriteReport(t *testing.T) {
 		Time:        epoch.Add(48 * time.Hour),
 		TotalEnergy: 50000 * 40,
 	}})
-	hereSamples := NewMemSampleReader([]Sample{{
+	hereSamples := meterstat.NewMemSampleReader([]meterstat.Sample{{
 		Time:        epoch,
 		TotalEnergy: 0,
 	}, {
@@ -51,7 +56,7 @@ func TestWriteReport(t *testing.T) {
 		Time:        epoch.Add(40 * time.Hour),
 		TotalEnergy: 10000*4 + 60000*2 + 15000*2 + 60000*(40-18),
 	}})
-	neighbourSamples := NewMemSampleReader([]Sample{{
+	neighbourSamples := meterstat.NewMemSampleReader([]meterstat.Sample{{
 		Time:        epoch,
 		TotalEnergy: 0,
 	}, {
@@ -67,9 +72,9 @@ func TestWriteReport(t *testing.T) {
 
 	var buf bytes.Buffer
 	err := WriteReport(&buf, ReportParams{
-		Generator: NewUsageReader(generatorSamples, epoch, time.Minute),
-		Here:      NewUsageReader(hereSamples, epoch, time.Minute),
-		Neighbour: NewUsageReader(neighbourSamples, epoch, time.Minute),
+		Generator: meterstat.NewUsageReader(generatorSamples, epoch, time.Minute),
+		Here:      meterstat.NewUsageReader(hereSamples, epoch, time.Minute),
+		Neighbour: meterstat.NewUsageReader(neighbourSamples, epoch, time.Minute),
 		EndTime:   epoch.Add(24 * time.Hour),
 	})
 	c.Assert(err, qt.IsNil)
@@ -100,4 +105,21 @@ Time,Export to grid (kWH),Export power used by Aliday (kWH),Export power used by
 2000-01-03 10:00 UTC,0.000,25.000,25.000,43.077,36.923
 2000-01-03 11:00 UTC,0.000,25.000,25.000,43.077,36.923
 `[1:])
+}
+
+func checkUsageReaderConsistency(rs ...meterstat.UsageReader) error {
+	if len(rs) == 0 {
+		return fmt.Errorf("no UsageReaders provided")
+	}
+	startTime := rs[0].Time()
+	quantum := rs[0].Quantum()
+	for _, r := range rs {
+		if !r.Time().Equal(startTime) {
+			return fmt.Errorf("inconsistent start time")
+		}
+		if r.Quantum() != quantum {
+			return fmt.Errorf("inconsistent quantum")
+		}
+	}
+	return nil
 }
