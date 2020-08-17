@@ -101,7 +101,7 @@ func (r *usageReader) init() error {
 		return err
 	}
 	if r.s0.Time.After(r.current) {
-		r.err = fmt.Errorf("no sample found before the start time")
+		r.err = fmt.Errorf("no sample found before the start time (earliest sample %v; start time %v)", r.s0.Time, r.current)
 		return r.err
 	}
 	// Initialize the energy reading for the start of the period.

@@ -61,7 +61,7 @@ var usageReaderTests = []struct {
 `[1:],
 	start:       epoch.Add(-time.Second),
 	quantum:     time.Second,
-	expectError: "no sample found before the start time",
+	expectError: `no sample found before the start time \(earliest sample 2000-01-02 12:00:00 \+0000 GMT; start time 2000-01-02 11:59:59 \+0000 GMT\)`,
 }, {
 	testName: "noSamples",
 	samples:  ``,

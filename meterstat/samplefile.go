@@ -1,10 +1,68 @@
 package meterstat
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"time"
 )
+
+// SampleFileTimeRange returns the times of the oldest and newest samples
+// in the sample file at the given path, assuming that all sample times in the file
+// are monotonically increasing.
+func SampleFileTimeRange(path string) (t0, t1 time.Time, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	defer f.Close()
+	r := NewSampleReader(f)
+	s0, err := r.ReadSample()
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("cannot read initial sample: %v", err)
+	}
+	info, err := f.Stat()
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("cannot get file info: %v", err)
+	}
+	// Read the last part of the file to find the final line.
+	const maxLineLen = 50 // overkill - it's just an int and a float.
+	if info.Size() > maxLineLen {
+		_, err := f.Seek(-maxLineLen, io.SeekEnd)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("cannot seek to end of file: %v", err)
+		}
+	} else {
+		_, err := f.Seek(0, io.SeekStart)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("cannot seek to start of file: %v", err)
+		}
+	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("cannot read last part of sample file: %v", err)
+	}
+	i := bytes.LastIndexByte(data, '\n')
+	if i != -1 && i < len(data)-1 {
+		// The file doesn't end with a newline, so it probably ends with an invalid record,
+		// so ignore it.
+		data = data[0 : i+1]
+	}
+	i = bytes.LastIndexByte(data[0:len(data)-1], '\n')
+	if i == -1 {
+		// There's only one line in the file, which means that there's
+		// only one sample, so just return that.
+		return s0.Time, s0.Time, nil
+	}
+	r = NewSampleReader(bytes.NewReader(data[i+1:]))
+	s1, err := r.ReadSample()
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("cannot read final sample: %v", err)
+	}
+	return s0.Time, s1.Time, nil
+}
 
 // OpenSampleFile returns a SampleReader implementation that
 // reads samples from the given file. The file is only kept open

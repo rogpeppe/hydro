@@ -186,6 +186,48 @@ func TestSampleFileMulti(t *testing.T) {
 	}})
 }
 
+func TestSampleFileRange(t *testing.T) {
+	c := qt.New(t)
+	path := filepath.Join(t.TempDir(), "samples")
+	err := ioutil.WriteFile(path, []byte(`
+946814400000,1000
+946814410000,1010
+946814415000,1200
+`[1:]), 0666)
+	c.Assert(err, qt.IsNil)
+	t0, t1, err := SampleFileTimeRange(path)
+	c.Assert(err, qt.IsNil)
+	c.Assert(t0, qt.DeepEquals, epoch)
+	c.Assert(t1, qt.DeepEquals, epoch.Add(15*time.Second))
+}
+
+func TestSampleFileRangeSingleSample(t *testing.T) {
+	c := qt.New(t)
+	path := filepath.Join(t.TempDir(), "samples")
+	err := ioutil.WriteFile(path, []byte(`
+946814400000,1000
+`[1:]), 0666)
+	c.Assert(err, qt.IsNil)
+	t0, t1, err := SampleFileTimeRange(path)
+	c.Assert(err, qt.IsNil)
+	c.Assert(t0, qt.DeepEquals, epoch)
+	c.Assert(t1, qt.DeepEquals, epoch)
+}
+
+func TestSampleFileRangeIncompleteLastLine(t *testing.T) {
+	c := qt.New(t)
+	path := filepath.Join(t.TempDir(), "samples")
+	err := ioutil.WriteFile(path, []byte(`
+946814400000,1000
+946814410000,12345
+456`[1:]), 0666)
+	c.Assert(err, qt.IsNil)
+	t0, t1, err := SampleFileTimeRange(path)
+	c.Assert(err, qt.IsNil)
+	c.Assert(t0, qt.DeepEquals, epoch)
+	c.Assert(t1, qt.DeepEquals, epoch.Add(10*time.Second))
+}
+
 func readAll(r SampleReader) ([]Sample, error) {
 	var samples []Sample
 	for {
