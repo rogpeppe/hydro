@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rogpeppe/hydro/meterstat"
@@ -27,7 +28,8 @@ var future = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
 //
 // The meter names map holds the set of meter names for each meter
 // location (typically the this contains the host name of the meter).
-// The data for that meter is assumed to be in $dir/$name.
+// The data for that meter is assumed to be in the directory $dir/$name
+// in any file named *.sample
 //
 // The tz parameter holds the time zone to use for the generated reports
 // (UTC if it's nil)
@@ -120,6 +122,9 @@ func readMeterDir(dir string) (*meterSampleDir, error) {
 	var t1 time.Time
 	for _, info := range infos {
 		if (info.Mode() & os.ModeType) != 0 {
+			continue
+		}
+		if !strings.HasSuffix(info.Name(), ".sample") {
 			continue
 		}
 		path := filepath.Join(dir, info.Name())

@@ -95,16 +95,16 @@ func date(y int, m time.Month, d int) time.Time {
 }
 
 var sampleDirContents = map[string][]meterstat.Sample{
-	"generator-a/1": {{
+	"generator-a/1.sample": {{
 		Time:        epoch,
 		TotalEnergy: 1000,
 	}},
-	"generator-a/2": {{
+	"generator-a/2.sample": {{
 		// approx seven months at 50kW (encloses 2000-11 to 2001-05)
 		Time:        epoch.Add(7 * month),
 		TotalEnergy: 1000 + float64(7*month/time.Hour)*50000,
 	}},
-	"here-a/1": {{
+	"here-a/1.sample": {{
 		Time:        epoch.Add(month),
 		TotalEnergy: 30000,
 	}, {
@@ -112,7 +112,7 @@ var sampleDirContents = map[string][]meterstat.Sample{
 		Time:        epoch.Add(4 * month),
 		TotalEnergy: 30000 + float64(4*month/time.Hour)*3000,
 	}},
-	"neighbour-a/1": {{
+	"neighbour-a/1.sample": {{
 		Time:        epoch.Add(-25 * time.Hour),
 		TotalEnergy: 0,
 	}, {
@@ -120,7 +120,7 @@ var sampleDirContents = map[string][]meterstat.Sample{
 		Time:        epoch.Add(9 * month),
 		TotalEnergy: float64((9*month/time.Hour)+25) * 10000,
 	}},
-	"neighbour-b/1": {{
+	"neighbour-b/1.sample": {{
 		Time:        epoch,
 		TotalEnergy: 0,
 	}, {
