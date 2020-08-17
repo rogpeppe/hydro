@@ -22,18 +22,18 @@ type ReportParams struct {
 	// EndTime holds the time that the report will end.
 	// It must be a whole hour multiple.
 	EndTime time.Time
-	// Location holds the time zone to use for the report times.
+	// TZ holds the time zone to use for the report times.
 	// If it's nil, time.UTC will be used.
-	Location *time.Location
+	TZ *time.Location
 }
 
 // WriteReport writes a CSV file containing an hour-by-hour report of
 // energy usage over the course of a month.
 func WriteReport(w io.Writer, p ReportParams) error {
-	if p.Location == nil {
-		p.Location = time.UTC
+	if p.TZ == nil {
+		p.TZ = time.UTC
 	}
-	p.EndTime = p.EndTime.In(p.Location)
+	p.EndTime = p.EndTime.In(p.TZ)
 	if err := checkUsageReaderConsistency(
 		p.Generator,
 		p.Neighbour,
@@ -44,7 +44,7 @@ func WriteReport(w io.Writer, p ReportParams) error {
 	if !wholeHour(p.EndTime) {
 		return fmt.Errorf("report end time %s is not on a whole hour", p.EndTime)
 	}
-	t := p.Generator.Time().In(p.Location)
+	t := p.Generator.Time().In(p.TZ)
 	if !wholeHour(t) {
 		return fmt.Errorf("report start time %s is not on a whole hour", t)
 	}
@@ -65,7 +65,7 @@ func WriteReport(w io.Writer, p ReportParams) error {
 	for {
 		if wholeHour(t) && samples > 0 {
 			fmt.Fprintf(w, "%v,%s,%s,%s,%s,%s\n",
-				t.Add(-time.Hour).In(p.Location).Format("2006-01-02 15:04 MST"),
+				t.Add(-time.Hour).In(p.TZ).Format("2006-01-02 15:04 MST"),
 				powerStr(total.ExportGrid),
 				powerStr(total.ExportNeighbour),
 				powerStr(total.ExportHere),
@@ -109,4 +109,21 @@ func powerStr(f float64) string {
 
 func wholeHour(t time.Time) bool {
 	return t.Truncate(time.Hour).Equal(t)
+}
+
+func checkUsageReaderConsistency(rs ...meterstat.UsageReader) error {
+	if len(rs) == 0 {
+		return fmt.Errorf("no UsageReaders provided")
+	}
+	startTime := rs[0].Time()
+	quantum := rs[0].Quantum()
+	for _, r := range rs {
+		if !r.Time().Equal(startTime) {
+			return fmt.Errorf("inconsistent start time")
+		}
+		if r.Quantum() != quantum {
+			return fmt.Errorf("inconsistent quantum")
+		}
+	}
+	return nil
 }
