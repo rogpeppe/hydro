@@ -7,7 +7,7 @@ When the user clicks on a report, they download a CSV file containing the report
 somehow i wonder if we can take advantage of the meter energy storage by
 pulling energy reading from the meter storage directly.
 	logworker
-		every so often it tries to pull the logs (don't go back further than a month)
+		every so often it tries to pull the logs (don't go back further than two months)
 		look in directory:
 			list sample files we've already got there.
 			go through the days of the month:

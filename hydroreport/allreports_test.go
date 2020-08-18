@@ -206,6 +206,13 @@ var overlapsTests = []struct {
 	bt0:      epoch.Add(time.Hour + time.Minute),
 	bt1:      epoch.Add(time.Hour + 2*time.Minute),
 	expect:   false,
+}, {
+	testName: "a-exactly-at-end",
+	at0:      epoch,
+	at1:      epoch.Add(time.Minute),
+	bt0:      epoch.Add(time.Minute),
+	bt1:      epoch.Add(2 * time.Minute),
+	expect:   true,
 }}
 
 func TestTimeOverlaps(t *testing.T) {
