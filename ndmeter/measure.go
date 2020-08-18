@@ -2,7 +2,11 @@ package ndmeter
 
 import (
 	"bufio"
+	"encoding/binary"
+	"fmt"
+	"io"
 	"math"
+	"net"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -42,34 +46,86 @@ const (
 	mSystemkvarh
 )
 
-var measureLinePat = regexp.MustCompile(`<td id='([^']+)'>([^<]*)</td>`)
+type NetworkSettings struct {
+	IP             net.IP
+	Subnet         net.IPMask
+	DefaultGateway net.IP
+	PrimaryDNS     net.IP
+	SNTPServer     string
+	MacAddress     net.HardwareAddr
+	MeterName      string
+}
+
+func GetNetworkSettings(host string) (NetworkSettings, error) {
+	r, err := getAttributes(host, "net_settings.shtml")
+	if err != nil {
+		return NetworkSettings{}, errgo.Notef(err, "cannot fetch live values")
+	}
+	defer r.close()
+	var ns NetworkSettings
+	for {
+		attr, val, err := r.readAttr()
+		if err != nil {
+			break
+		}
+		switch attr {
+		case "ip":
+			ns.IP, err = parseIP(val)
+		case "sn":
+			ns.Subnet, err = parseIP(val)
+		case "gw":
+			ns.DefaultGateway, err = parseIP(val)
+		case "pd":
+			ns.PrimaryDNS, err = parseIP(val)
+		case "ti":
+			ns.SNTPServer = val
+		case "ma":
+			ns.MacAddress, err = net.ParseMAC(val)
+		case "na":
+			ns.MeterName = val
+		}
+		if err != nil {
+			return NetworkSettings{}, fmt.Errorf("invalid value %q for attribute %q in network settings", val, attr)
+		}
+		// TODO TimeZone (tz)
+		// TODO unknown attrs: pr, pl, pp, pe
+	}
+	return ns, nil
+}
+
+func parseIP(s string) ([]byte, error) {
+	x, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid IP address number: %q", s)
+	}
+	var ip [4]byte
+	binary.BigEndian.PutUint32(ip[:], uint32(x))
+	return ip[:], nil
+}
 
 func Get(host string) (Reading, error) {
-	resp, err := http.Get("http://" + host + "/Values_live.shtml")
+	r, err := getAttributes(host, "Values_live.shtml")
 	if err != nil {
 		return Reading{}, errgo.Notef(err, "cannot fetch live values")
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return Reading{}, errgo.Newf("error status fetching live values: %v", resp.Status)
-	}
-	scan := bufio.NewScanner(resp.Body)
+	defer r.close()
 	measures := make(map[measure]int)
-	for scan.Scan() {
-		parts := measureLinePat.FindStringSubmatch(scan.Text())
-		if len(parts) != 3 {
-			continue
+	for {
+		attr, val, err := r.readAttr()
+		if err != nil {
+			break
 		}
-		m, ok := measureNames[parts[1]]
+		m, ok := measureNames[attr]
 		if !ok {
 			continue
 		}
-		val, err := strconv.Atoi(parts[2])
+		mval, err := strconv.Atoi(val)
 		if err != nil {
-			return Reading{}, errgo.Newf("unexpected measure value in %q", scan.Text())
+			return Reading{}, errgo.Newf("unexpected measure value %s=%q", attr, val)
 		}
-		measures[m] = val
+		measures[m] = mval
 	}
+
 	systemkW, err := getVal(measures, mSystemkW, mPowerScale)
 	if err != nil {
 		return Reading{}, errgo.Newf("cannot read system power")
@@ -143,4 +199,43 @@ var registers = map[int]measure{
 	7702: mPhase1kW,
 	7703: mPhase2kW,
 	7704: mPhase3kW,
+}
+
+var attrLinePat = regexp.MustCompile(`<td id='([^']+)'>([^<]*)</td>`)
+
+func getAttributes(host string, page string) (*attributesReader, error) {
+	resp, err := http.Get("http://" + host + "/" + page)
+	if err != nil {
+		return nil, errgo.Notef(err, "cannot fetch live values")
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, errgo.Newf("error status fetching live values: %v", resp.Status)
+	}
+	return &attributesReader{
+		scanner: bufio.NewScanner(resp.Body),
+		body:    resp.Body,
+	}, nil
+}
+
+type attributesReader struct {
+	scanner *bufio.Scanner
+	body    io.Closer
+}
+
+func (r *attributesReader) close() {
+	r.body.Close()
+}
+
+func (r *attributesReader) readAttr() (string, string, error) {
+	for r.scanner.Scan() {
+		parts := attrLinePat.FindStringSubmatch(r.scanner.Text())
+		if len(parts) == 3 {
+			return parts[1], parts[2], nil
+		}
+	}
+	if r.scanner.Err() != nil {
+		return "", "", r.scanner.Err()
+	}
+	return "", "", io.EOF
 }
