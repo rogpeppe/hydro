@@ -82,6 +82,8 @@ func newStore(configPath, metersPath string) (*store, error) {
 	}, nil
 }
 
+//go:generate stringer -trimprefix loc -type meterLocation
+
 type meterLocation int
 
 const (

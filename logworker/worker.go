@@ -48,7 +48,7 @@ type Worker struct {
 // from the meter.
 func New(p Params) (*Worker, error) {
 	if p.PollInterval == 0 {
-		p.PollInterval = time.Hour
+		p.PollInterval = 4 * time.Hour
 	}
 	if p.TZ == nil {
 		p.TZ = time.UTC

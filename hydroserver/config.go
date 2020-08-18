@@ -236,6 +236,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
 }
 
+// TODO use this as a source of the meter names in configTempl
 var meterInfo = map[string]struct {
 	name     string
 	location meterLocation
