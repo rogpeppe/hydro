@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juju/utils/voyeur"
 	"gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/hydroconfig"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
+	"github.com/rogpeppe/hydro/internal/notifier"
 	"github.com/rogpeppe/hydro/ndmeter"
 )
 
@@ -28,11 +28,11 @@ type store struct {
 	// sampler holds the sampler used to obtain meter readings.
 	sampler *ndmeter.Sampler
 
-	// configVal is updated when the configuration changes.
-	configVal voyeur.Value
-	// anyVal is updated when any value (config, meters or worker state)
+	// configNotifier is updated when the configuration changes.
+	configNotifier notifier.Notifier
+	// anyNotifier is updated when any value (config, meters or worker state)
 	// changes.
-	anyVal voyeur.Value
+	anyNotifier notifier.Notifier
 
 	// mu guards the values below it.
 	mu sync.Mutex
@@ -149,8 +149,8 @@ func (s *store) setConfigText(text string) error {
 	s.config = cfg
 	s.configText = text
 	// Notify any watchers.
-	s.configVal.Set(nil)
-	s.anyVal.Set(nil)
+	s.configNotifier.Changed()
+	s.anyNotifier.Changed()
 	return nil
 }
 
@@ -172,7 +172,7 @@ func (s *store) setMeters(meters []meter) error {
 	s.meterState_ = &meterState{
 		Meters: s.meters,
 	}
-	s.anyVal.Set(nil)
+	s.anyNotifier.Changed()
 	return nil
 }
 
@@ -183,7 +183,7 @@ func (s *store) UpdateWorkerState(u *hydroworker.Update) {
 	defer s.mu.Unlock()
 	s.workerState = u
 	// Notify any watchers.
-	s.anyVal.Set(nil)
+	s.anyNotifier.Changed()
 }
 
 // WorkerState returns the current hydroworker state
@@ -288,7 +288,7 @@ func (s *store) ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 		Meters:     s.meters,
 		Samples:    samplesByAddr,
 	}
-	s.anyVal.Set(nil)
+	s.anyNotifier.Changed()
 	if len(failed) > 0 {
 		return hydroctl.PowerUseSample{}, errgo.Newf("failed to get meter readings from %v", failed)
 	}
