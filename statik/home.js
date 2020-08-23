@@ -2,9 +2,11 @@
 function kWfmt(watts) {
 	return (watts / 1000).toFixed(3) + "kW"
 };
+
 function kWhfmt(wattHours) {
 	return kWfmt(wattHours) + "h"
-}
+};
+
 function wsURL(path) {
 	var loc = window.location, scheme;
 	if (loc.protocol === "https:") {
@@ -14,6 +16,7 @@ function wsURL(path) {
 	}
 	return scheme + "//" + loc.host + path;
 };
+
 var Relays = React.createClass({
 	render: function() {
 		return <table class="relays">
@@ -30,9 +33,10 @@ var Relays = React.createClass({
 		</table>
 	}
 })
+
 var Meters = React.createClass({
 	render: function() {
-		var meters = this.props.meters
+		var meters = this.props.meters;
 		return <div>
 			<table class="chargeable">
 			<thead>
@@ -73,7 +77,32 @@ var Meters = React.createClass({
 		</div>
 	}
 })
+
+var Reports = React.createClass({
+	render: function() {
+		var reports = this.props.reports;
+		if(reports.length === 0){
+			return <div>No reports available</div>
+		}
+		return <div>
+			<table class="reports">
+			<thead>
+				<tr><th>Name</th><th>Available reports</th></tr>
+			</thead>
+			<tbody>
+				reports.map(function(report){
+					return <tr>
+						<td><a href={report.Link}>{report.Name}</a></td>
+					</tr>
+				})
+			</tbody>
+			</table>
+		</div>
+	}
+})
+
 var socket = new ReconnectingWebSocket(wsURL("/updates", null, {timeoutInterval: 5000}));
+
 socket.onmessage = function(event) {
 	var m = JSON.parse(event.data);
 	console.log("message", event.data);
@@ -85,7 +114,10 @@ socket.onmessage = function(event) {
 			<p/>
 			<Relays relays={m.Relays}/>
 			<p/>
+			<Reports reports={m.Reports}/>
+			<p/>
 			<a href="/config">Change configuration</a>
+			<a href="/history.html">Relay history</a>
 		</div>, toplev);
 };
 

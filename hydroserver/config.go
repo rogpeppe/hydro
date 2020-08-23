@@ -11,6 +11,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/rogpeppe/hydro/hydroreport"
+	"github.com/rogpeppe/hydro/meterworker"
 	"gopkg.in/errgo.v1"
 )
 
@@ -168,13 +170,13 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 	}
 	for _, m := range h.store.meterState().Meters {
 		switch m.Location {
-		case locGenerator:
+		case hydroreport.LocGenerator:
 			p.GeneratorMeterAddrs = append(p.GeneratorMeterAddrs, m.Addr)
 			p.GeneratorAllowedLag = m.AllowedLag
-		case locNeighbour:
+		case hydroreport.LocNeighbour:
 			p.NeighbourMeterAddrs = append(p.NeighbourMeterAddrs, m.Addr)
 			p.NeighbourAllowedLag = m.AllowedLag
-		case locHere:
+		case hydroreport.LocHere:
 			p.HereMeterAddrs = append(p.HereMeterAddrs, m.Addr)
 			p.HereAllowedLag = m.AllowedLag
 		}
@@ -200,7 +202,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	// TODO check that we can connect to the relay address?
 	h.controller.SetRelayAddr(relayAddr)
 
-	var meters []meter
+	var meters []meterworker.Meter
 	for p, info := range meterInfo {
 		addrField := p + "Addr"
 		lagField := p + "Lag"
@@ -220,7 +222,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 			if len(addrs) > 1 {
 				name = fmt.Sprintf("%s #%d", name, i+1)
 			}
-			meters = append(meters, meter{
+			meters = append(meters, meterworker.Meter{
 				Name:       name,
 				Location:   info.location,
 				Addr:       addr,
@@ -228,7 +230,7 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 			})
 		}
 	}
-	if err := h.store.setMeters(meters); err != nil {
+	if err := h.meterWorker.SetMeters(meters); err != nil {
 		serveConfigError(w, req, err)
 		return
 	}
@@ -239,19 +241,19 @@ func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 // TODO use this as a source of the meter names in configTempl
 var meterInfo = map[string]struct {
 	name     string
-	location meterLocation
+	location hydroreport.MeterLocation
 }{
 	"genMeter": {
 		name:     "Generator",
-		location: locGenerator,
+		location: hydroreport.LocGenerator,
 	},
 	"hereMeter": {
 		name:     "Drynoch",
-		location: locHere,
+		location: hydroreport.LocHere,
 	},
 	"neighbourMeter": {
 		name:     "Aliday",
-		location: locNeighbour,
+		location: hydroreport.LocNeighbour,
 	},
 }
 

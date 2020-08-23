@@ -13,7 +13,8 @@ import (
 var ErrNoSamples = fmt.Errorf("no samples found")
 
 // ReadSampleDir reads all the files from the given directory that match the
-// given glob pattern. It returns ErrNoSamples if there are no matching files.
+// given glob pattern. It returns ErrNoSamples if there are no matching files
+// or the directory doesn't exist.
 // If pattern is empty, "*" is assumed.
 func ReadSampleDir(dir string, pattern string) (*MeterSampleDir, error) {
 	if pattern == "" {
@@ -21,6 +22,9 @@ func ReadSampleDir(dir string, pattern string) (*MeterSampleDir, error) {
 	}
 	infos, err := ioutil.ReadDir(dir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrNoSamples
+		}
 		return nil, err
 	}
 	var files []*FileInfo

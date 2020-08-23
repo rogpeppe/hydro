@@ -63,6 +63,7 @@ func main() {
 		ConfigPath:      filepath.Join(dir, "relayconfig"),
 		MeterConfigPath: filepath.Join(dir, "meterconfig"),
 		HistoryPath:     filepath.Join(dir, "history"),
+		SampleDirPath:   filepath.Join(dir, "samples"),
 		TZ:              tz,
 	})
 	if err != nil {

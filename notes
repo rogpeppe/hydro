@@ -1,3 +1,97 @@
+Sun 23 Aug 19:51:41 BST 2020
+
+Meter management:
+
+currently meters are held in the hydroserver store.
+that type implements hydroworker.MeterReader, which doesn't seem quite right
+for something that's really meant to be just a data store.
+
+how about moving all the meter management into a new package: metermanager?
+
+we want to distinguish between the meter config as supplied by the user
+and the meter information set in the store by the meter manager.
+The former has not been vetted and doesn't contain other information
+like meter id; the latter has.
+
+
+
+Fri 21 Aug 12:42:03 BST 2020
+
+To surface something new in the API:
+
+`statik/home.js` - contains the React code to generate the HTML from the JSON data structure
+`hydroserver/server.go` - update the `clientUpdate` type to add the new information that will be passed
+to the client.
+`hydroserver/store.go` - update the `store` type to add the new state.
+`hydroserver/store.go` - add a method to update the new information in the store and notify watchers.
+`hydroserver/server.go` - update Handler.makeUpdate to get the new state from store and put it into the clientUpdate type
+whatever logic you need to call the store method to update the new state.
+
+We want to start up the log gatherer workers.
+The difficulty is that the meters can change, which means that we need to manage the log gatherers.
+
+Wed 19 Aug 10:05:04 BST 2020
+
+samplemanager:
+
+	basic API:
+		set meters
+	maybe it should be the thing that's responsible for managing the meter list and config file?
+	.... or maybe not?
+
+plan of action:
+- get AllReports worker running. Then we can gather samples any way we want to.
+
+Tue 18 Aug 11:13:54 BST 2020
+
+What about adding and removing meters.
+When we've just added a meter, currently we won't be able to generate a report
+for a month because the report generation will think those samples are missing.
+We could automatically insert a very old sample at zero energy when we add a new
+meter...
+
+OK, so now we've got a way to identify a meter uniquely (the hardware address).
+When the meter addresses change, let's get their identifiers.
+
+Possibilities:
+	new meter added:
+		create a directory for storing that meter's samples named after the location and the hw-addr.
+		if there's already a directory, then create a new one (number them sequentially)
+		create two initial samples, both with the same current energy reading, one way back in time and the other for now.
+	meter removed:
+		phase out that sample directory by adding a sample in the far future (2250) with the same energy reading.
+	meter changed h/w address
+
+sync meters:
+	for all meters listed:
+		if there's an  IP address entry for the meter in the configuration, use that identifier
+		else {
+			get identifier for the meter
+			if there's already an entry with that identifier, use that (and update its IP address)
+		 	else {
+		 		it's a new meter
+		 	}
+		 }
+	for all meters not listed {
+		phase out sample directory
+		stop worker
+	}
+	for all current meters {
+		ensure log worker is running
+	}
+
+meter management page:
+	show meter address, meter id (mac address), meter name
+	editable text box:
+
+		started 2006-02-01 23:45
+		stopped
+
+		readings:
+		2006-02-01 12:00 	123.45kWh
+
+
+
 Mon 17 Aug 17:47:41 BST 2020
 
 create a worker that periodically scans for available reports and calls store.UpdateReports

@@ -9,6 +9,8 @@ import (
 	"github.com/rogpeppe/hydro/meterstat"
 )
 
+//go:generate stringer -trimprefix Loc -type MeterLocation
+
 type MeterLocation int
 
 const (
@@ -20,36 +22,41 @@ const (
 
 var future = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
 
-// AllReports returns a report for each possible monthly report that can be
+type AllReportsParams struct {
+	// SampleDir holds the directory holding all the meter directories.
+	SampleDir string
+	// Meters holds the set of meter names for each meter
+	// location (typically this contains an identifier for the meter).
+	// The data for that meter is assumed to be in the directory $dir/$name
+	// in any file named *.sample.
+	//
+	// Invalid sample files will be ignored.
+	Meters map[MeterLocation][]string
+	// TZ holds the time zone to use for the generated reports
+	// (UTC if it's nil)
+	TZ *time.Location
+}
+
+// AllReports returns a slice containing an element for each possible monthly report that can be
 // made from the data in the given directory.
-//
-// The meter names map holds the set of meter names for each meter
-// location (typically the this contains the host name of the meter).
-// The data for that meter is assumed to be in the directory $dir/$name
-// in any file named *.sample
-//
-// The tz parameter holds the time zone to use for the generated reports
-// (UTC if it's nil)
-//
-// Invalid files will be ignored.
 //
 // A report can only be generated for a given month if there's sample data
 // spanning that month for all specified meters.
-func AllReports(dir string, meterNames map[MeterLocation][]string, tz *time.Location) ([]*Report, error) {
-	if len(meterNames) != 3 {
-		return nil, fmt.Errorf("missing meter names for some meter locations")
+func AllReports(p AllReportsParams) ([]*Report, error) {
+	if len(p.Meters) != 3 {
+		return nil, fmt.Errorf("missing meter names for some meter locations (got %v)", p.Meters)
 	}
-	if tz == nil {
-		tz = time.UTC
+	if p.TZ == nil {
+		p.TZ = time.UTC
 	}
 	// t0loc holds the latest start time of for each of a given location's sample directories.
 	t0loc := make(map[MeterLocation]time.Time)
 	// t0loc holds the earliest end time of for each of a given location's sample directories.
 	t1loc := make(map[MeterLocation]time.Time)
 	meterDirs := make(map[MeterLocation][]*meterstat.MeterSampleDir)
-	for location, names := range meterNames {
+	for location, names := range p.Meters {
 		for _, name := range names {
-			meterDir := filepath.Join(dir, name)
+			meterDir := filepath.Join(p.SampleDir, name)
 			sd, err := meterstat.ReadSampleDir(meterDir, "*.sample")
 			if err != nil {
 				return nil, fmt.Errorf("cannot read sample dir %v: %v", meterDir, err)
@@ -82,7 +89,7 @@ func AllReports(dir string, meterNames map[MeterLocation][]string, tz *time.Loca
 	var reports []*Report
 	for year := t0.Year(); year <= t1.Year(); year++ {
 		for month := time.January; month <= time.December; month++ {
-			t0r := time.Date(year, month, 1, 0, 0, 0, 0, tz)
+			t0r := time.Date(year, month, 1, 0, 0, 0, 0, p.TZ)
 			t1r := t0r.AddDate(0, 1, 0)
 			// We can generate a report if we've got encompassing samples
 			// for all the meter locations.
@@ -99,7 +106,7 @@ func AllReports(dir string, meterNames map[MeterLocation][]string, tz *time.Loca
 					meterDirs: meterDirs,
 					t0:        t0r,
 					t1:        t1r,
-					tz:        tz,
+					tz:        p.TZ,
 				})
 			}
 		}
