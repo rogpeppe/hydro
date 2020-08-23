@@ -3,30 +3,26 @@ package hydroserver
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
-	jc "github.com/juju/testing/checkers"
-	gc "gopkg.in/check.v1"
+	qt "github.com/frankban/quicktest"
 	"gopkg.in/errgo.v1"
 
 	"github.com/rogpeppe/hydro/hydroconfig"
 )
 
-type configErrorSuite struct{}
-
-var _ = gc.Suite(configErrorSuite{})
-
 var serveConfigErrorTests = []struct {
-	about        string
+	testName     string
 	err          error
 	expectStatus int
 	expect       string
 }{{
-	about:        "not parse error",
+	testName:     "not-parse-error",
 	err:          errgo.New("some error"),
 	expectStatus: http.StatusBadRequest,
 	expect:       `bad request \(POST /\): bad configuration: some error\n`,
 }, {
-	about: "one error",
+	testName: "one-error",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello\ncruel\nworld",
 		Errors: []hydroconfig.ParseError{{
@@ -39,22 +35,24 @@ var serveConfigErrorTests = []struct {
 	expect:       `(?s).*<div>hello<br><span class="errorText">cruel<div class="toolTip">Some message<br></div></span><br>world</div>.*`,
 }}
 
-func (configErrorSuite) TestServeConfigError(c *gc.C) {
-	for i, test := range serveConfigErrorTests {
-		c.Logf("test %d: %s", i, test.about)
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/", nil) // not actually used.
-		serveConfigError(rec, req, test.err)
-		c.Assert(string(rec.Body.Bytes()), gc.Matches, test.expect)
+func TestServeConfigError(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range serveConfigErrorTests {
+		c.Run(test.testName, func(c *qt.C) {
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/", nil) // not actually used.
+			serveConfigError(rec, req, test.err)
+			c.Assert(string(rec.Body.Bytes()), qt.Matches, test.expect)
+		})
 	}
 }
 
 var errorTextSegmentsTests = []struct {
-	about  string
-	err    *hydroconfig.ConfigParseError
-	expect []segment
+	testName string
+	err      *hydroconfig.ConfigParseError
+	expect   []segment
 }{{
-	about: "no errors",
+	testName: "no-errors",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello world",
 	},
@@ -62,7 +60,7 @@ var errorTextSegmentsTests = []struct {
 		Text: "hello world",
 	}},
 }, {
-	about: "one error",
+	testName: "one-error",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello cruel world",
 		Errors: []hydroconfig.ParseError{{
@@ -80,7 +78,7 @@ var errorTextSegmentsTests = []struct {
 		Text: " world",
 	}},
 }, {
-	about: "multiple errors",
+	testName: "multiple-errors",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello crueler world",
 		Errors: []hydroconfig.ParseError{{
@@ -137,7 +135,7 @@ var errorTextSegmentsTests = []struct {
 		},
 	}},
 }, {
-	about: "with newlines, no errors",
+	testName: "with-newlines,-no-errors",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello\nworld",
 	},
@@ -149,7 +147,7 @@ var errorTextSegmentsTests = []struct {
 		Text: "world",
 	}},
 }, {
-	about: "with newlines and errors",
+	testName: "with-newlines-and-errors",
 	err: &hydroconfig.ConfigParseError{
 		Config: "hello\nworld",
 		Errors: []hydroconfig.ParseError{{
@@ -173,22 +171,25 @@ var errorTextSegmentsTests = []struct {
 	}},
 }}
 
-func (configErrorSuite) TestErrorTextSegments(c *gc.C) {
-	for i, test := range errorTextSegmentsTests {
-		c.Logf("test %d: %s", i, test.about)
-		segs := errorTextSegments(test.err)
-		c.Assert(segs, jc.DeepEquals, test.expect)
+func TestErrorTextSegments(t *testing.T) {
+	c := qt.New(t)
+
+	for _, test := range errorTextSegmentsTests {
+		c.Run(test.testName, func(c *qt.C) {
+			segs := errorTextSegments(test.err)
+			c.Assert(segs, qt.DeepEquals, test.expect)
+		})
 	}
 }
 
 var expandErrorTests = []struct {
-	about  string
-	config string
-	err    *hydroconfig.ParseError
-	expect *hydroconfig.ParseError
+	testName string
+	config   string
+	err      *hydroconfig.ParseError
+	expect   *hydroconfig.ParseError
 }{{
-	about:  "non-zero non-whitespace - no expand needed",
-	config: "hello world",
+	testName: "non-zero-non-whitespace---no-expand-needed",
+	config:   "hello world",
 	err: &hydroconfig.ParseError{
 		P0: 0,
 		P1: 5,
@@ -198,8 +199,8 @@ var expandErrorTests = []struct {
 		P1: 5,
 	},
 }, {
-	about:  "zero-length at start",
-	config: "hello world",
+	testName: "zero-length-at-start",
+	config:   "hello world",
 	err: &hydroconfig.ParseError{
 		P0: 0,
 		P1: 0,
@@ -209,8 +210,8 @@ var expandErrorTests = []struct {
 		P1: 5,
 	},
 }, {
-	about:  "zero-length at end",
-	config: "hello",
+	testName: "zero-length-at-end",
+	config:   "hello",
 	err: &hydroconfig.ParseError{
 		P0: 5,
 		P1: 5,
@@ -220,8 +221,8 @@ var expandErrorTests = []struct {
 		P1: 5,
 	},
 }, {
-	about:  "zero-length in middle",
-	config: "all the space    in the world",
+	testName: "zero-length-in-middle",
+	config:   "all the space    in the world",
 	err: &hydroconfig.ParseError{
 		P0: 14,
 		P1: 14,
@@ -231,8 +232,8 @@ var expandErrorTests = []struct {
 		P1: 19,
 	},
 }, {
-	about:  "zero length at start of word",
-	config: "hello crueler world",
+	testName: "zero-length-at-start-of-word",
+	config:   "hello crueler world",
 	err: &hydroconfig.ParseError{
 		P0: 14,
 		P1: 14,
@@ -242,8 +243,8 @@ var expandErrorTests = []struct {
 		P1: 19,
 	},
 }, {
-	about:  "zero length at end of word",
-	config: "hello crueler world",
+	testName: "zero-length-at-end-of-word",
+	config:   "hello crueler world",
 	err: &hydroconfig.ParseError{
 		P0: 13,
 		P1: 13,
@@ -253,8 +254,8 @@ var expandErrorTests = []struct {
 		P1: 19,
 	},
 }, {
-	about:  "all white space",
-	config: "all the space      in the world",
+	testName: "all-white-space",
+	config:   "all the space      in the world",
 	err: &hydroconfig.ParseError{
 		P0: 15,
 		P1: 17,
@@ -264,8 +265,8 @@ var expandErrorTests = []struct {
 		P1: 21,
 	},
 }, {
-	about:  "empty at start",
-	config: "hello world",
+	testName: "empty-at-start",
+	config:   "hello world",
 	err: &hydroconfig.ParseError{
 		P0: 0,
 		P1: 0,
@@ -275,8 +276,8 @@ var expandErrorTests = []struct {
 		P1: 5,
 	},
 }, {
-	about:  "empty at end",
-	config: "hello world",
+	testName: "empty-at-end",
+	config:   "hello world",
 	err: &hydroconfig.ParseError{
 		P0: 11,
 		P1: 11,
@@ -286,8 +287,8 @@ var expandErrorTests = []struct {
 		P1: 11,
 	},
 }, {
-	about:  "unicode space following word",
-	config: "hello there\u00a0you",
+	testName: "unicode-space-following-word",
+	config:   "hello there\u00a0you",
 	err: &hydroconfig.ParseError{
 		P0: 6,
 		P1: 6,
@@ -298,11 +299,13 @@ var expandErrorTests = []struct {
 	},
 }}
 
-func (configErrorSuite) TestExpandError(c *gc.C) {
-	for i, test := range expandErrorTests {
-		c.Logf("test %d: %v", i, test.about)
-		testErr := *test.err
-		expandError(test.config, &testErr)
-		c.Assert(&testErr, jc.DeepEquals, test.expect)
+func TestExpandError(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range expandErrorTests {
+		c.Run(test.testName, func(c *qt.C) {
+			testErr := *test.err
+			expandError(test.config, &testErr)
+			c.Assert(&testErr, qt.DeepEquals, test.expect)
+		})
 	}
 }
