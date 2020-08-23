@@ -1,26 +1,22 @@
 package hydroconfig_test
 
 import (
+	"testing"
 	"time"
 
-	jc "github.com/juju/testing/checkers"
-	gc "gopkg.in/check.v1"
+	qt "github.com/frankban/quicktest"
 
 	"github.com/rogpeppe/hydro/hydroconfig"
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 
-var _ = gc.Suite(&configSuite{})
-
-type configSuite struct{}
-
 var parseTests = []struct {
-	about       string
+	testName    string
 	config      string
 	expect      *hydroconfig.Config
 	expectError string
 }{{
-	about: "original example",
+	testName: "original-example",
 	config: `
 relay 6 is dining room
 relays 0, 4, 5 are bedrooms
@@ -34,25 +30,24 @@ bedrooms on from 17:00 to 20:00
 			Relays: []int{0, 4, 5},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("17h"),
-				SlotDuration: D("3h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("3h"),
+				Start: TD("17:00"),
+				End:   TD("20:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}, {
 			Name:   "dining room",
 			Relays: []int{6},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("14h30m"),
-				SlotDuration: D("6h15m"),
-				Kind:         hydroctl.AtLeast,
-				Duration:     D("20m"),
+				Start:    TD("14:30"),
+				End:      TD("20:45"),
+				Kind:     hydroctl.AtLeast,
+				Duration: D("20m"),
 			}},
 		}},
 	},
 }, {
-	about: "comment line",
+	testName: "comment-line",
 	config: `
 # some comment
 	# a comment with leading whitespace
@@ -66,15 +61,14 @@ somewhere on from 1am to 2am
 			Relays: []int{1},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("1h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("01:00"),
+				End:   TD("02:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
 }, {
-	about: "cohort with label",
+	testName: "cohort-with-label",
 	config: `
 relay 1 is x (some label)
 
@@ -86,15 +80,14 @@ x on from 1am to 2am
 			Relays: []int{1},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("1h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("01:00"),
+				End:   TD("02:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
 }, {
-	about: "multiple slots",
+	testName: "multiple-slots",
 	config: `
 relay 6 is dining room
 
@@ -108,25 +101,24 @@ dining room on from 10:00 to 12pm
 			Relays: []int{6},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("14h30m"),
-				SlotDuration: D("6h15m"),
-				Kind:         hydroctl.AtLeast,
-				Duration:     D("20m"),
+				Start:    TD("14:30"),
+				End:      TD("20:45"),
+				Kind:     hydroctl.AtLeast,
+				Duration: D("20m"),
 			}, {
-				Start:        D("23h"),
-				SlotDuration: D("6h"),
-				Kind:         hydroctl.AtMost,
-				Duration:     D("1h"),
+				Start:    TD("23:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.AtMost,
+				Duration: D("1h"),
 			}, {
-				Start:        D("10h"),
-				SlotDuration: D("2h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("2h"),
+				Start: TD("10:00"),
+				End:   TD("12:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
 }, {
-	about: "slot with is/are",
+	testName: "slot-with-is/are",
 	config: `
 Relay 6 is dining room.
 Relays 7, 8 are bedrooms.
@@ -140,25 +132,23 @@ Bedrooms are on from 12:00 to 1pm
 			Relays: []int{7, 8},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("12h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("12:00"),
+				End:   TD("13:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}, {
 			Name:   "dining room",
 			Relays: []int{6},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("14h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("14:00"),
+				End:   TD("15:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
 }, {
-	about: "with max-power specs",
+	testName: "with-max-power-specs",
 	config: `
 Relay 6 is dining room.
 Relays 7, 8, 9 are bedrooms.
@@ -174,20 +164,18 @@ Bedrooms are on from 12:00 to 1pm
 			Relays: []int{7, 8, 9},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("12h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("12:00"),
+				End:   TD("13:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}, {
 			Name:   "dining room",
 			Relays: []int{6},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("14h"),
-				SlotDuration: D("1h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("1h"),
+				Start: TD("14:00"),
+				End:   TD("15:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 		Relays: map[int]hydroconfig.Relay{
@@ -197,7 +185,7 @@ Bedrooms are on from 12:00 to 1pm
 		},
 	},
 }, {
-	about: "all day slots",
+	testName: "all-day-slots",
 	config: `
 relay 0 is dining room.
 relay 1 is bedroom.
@@ -215,20 +203,16 @@ more for 12h
 			Relays: []int{2},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("0h"),
-				SlotDuration: D("24h"),
-				Kind:         hydroctl.AtMost,
-				Duration:     D("1h"),
+				Kind:     hydroctl.AtMost,
+				Duration: D("1h"),
 			}},
 		}, {
 			Name:   "bedroom",
 			Relays: []int{1},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("0h"),
-				SlotDuration: D("24h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("2h"),
+				Kind:     hydroctl.Exactly,
+				Duration: D("2h"),
 			}},
 		}, {
 			Name:   "dining room",
@@ -239,15 +223,13 @@ more for 12h
 			Relays: []int{3},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        D("0h"),
-				SlotDuration: D("24h"),
-				Kind:         hydroctl.Exactly,
-				Duration:     D("12h"),
+				Kind:     hydroctl.Exactly,
+				Duration: D("12h"),
 			}},
 		}},
 	},
 }, {
-	about: "overlapping time slot",
+	testName: "overlapping-time-slot",
 	config: `
 relays 0, 4, 5 are bedrooms
 relay 7 is other
@@ -255,13 +237,13 @@ relay 7 is other
 bedrooms on from 11am to 1pm
 bedrooms on from 12pm to 3pm
 `,
-	expectError: `error at " on from 12pm to 3pm": time slot overlaps 2h0m0s slot from 11h0m0s`,
+	expectError: `error at " on from 12pm to 3pm": time slot overlaps slot from 11:00 to 13:00`,
 }, {
-	about:  "empty config",
-	config: "",
-	expect: &hydroconfig.Config{},
+	testName: "empty-config",
+	config:   "",
+	expect:   &hydroconfig.Config{},
 }, {
-	about: "config with config parameters",
+	testName: "config-with-config-parameters",
 	config: `
 config fastest 5s
 config reaction 10s
@@ -279,7 +261,7 @@ config cycle 20m
 // awkward failing test for now.
 // Fix it later.
 //{
-//	about: "cohort with no spaces between relay numbers",
+//	testName: "cohort-with-no-spaces-between-relay-numbers",
 //	config: `
 //relays 7,8,10 are bedrooms
 //`,
@@ -292,17 +274,19 @@ config cycle 20m
 //	},
 //},
 
-func (*configSuite) TestParse(c *gc.C) {
-	for i, test := range parseTests {
-		c.Logf("test %d; %s", i, test.about)
-		cfg, err := hydroconfig.Parse(test.config)
-		if test.expectError != "" {
-			c.Assert(err, gc.ErrorMatches, test.expectError)
-			c.Assert(cfg, gc.IsNil)
-		} else {
-			c.Assert(err, gc.IsNil)
-			c.Assert(cfg, jc.DeepEquals, test.expect)
-		}
+func TestParse(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range parseTests {
+		c.Run(test.testName, func(c *qt.C) {
+			cfg, err := hydroconfig.Parse(test.config)
+			if test.expectError != "" {
+				c.Assert(err, qt.ErrorMatches, test.expectError)
+				c.Assert(cfg, qt.IsNil)
+			} else {
+				c.Assert(err, qt.IsNil)
+				c.Assert(cfg, qt.DeepEquals, test.expect)
+			}
+		})
 	}
 }
 
@@ -322,20 +306,20 @@ var ctlConfigTests = []struct {
 			Relays: []int{1, 4},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        time.Hour,
-				SlotDuration: time.Minute,
-				Kind:         hydroctl.AtLeast,
-				Duration:     time.Second,
+				Start:    TD("01:00"),
+				End:      TD("01:01"),
+				Kind:     hydroctl.AtLeast,
+				Duration: time.Second,
 			}},
 		}, {
 			Name:   "two",
 			Relays: []int{2, 4, -1, 2000, 5},
 			Mode:   hydroctl.InUse,
 			InUseSlots: []*hydroctl.Slot{{
-				Start:        2 * time.Hour,
-				SlotDuration: 2 * time.Minute,
-				Kind:         hydroctl.AtMost,
-				Duration:     time.Minute,
+				Start:    TD("02:00"),
+				End:      TD("02:02"),
+				Kind:     hydroctl.AtMost,
+				Duration: time.Minute,
 			}},
 		}},
 	},
@@ -346,10 +330,10 @@ var ctlConfigTests = []struct {
 				MaxPower: 500,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
-					Start:        time.Hour,
-					SlotDuration: time.Minute,
-					Kind:         hydroctl.AtLeast,
-					Duration:     time.Second,
+					Start:    TD("01:00"),
+					End:      TD("01:01"),
+					Kind:     hydroctl.AtLeast,
+					Duration: time.Second,
 				}},
 			},
 			2: {
@@ -357,10 +341,10 @@ var ctlConfigTests = []struct {
 				MaxPower: 1000,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
-					Start:        2 * time.Hour,
-					SlotDuration: 2 * time.Minute,
-					Kind:         hydroctl.AtMost,
-					Duration:     time.Minute,
+					Start:    TD("02:00"),
+					End:      TD("02:02"),
+					Kind:     hydroctl.AtMost,
+					Duration: time.Minute,
 				}},
 			},
 			4: {
@@ -368,10 +352,10 @@ var ctlConfigTests = []struct {
 				MaxPower: 600,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
-					Start:        time.Hour,
-					SlotDuration: time.Minute,
-					Kind:         hydroctl.AtLeast,
-					Duration:     time.Second,
+					Start:    TD("01:00"),
+					End:      TD("01:01"),
+					Kind:     hydroctl.AtLeast,
+					Duration: time.Second,
 				}},
 			},
 			5: {
@@ -379,10 +363,10 @@ var ctlConfigTests = []struct {
 				MaxPower: 2000,
 				Mode:     hydroctl.InUse,
 				InUse: []*hydroctl.Slot{{
-					Start:        2 * time.Hour,
-					SlotDuration: 2 * time.Minute,
-					Kind:         hydroctl.AtMost,
-					Duration:     time.Minute,
+					Start:    TD("02:00"),
+					End:      TD("02:02"),
+					Kind:     hydroctl.AtMost,
+					Duration: time.Minute,
 				}},
 			},
 		}),
@@ -393,10 +377,12 @@ func mkSlots(slots [hydroctl.MaxRelayCount]hydroctl.RelayConfig) []hydroctl.Rela
 	return slots[:]
 }
 
-func (*configSuite) TestCtlConfig(c *gc.C) {
-	for i, test := range ctlConfigTests {
-		c.Logf("test %d", i)
-		c.Assert(test.cfg.CtlConfig(), jc.DeepEquals, &test.expect)
+func TestCtlConfig(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range ctlConfigTests {
+		c.Run("", func(c *qt.C) {
+			c.Assert(test.cfg.CtlConfig(), qt.DeepEquals, &test.expect)
+		})
 	}
 }
 
@@ -406,4 +392,12 @@ func D(s string) time.Duration {
 		panic(err)
 	}
 	return d
+}
+
+func TD(s string) hydroctl.TimeOfDay {
+	td, err := hydroctl.ParseTimeOfDay(s)
+	if err != nil {
+		panic(err)
+	}
+	return td
 }

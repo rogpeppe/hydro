@@ -30,6 +30,8 @@ type Params struct {
 	// Updater is used to inform external parties about the current state.
 	// It may be nil.
 	Updater Updater
+	// TZ holds the time zone to use for time assessments.
+	TZ *time.Location
 }
 
 // CommitStore adds a Commit method to the history.Store
@@ -50,6 +52,7 @@ type Worker struct {
 	// history holds the history storage layer. It
 	// uses Worker.store for its persistent state.
 	history *history.DB
+	tz      *time.Location
 
 	store CommitStore
 
@@ -102,6 +105,7 @@ func New(p Params) (*Worker, error) {
 		store:         p.Store,
 		controller:    p.Controller,
 		meters:        p.Meters,
+		tz:            p.TZ,
 		history:       hdb,
 		updater:       p.Updater,
 		cfgChan:       make(chan *hydroctl.Config),
@@ -167,7 +171,7 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 			// No point in continuing if we can't talk to the relay server.
 			continue
 		}
-		now := time.Now()
+		now := time.Now().In(w.tz)
 		logger.msgs = logger.msgs[:0]
 		newRelays := hydroctl.Assess(hydroctl.AssessParams{
 			Config:         currentConfig,

@@ -1,19 +1,23 @@
 package hydroctl_test
 
 import (
+	"testing"
 	"time"
 
-	gc "gopkg.in/check.v1"
+	qt "github.com/frankban/quicktest"
 
 	"github.com/rogpeppe/hydro/history"
 	"github.com/rogpeppe/hydro/hydroctl"
 )
 
-type suite struct{}
-
-var _ = gc.Suite(suite{})
-
 var epoch = time.Date(2000, 01, 01, 0, 0, 0, 0, time.UTC)
+
+var (
+	ukTZ, _ = time.LoadLocation("Europe/London")
+	// start and end dates of daylight savings time in the UK in 2019.
+	dstStart = time.Date(2019, 03, 31, 0, 0, 0, 0, ukTZ)
+	dstEnd   = time.Date(2019, 10, 27, 0, 0, 0, 0, ukTZ)
+)
 
 func T(i int) time.Time {
 	return epoch.Add(time.Duration(i) * time.Hour)
@@ -41,13 +45,13 @@ type stateUpdate struct {
 }
 
 var assessTests = []struct {
-	about           string
+	testName        string
 	previousUpdates []stateUpdate
 	currentState    hydroctl.RelayState
 	cfg             hydroctl.Config
 	assessNowTests  []assessNowTest
 }{{
-	about: "everything off, some relays that are always on",
+	testName: "everything-off,-some-relays-that-are-always-on",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{
 			0: {
@@ -73,7 +77,7 @@ var assessTests = []struct {
 		expectState: mkRelays(0, 5),
 	}},
 }, {
-	about: "everything on, one relay that's always off",
+	testName: "everything-on,-one-relay-that's-always-off",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.AlwaysOff,
@@ -89,15 +93,15 @@ var assessTests = []struct {
 		expectState: mkRelays(),
 	}},
 }, {
-	about: "relay on for exactly 2 hours between 1am and 5am",
+	testName: "relay-on-for-exactly-2-hours-between-1am-and-5am",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -136,15 +140,14 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "relay on through midnight",
+	testName: "relay-on-through-midnight",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        22 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     4 * time.Hour,
+				Start: TD("22:00"),
+				End:   TD("02:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
@@ -169,15 +172,15 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "relay on for at least 2 hours between 1am and 5am",
+	testName: "relay-on-for-at-least-2-hours-between-1am-and-5am",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -216,15 +219,15 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "relay on for at most 2 hours between 1am and 5am",
+	testName: "relay-on-for-at-most-2-hours-between-1am-and-5am",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.AtMost,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.AtMost,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -263,17 +266,17 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "when lots of power is in use, discretionary power doesn't kick in until it must",
+	testName: "when-lots-of-power-is-in-use,-discretionary-power-doesn't-kick-in-until-it-must",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
 			Mode:     hydroctl.InUse,
 			MaxPower: 100,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 2 * time.Hour,
 			}},
 		}, {
 			Mode:     hydroctl.AlwaysOn,
@@ -340,25 +343,25 @@ var assessTests = []struct {
 		expectState: mkRelays(1),
 	}},
 }, {
-	about: "When several relays are discretionary, they turn on one at a time",
+	testName: "When-several-relays-are-discretionary,-they-turn-on-one-at-a-time",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}, {
 			// Relay 1 is the same as relay 0.
 			Mode: hydroctl.InUse,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -386,17 +389,17 @@ var assessTests = []struct {
 		transition:  true,
 	}},
 }, {
-	about: "When a discretionary-power relay is on and there's not enough power, it switches off until there is",
+	testName: "When-a-discretionary-power-relay-is-on-and-there's-not-enough-power,-it-switches-off-until-there-is",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			// Relay 0 is on for at least 2 hours between 1am and 5am.
 			Mode:     hydroctl.InUse,
 			MaxPower: 100,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -458,34 +461,34 @@ var assessTests = []struct {
 		transition:  true,
 	}},
 }, {
-	about: "When several discretionary-power relays are on and power is limited, we switch enough off to try to regain the power",
+	testName: "When-several-discretionary-power-relays-are-on-and-power-is-limited,-we-switch-enough-off-to-try-to-regain-the-power",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
 			InUse: []*hydroctl.Slot{{
-				Start:        1 * time.Hour,
-				SlotDuration: 4 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     2 * time.Hour,
+				Start:    TD("01:00"),
+				End:      TD("05:00"),
+				Kind:     hydroctl.Exactly,
+				Duration: 2 * time.Hour,
 			}},
 		}},
 	},
@@ -549,7 +552,7 @@ var assessTests = []struct {
 		transition:  true,
 	}},
 }, {
-	about: "A sample case that failed",
+	testName: "A-sample-case-that-failed",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode: hydroctl.NotInUse,
@@ -559,10 +562,9 @@ var assessTests = []struct {
 			Mode:     hydroctl.InUse,
 			MaxPower: 5000,
 			InUse: []*hydroctl.Slot{{
-				Start:        13 * time.Hour,
-				SlotDuration: 1 * time.Hour,
-				Kind:         hydroctl.Exactly,
-				Duration:     1 * time.Hour,
+				Start: TD("13:00"),
+				End:   TD("14:00"),
+				Kind:  hydroctl.Continuous,
 			}},
 		}},
 	},
@@ -577,25 +579,25 @@ var assessTests = []struct {
 		transition:  true,
 	}},
 }, {
-	about: "Given two discretionary relays that could be on and might start importing, we leave them off until forced",
+	testName: "Given-two-discretionary-relays-that-could-be-on-and-might-start-importing,-we-leave-them-off-until-forced",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
 			InUse: []*hydroctl.Slot{{
-				Start:        10 * time.Hour,
-				SlotDuration: time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     5 * time.Minute,
+				Start:    TD("10:00"),
+				End:      TD("11:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 5 * time.Minute,
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
 			MaxPower: 1000,
 			InUse: []*hydroctl.Slot{{
-				Start:        10 * time.Hour,
-				SlotDuration: time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     5 * time.Minute,
+				Start:    TD("10:00"),
+				End:      TD("11:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 5 * time.Minute,
 			}},
 		}},
 	},
@@ -664,34 +666,34 @@ var assessTests = []struct {
 		transition: true,
 	}},
 }, {
-	about: "Given three relays and only enough power for one of them, we'll cycle between them at DefaultCycleDuration frequency",
+	testName: "Given-three-relays-and-only-enough-power-for-one-of-them,-we'll-cycle-between-them-at-DefaultCycleDuration-frequency",
 	cfg: hydroctl.Config{
 		Relays: []hydroctl.RelayConfig{{
 			Mode:     hydroctl.InUse,
 			MaxPower: 750,
 			InUse: []*hydroctl.Slot{{
-				Start:        10 * time.Hour,
-				SlotDuration: time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     23 * time.Minute,
+				Start:    TD("10:00"),
+				End:      TD("11:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 23 * time.Minute,
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
 			MaxPower: 800,
 			InUse: []*hydroctl.Slot{{
-				Start:        10 * time.Hour,
-				SlotDuration: time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     17 * time.Minute,
+				Start:    TD("10:00"),
+				End:      TD("11:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 17 * time.Minute,
 			}},
 		}, {
 			Mode:     hydroctl.InUse,
 			MaxPower: 850,
 			InUse: []*hydroctl.Slot{{
-				Start:        10 * time.Hour,
-				SlotDuration: time.Hour,
-				Kind:         hydroctl.AtLeast,
-				Duration:     17 * time.Minute,
+				Start:    TD("10:00"),
+				End:      TD("11:00"),
+				Kind:     hydroctl.AtLeast,
+				Duration: 17 * time.Minute,
 			}},
 		}},
 	},
@@ -810,129 +812,255 @@ var assessTests = []struct {
 			},
 		},
 	}},
+}, {
+	testName: "daylight-savings-time-starts",
+	// When DST starts (at 1am), an hour is lost.
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{
+			0: {
+				Mode:     hydroctl.InUse,
+				MaxPower: 100,
+				InUse: []*hydroctl.Slot{{
+					Start: TD("00:05"),
+					End:   TD("03:00"),
+					Kind:  hydroctl.Continuous,
+				}},
+			},
+		},
+	},
+	currentState: mkRelays(),
+	assessNowTests: []assessNowTest{{
+		now:         dstStart,
+		expectState: mkRelays(),
+	}, {
+		now:         dstStart.Add(5 * time.Minute),
+		transition:  true,
+		expectState: mkRelays(0),
+	}, {
+		now:         dstStart.Add(2 * time.Hour),
+		transition:  true,
+		expectState: mkRelays(),
+	}},
+}, {
+	testName: "transition-time-non-existent",
+	// Check that things still work OK if the transition time doesn't
+	// actually happen because DST start skipped it. Go's time.Date
+	// behaviour gives a time an hour later whereas arguably for this
+	// purpose we'd want the slot to start on the next available time.
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{
+			0: {
+				Mode:     hydroctl.InUse,
+				MaxPower: 100,
+				InUse: []*hydroctl.Slot{{
+					Start: TD("01:30"),
+					End:   TD("03:00"),
+					Kind:  hydroctl.Continuous,
+				}},
+			},
+		},
+	},
+	currentState: mkRelays(),
+	assessNowTests: []assessNowTest{{
+		now:         dstStart,
+		expectState: mkRelays(),
+	}, {
+		now:         dstStart.Add(time.Hour + 30*time.Minute),
+		transition:  true,
+		expectState: mkRelays(0),
+	}, {
+		now:         dstStart.Add(2 * time.Hour),
+		transition:  true,
+		expectState: mkRelays(),
+	}},
+}, {
+	testName: "duration-longer-than-slot-because-of-DST-transition",
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{
+			0: {
+				Mode:     hydroctl.InUse,
+				MaxPower: 100,
+				InUse: []*hydroctl.Slot{{
+					Start:    TD("01:30"),
+					End:      TD("03:00"),
+					Kind:     hydroctl.AtLeast,
+					Duration: time.Hour,
+				}},
+			},
+		},
+	},
+	currentState: mkRelays(),
+	assessNowTests: []assessNowTest{{
+		now:         dstStart,
+		expectState: mkRelays(),
+	}, {
+		now:         dstStart.Add(time.Hour + 30*time.Minute),
+		transition:  true,
+		expectState: mkRelays(0),
+	}, {
+		// Even though we haven't been able to give it the full
+		// amount of time, the relay should still switch off at the
+		// end of the slot.g
+		now:         dstStart.Add(2 * time.Hour),
+		transition:  true,
+		expectState: mkRelays(),
+	}},
+}, {
+	testName: "daylight-savings-time-ends",
+	// When DST ends (at 1am), an hour is gained.
+	cfg: hydroctl.Config{
+		Relays: []hydroctl.RelayConfig{
+			0: {
+				Mode:     hydroctl.InUse,
+				MaxPower: 100,
+				InUse: []*hydroctl.Slot{{
+					Start: TD("00:05"),
+					End:   TD("03:00"),
+					Kind:  hydroctl.Continuous,
+				}},
+			},
+		},
+	},
+	currentState: mkRelays(),
+	assessNowTests: []assessNowTest{{
+		now:         dstEnd,
+		expectState: mkRelays(),
+	}, {
+		now:         dstEnd.Add(5 * time.Minute),
+		transition:  true,
+		expectState: mkRelays(0),
+	}, {
+		now:         dstEnd.Add(4 * time.Hour),
+		transition:  true,
+		expectState: mkRelays(),
+	}},
 }}
 
-func (suite) TestAssess(c *gc.C) {
-	for i, test := range assessTests {
-		c.Logf("")
-		c.Logf("test %d: %s", i, test.about)
-		state := test.currentState
+func TestAssess(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range assessTests {
+		c.Run(test.testName, func(c *qt.C) {
+			state := test.currentState
 
-		history, err := history.New(&history.MemStore{})
-		c.Assert(err, gc.IsNil)
-		for _, u := range test.previousUpdates {
-			history.RecordState(u.state, u.t)
-		}
-		var prevPowerUse hydroctl.PowerUseSample
-		for j, innertest := range test.assessNowTests {
-			c.Logf("\t%d. at %v", j, D(innertest.now))
-			if innertest.transition {
-				// Check just before the test time to make
-				// sure the state is unchanged from the
-				// previous test.
-				if prevPowerUse.T0.IsZero() {
-					// This will happen when there's a transition in the first step.
-					prevPowerUse.T0 = innertest.now.Add(-1)
-					prevPowerUse.T1 = innertest.now.Add(-1)
+			history, err := history.New(&history.MemStore{})
+			c.Assert(err, qt.IsNil)
+			for _, u := range test.previousUpdates {
+				history.RecordState(u.state, u.t)
+			}
+			var prevPowerUse hydroctl.PowerUseSample
+			for j, innertest := range test.assessNowTests {
+				c.Logf("\t%d. at %v", j, D(innertest.now))
+				if innertest.transition {
+					// Check just before the test time to make
+					// sure the state is unchanged from the
+					// previous test.
+					if prevPowerUse.T0.IsZero() {
+						// This will happen when there's a transition in the first step.
+						prevPowerUse.T0 = innertest.now.Add(-1)
+						prevPowerUse.T1 = innertest.now.Add(-1)
+					}
+					newState := hydroctl.Assess(hydroctl.AssessParams{
+						Config:         &test.cfg,
+						CurrentState:   state,
+						History:        history,
+						PowerUseSample: prevPowerUse,
+						Logger:         clogger{c},
+						Now:            innertest.now.Add(-1),
+					})
+					c.Assert(newState, qt.Equals, state, qt.Commentf("previous state"))
 				}
-				newState := hydroctl.Assess(hydroctl.AssessParams{
+				pu := innertest.powerUse
+				if pu.T0.IsZero() {
+					pu.T0 = innertest.now
+				}
+				if pu.T1.IsZero() {
+					pu.T1 = innertest.now
+				}
+				state = hydroctl.Assess(hydroctl.AssessParams{
 					Config:         &test.cfg,
 					CurrentState:   state,
 					History:        history,
-					PowerUseSample: prevPowerUse,
+					PowerUseSample: pu,
 					Logger:         clogger{c},
-					Now:            innertest.now.Add(-1),
+					Now:            innertest.now,
 				})
-				c.Assert(newState, gc.Equals, state, gc.Commentf("previous state"))
+				c.Assert(state, qt.Equals, innertest.expectState)
+				history.RecordState(state, innertest.now)
+				c.Logf("new history: %v", &history)
+				prevPowerUse = pu
 			}
-			pu := innertest.powerUse
-			if pu.T0.IsZero() {
-				pu.T0 = innertest.now
-			}
-			if pu.T1.IsZero() {
-				pu.T1 = innertest.now
-			}
-			state = hydroctl.Assess(hydroctl.AssessParams{
-				Config:         &test.cfg,
-				CurrentState:   state,
-				History:        history,
-				PowerUseSample: pu,
-				Logger:         clogger{c},
-				Now:            innertest.now,
-			})
-			c.Assert(state, gc.Equals, innertest.expectState)
-			history.RecordState(state, innertest.now)
-			c.Logf("new history: %v", &history)
-			prevPowerUse = pu
-		}
+		})
 	}
 }
 
 var slotOverlapTests = []struct {
-	about        string
+	testName     string
 	slot1, slot2 hydroctl.Slot
 	expect       bool
 }{{
-	about: "exactly the same",
+	testName: "exactly-the-same",
 	slot1: hydroctl.Slot{
-		Start:        time.Hour,
-		SlotDuration: 2 * time.Hour,
+		Start: TD("01:00"),
+		End:   TD("03:00"),
 	},
 	slot2: hydroctl.Slot{
-		Start:        time.Hour,
-		SlotDuration: 2 * time.Hour,
+		Start: TD("01:00"),
+		End:   TD("03:00"),
 	},
 	expect: true,
 }, {
-	about: "one starts as the other finishes",
+	testName: "one-starts-as-the-other-finishes",
 	slot1: hydroctl.Slot{
-		Start:        time.Hour,
-		SlotDuration: 2 * time.Hour,
+		Start: TD("01:00"),
+		End:   TD("03:00"),
 	},
 	slot2: hydroctl.Slot{
-		Start:        3 * time.Hour,
-		SlotDuration: time.Hour,
+		Start: TD("03:00"),
+		End:   TD("04:00"),
 	},
 	expect: false,
 }, {
-	about: "overlap by a second",
+	testName: "overlap-by-a-minute",
 	slot1: hydroctl.Slot{
-		Start:        time.Hour,
-		SlotDuration: 2 * time.Hour,
+		Start: TD("01:00"),
+		End:   TD("03:00"),
 	},
 	slot2: hydroctl.Slot{
-		Start:        3*time.Hour - time.Second,
-		SlotDuration: time.Hour,
+		Start: TD("02:59"),
+		End:   TD("03:59"),
 	},
 	expect: true,
 }, {
-	about: "zero length slot within another one",
+	testName: "24-hour-slot-within-another-one",
 	slot1: hydroctl.Slot{
-		Start: time.Hour,
+		Start: TD("01:00"),
+		End:   TD("01:00"),
 	},
 	slot2: hydroctl.Slot{
-		Start:        0,
-		SlotDuration: 2 * time.Hour,
+		Start: TD("00:00"),
+		End:   TD("02:00"),
 	},
-	expect: false,
+	expect: true,
 }, {
-	about:  "two zero-length slots",
-	expect: false,
+	testName: "two 24 hour slots",
+	expect:   true,
 }}
 
-func (suite) TestSlotOverlap(c *gc.C) {
-	for i, test := range slotOverlapTests {
-		c.Logf("test %d: %v", i, test.about)
-		got := test.slot1.Overlaps(&test.slot2)
-		c.Assert(got, gc.Equals, test.expect)
-		// Try it reversed.
-		got = test.slot2.Overlaps(&test.slot1)
-		c.Assert(got, gc.Equals, test.expect)
+func TestSlotOverlap(t *testing.T) {
+	c := qt.New(t)
+	for _, test := range slotOverlapTests {
+		c.Run(test.testName, func(c *qt.C) {
+			got := test.slot1.Overlaps(&test.slot2)
+			c.Assert(got, qt.Equals, test.expect)
+			// Try it reversed.
+			got = test.slot2.Overlaps(&test.slot1)
+			c.Assert(got, qt.Equals, test.expect)
+		})
 	}
 }
 
 type clogger struct {
-	c *gc.C
+	c *qt.C
 }
 
 func (l clogger) Log(s string) {
@@ -945,4 +1073,12 @@ func mkRelays(relays ...uint) hydroctl.RelayState {
 		state |= 1 << r
 	}
 	return state
+}
+
+func TD(s string) hydroctl.TimeOfDay {
+	td, err := hydroctl.ParseTimeOfDay(s)
+	if err != nil {
+		panic(err)
+	}
+	return td
 }

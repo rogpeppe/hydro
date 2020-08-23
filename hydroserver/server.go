@@ -37,6 +37,8 @@ type Params struct {
 	ConfigPath      string
 	MeterConfigPath string
 	HistoryPath     string
+	// TZ holds the time zone to use for meter assessments.
+	TZ *time.Location
 }
 
 func New(p Params) (*Handler, error) {
@@ -63,6 +65,7 @@ func New(p Params) (*Handler, error) {
 		Updater:    store,
 		Controller: controller,
 		Meters:     store,
+		TZ:         p.TZ,
 	}
 	w, err := hydroworker.New(hwp)
 	if err != nil {
