@@ -15,7 +15,7 @@ require (
 	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f // indirect
 	github.com/juju/loggo v0.0.0-20160818025724-3b7ece48644d // indirect
 	github.com/juju/retry v0.0.0-20180821225755-9058e192b216 // indirect
-	github.com/juju/testing v0.0.0-20161031103713-b8689951f6db
+	github.com/juju/testing v0.0.0-20161031103713-b8689951f6db // indirect
 	github.com/juju/utils v0.0.0-20170203180515-3c848d69d3b7
 	github.com/juju/version v0.0.0-20191219164919-81c1be00b9a6 // indirect
 	github.com/julienschmidt/httprouter v1.2.0
@@ -26,7 +26,6 @@ require (
 	github.com/rogpeppe/rjson v0.0.0-20151026200957-77220b71d327
 	go4.org v0.0.0-20190313082347-94abd6928b1d
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
 	gopkg.in/errgo.v1 v1.0.0
 	gopkg.in/httprequest.v1 v1.2.0
 	gopkg.in/retry.v1 v1.0.3

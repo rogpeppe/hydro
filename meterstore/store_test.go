@@ -7,22 +7,18 @@ import (
 	"testing"
 	"time"
 
-	jc "github.com/juju/testing/checkers"
-	gc "gopkg.in/check.v1"
+	qt "github.com/frankban/quicktest"
 
 	"github.com/rogpeppe/hydro/meterstore"
 )
 
-type suite struct{}
-
-var _ = gc.Suite(&suite{})
-
 var epoch = time.Date(2017, time.January, 1, 5, 30, 0, int(50*time.Millisecond), time.UTC)
 
-func (*suite) TestSimple(c *gc.C) {
-	path := filepath.Join(c.MkDir(), "db")
+func TestSimple(t *testing.T) {
+	c := qt.New(t)
+	path := filepath.Join(c.Mkdir(), "db")
 	store, err := meterstore.Open(path)
-	c.Assert(err, gc.Equals, nil)
+	c.Assert(err, qt.Equals, nil)
 	defer store.Close()
 
 	r := meterstore.TimeRecord{
@@ -36,27 +32,27 @@ func (*suite) TestSimple(c *gc.C) {
 	}
 
 	err = store.Add(r)
-	c.Assert(err, gc.Equals, nil)
+	c.Assert(err, qt.Equals, nil)
 
 	var got []meterstore.TimeRecord
 	iter := store.Iter(epoch)
 	for iter.Next() {
 		got = append(got, iter.Value())
 	}
-	c.Assert(got, jc.DeepEquals, []meterstore.TimeRecord{r})
-	c.Assert(iter.Err(), gc.Equals, nil)
+	c.Assert(got, qt.DeepEquals, []meterstore.TimeRecord{r})
+	c.Assert(iter.Err(), qt.Equals, nil)
 	store.Close()
 
 	// Check that we can reopen the store and it still works.
 	store, err = meterstore.Open(path)
-	c.Assert(err, gc.Equals, nil)
+	c.Assert(err, qt.Equals, nil)
 	iter = store.Iter(epoch)
 	got = nil
 	for iter.Next() {
 		got = append(got, iter.Value())
 	}
-	c.Check(got, jc.DeepEquals, []meterstore.TimeRecord{r})
-	c.Check(iter.Err(), gc.Equals, nil)
+	c.Check(got, qt.DeepEquals, []meterstore.TimeRecord{r})
+	c.Check(iter.Err(), qt.Equals, nil)
 }
 
 var iterTestRecords = []meterstore.TimeRecord{{
@@ -99,92 +95,95 @@ var iterTestRecords = []meterstore.TimeRecord{{
 }}
 
 var iterTests = []struct {
-	about         string
+	testName      string
 	start         time.Time
 	forward       bool
 	expectIndexes []int
 }{{
-	about:         "forward from start",
+	testName:      "forward-from-start",
 	start:         epoch,
 	forward:       true,
 	expectIndexes: []int{0, 1, 2, 3, 4},
 }, {
-	about:         "forward from before start",
+	testName:      "forward-from-before-start",
 	start:         epoch.Add(-time.Minute),
 	forward:       true,
 	expectIndexes: []int{0, 1, 2, 3, 4},
 }, {
-	about:         "forward from after start",
+	testName:      "forward-from-after-start",
 	start:         epoch.Add(time.Second),
 	forward:       true,
 	expectIndexes: []int{2, 3, 4},
 }, {
-	about:         "forward from exactly the end",
+	testName:      "forward-from-exactly-the-end",
 	start:         epoch.Add(20 * time.Second),
 	forward:       true,
 	expectIndexes: []int{4},
 }, {
-	about:         "forward from beyond the end",
+	testName:      "forward-from-beyond-the-end",
 	forward:       true,
 	start:         epoch.Add(21 * time.Second),
 	expectIndexes: []int{},
 }, {
-	about:         "backward from end",
+	testName:      "backward-from-end",
 	start:         epoch.Add(20 * time.Second),
 	expectIndexes: []int{4, 3, 2, 1, 0},
 }, {
-	about:         "backward from after end",
+	testName:      "backward-from-after-end",
 	start:         epoch.Add(21 * time.Second),
 	expectIndexes: []int{4, 3, 2, 1, 0},
 }, {
-	about:         "backward from before end",
+	testName:      "backward-from-before-end",
 	start:         epoch.Add(19 * time.Second),
 	expectIndexes: []int{3, 2, 1, 0},
 }, {
-	about:         "backward from exactly the start",
+	testName:      "backward-from-exactly-the-start",
 	start:         epoch,
 	expectIndexes: []int{1, 0},
 }, {
-	about:         "backward from before the start",
+	testName:      "backward-from-before-the-start",
 	start:         epoch.Add(-time.Second),
 	expectIndexes: []int{},
 }}
 
-func (*suite) TestIterForward(c *gc.C) {
-	path := filepath.Join(c.MkDir(), "db")
+func TestIterForward(t *testing.T) {
+	c := qt.New(t)
+	path := filepath.Join(c.Mkdir(), "db")
 	store, err := meterstore.Open(path)
-	c.Assert(err, gc.Equals, nil)
+	c.Assert(err, qt.Equals, nil)
 	defer store.Close()
 
 	err = store.Add(iterTestRecords...)
-	c.Assert(err, gc.Equals, nil)
-	for i, test := range iterTests {
-		c.Logf("test %d: %v", i, test.about)
-		var got []meterstore.TimeRecord
-		var iter *meterstore.Iter
-		if test.forward {
-			iter = store.Iter(test.start)
-		} else {
-			iter = store.ReverseIter(test.start)
-		}
-		for iter.Next() {
-			got = append(got, iter.Value())
-		}
-		c.Check(iter.Err(), gc.Equals, nil)
-		expect := make([]meterstore.TimeRecord, len(test.expectIndexes))
-		for i, index := range test.expectIndexes {
-			expect[i] = iterTestRecords[index]
-		}
-		c.Assert(got, jc.DeepEquals, expect)
+	c.Assert(err, qt.Equals, nil)
+	for _, test := range iterTests {
+		c.Run(test.testName, func(c *qt.C) {
+			got := []meterstore.TimeRecord{}
+			var iter *meterstore.Iter
+			if test.forward {
+				iter = store.Iter(test.start)
+			} else {
+				iter = store.ReverseIter(test.start)
+			}
+			for iter.Next() {
+				got = append(got, iter.Value())
+			}
+			c.Check(iter.Err(), qt.Equals, nil)
+			expect := make([]meterstore.TimeRecord, len(test.expectIndexes))
+			for i, index := range test.expectIndexes {
+				expect[i] = iterTestRecords[index]
+			}
+			c.Assert(got, qt.DeepEquals, expect)
+		})
 	}
 }
 
-func (*suite) TestTimestamp(c *gc.C) {
-	t := time.Date(2017, time.January, 1, 5, 30, 0, int(50*time.Millisecond), time.UTC)
-	stamp := meterstore.TimeToStamp(t)
-	t1 := meterstore.StampToTime(stamp)
-	if !t.Equal(t1) {
-		c.Fatalf("got %v want %v", t, t1)
+func TestTimestamp(t *testing.T) {
+	c := qt.New(t)
+	ts := time.Date(2017, time.January, 1, 5, 30, 0, int(50*time.Millisecond), time.UTC)
+	stamp := meterstore.TimeToStamp(ts)
+	ts1 := meterstore.StampToTime(stamp)
+	if !ts.Equal(ts1) {
+		c.Fatalf("got %v want %v", ts, ts1)
 	}
 }
 
