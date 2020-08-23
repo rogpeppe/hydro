@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/rogpeppe/rjson"
 	errgo "gopkg.in/errgo.v1"
@@ -38,11 +39,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO make the time zone configurable through the UI.
+	tz, err := time.LoadLocation("Europe/London")
+	if err != nil {
+		log.Fatal(err)
+	}
 	h, err := hydroserver.New(hydroserver.Params{
 		RelayAddrPath:   filepath.Join(cfg.StateDir, "relayaddr"),
 		ConfigPath:      filepath.Join(cfg.StateDir, "relayconfig"),
 		MeterConfigPath: filepath.Join(cfg.StateDir, "meterconfig"),
 		HistoryPath:     filepath.Join(cfg.StateDir, "history"),
+		TZ:              tz,
 	})
 	if err != nil {
 		log.Fatal(err)

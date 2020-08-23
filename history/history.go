@@ -5,7 +5,6 @@ package history
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -118,7 +117,6 @@ func (h *DB) addEvent(relay int, on bool, now time.Time) {
 		// event if it's off.
 		return
 	}
-	log.Printf("add event to %d %v %v", relay, on, timeFmt(now))
 
 	if relay >= len(h.relays) {
 		relays := make([][]Event, relay+1)

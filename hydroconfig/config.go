@@ -195,8 +195,7 @@ func (p *configParser) addLine(t text) {
 	if slot := p.parseSlot(t); slot != nil {
 		for _, oldSlot := range found.InUseSlots {
 			if oldSlot.Overlaps(slot) {
-				// TODO format this with proper-looking times.
-				p.errorf(t, "time slot overlaps %v slot from %v", oldSlot.SlotDuration, oldSlot.Start)
+				p.errorf(t, "time slot overlaps slot from %v to %v", oldSlot.Start, oldSlot.End)
 				return
 			}
 		}
@@ -232,10 +231,7 @@ func (p *configParser) duration(t text) time.Duration {
 }
 
 var allDaySlot = hydroctl.Slot{
-	Start:        0,
-	SlotDuration: 24 * time.Hour,
-	Kind:         hydroctl.Exactly,
-	Duration:     24 * time.Hour,
+	Kind: hydroctl.Continuous,
 }
 
 func (p *configParser) parseSlot(t text) *hydroctl.Slot {
@@ -257,10 +253,10 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 	slot := allDaySlot
 	word, rest := t.word()
 	if word.s == "from" {
-		var startTime, endTime time.Duration
+		var startTime, endTime hydroctl.TimeOfDay
 		var ok bool
 		t = rest
-		startTime, t, ok = p.parseTime(t)
+		startTime, t, ok = p.parseTimeOfDay(t)
 		if !ok {
 			return nil
 		}
@@ -272,15 +268,11 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 			return nil
 		}
 		t = rest
-		endTime, t, ok = p.parseTime(t)
+		endTime, t, ok = p.parseTimeOfDay(t)
 		if !ok {
 			return nil
 		}
-		if endTime < startTime {
-			endTime += 24 * time.Hour
-		}
-		slot.SlotDuration = endTime - startTime
-		slot.Duration = endTime - startTime
+		slot.End = endTime
 	}
 	if word, _ := t.word(); word.s == "" {
 		return &slot
@@ -292,6 +284,7 @@ func (p *configParser) parseSlot(t text) *hydroctl.Slot {
 		slot.Kind = hydroctl.AtLeast
 		t = rest
 	} else if rest, ok = t.trimPrefix("for"); ok {
+		slot.Kind = hydroctl.Exactly
 		t = rest
 	} else {
 		p.errorf(word, "expected 'for', 'for at least' or 'for at most'")
@@ -322,22 +315,17 @@ var timeFormats = []string{
 	"3:04pm",
 }
 
-func (p *configParser) parseTime(t text) (time.Duration, text, bool) {
+func (p *configParser) parseTimeOfDay(t text) (hydroctl.TimeOfDay, text, bool) {
 	word, rest := t.word()
 	if word.s == "" {
-		return 0, text{}, false
+		return hydroctl.TimeOfDay{}, text{}, false
 	}
-	for _, f := range timeFormats {
-		if t, err := time.Parse(f, word.s); err == nil {
-			return time.Duration(t.Hour())*time.Hour +
-					time.Duration(t.Minute())*time.Minute +
-					time.Duration(t.Second())*time.Second,
-				rest,
-				true
-		}
+	td, err := hydroctl.ParseTimeOfDay(word.s)
+	if err != nil {
+		p.errorf(word, "%v", err)
+		return hydroctl.TimeOfDay{}, text{}, false
 	}
-	p.errorf(word, "invalid time value %q. Can use 15:04, 3pm, 3:04pm.", word.s)
-	return 0, text{}, false
+	return td, rest, true
 }
 
 func (p *configParser) addCohortOrMaxPower(t text) {

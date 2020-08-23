@@ -1,13 +1,13 @@
 package hydroconfig
 
 import (
-	jc "github.com/juju/testing/checkers"
-	gc "gopkg.in/check.v1"
+	"testing"
+
+	qt "github.com/frankban/quicktest"
+	"github.com/google/go-cmp/cmp"
 )
 
-var _ = gc.Suite(&textSuite{})
-
-type textSuite struct{}
+var deepEquals = qt.CmpEquals(cmp.AllowUnexported(text{}))
 
 var wordTests = []struct {
 	t          text
@@ -104,12 +104,13 @@ var wordTests = []struct {
 	},
 }}
 
-func (*textSuite) TestWord(c *gc.C) {
+func TestTextWord(t *testing.T) {
+	c := qt.New(t)
 	for i, test := range wordTests {
 		c.Logf("test %d; %q", i, test.t.s)
 		word, rest := test.t.word()
-		c.Check(word, jc.DeepEquals, test.expect)
-		c.Check(rest, jc.DeepEquals, test.expectRest)
+		c.Check(word, deepEquals, test.expect)
+		c.Check(rest, deepEquals, test.expectRest)
 	}
 }
 
@@ -156,11 +157,12 @@ var trimPrefixTests = []struct {
 	expectOK: true,
 }}
 
-func (*textSuite) TestTrimPrefix(c *gc.C) {
+func TestTextTrimPrefix(t *testing.T) {
+	c := qt.New(t)
 	for i, test := range trimPrefixTests {
 		c.Logf("test %d; %q", i, test.t.s)
 		rest, ok := test.t.trimPrefix(test.prefix)
-		c.Check(rest, jc.DeepEquals, test.expect)
-		c.Check(ok, gc.Equals, test.expectOK)
+		c.Check(rest, deepEquals, test.expect)
+		c.Check(ok, qt.Equals, test.expectOK)
 	}
 }

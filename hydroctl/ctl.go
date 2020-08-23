@@ -74,13 +74,13 @@ type RelayConfig struct {
 }
 
 // At returns the slot that is applicable to the given time
-// and the absolute time of the start of the slot.
+// and the absolute time of the start and end of the slot.
 // If there is no slot for the given time, it returns nil.
-func (c *RelayConfig) At(t time.Time) (slot *Slot, start time.Time) {
+func (c *RelayConfig) At(t time.Time) (slot *Slot, start, end time.Time) {
 	var slots []*Slot
 	switch c.Mode {
 	case AlwaysOff, AlwaysOn:
-		return nil, time.Time{}
+		return nil, time.Time{}, time.Time{}
 	case InUse:
 		slots = c.InUse
 	case NotInUse:
@@ -89,11 +89,11 @@ func (c *RelayConfig) At(t time.Time) (slot *Slot, start time.Time) {
 		panic("unexpected mode")
 	}
 	for _, slot := range slots {
-		if start := slot.ActiveAt(t); !start.IsZero() {
-			return slot, start
+		if start, end, ok := slot.ActiveAt(t); ok {
+			return slot, start, end
 		}
 	}
-	return nil, time.Time{}
+	return nil, time.Time{}, time.Time{}
 }
 
 type RelayMode int
@@ -114,6 +114,7 @@ const (
 	AtLeast
 	AtMost
 	Exactly
+	Continuous // Note: slot duration is ignored for type Continuous.
 )
 
 // Slot holds the configuration for a given time slot in a relay.
@@ -127,13 +128,12 @@ const (
 //		Duration: 3 * time.Hour
 //	}
 type Slot struct {
-	// Start holds the slot start time, measured as a duration
-	// from midnight. It must be less than 24 hours.
-	Start time.Duration
+	// Start holds when the slot starts.
+	Start TimeOfDay
 
-	// SlotDuration holds the duration of the slot. It must be greater
-	// than zero and less than or equal to 24 hours.
-	SlotDuration time.Duration
+	// End holds when the slot ends. If it's before
+	// or equal to Start, it's assumed to be the following day.
+	End TimeOfDay
 
 	// Kind holds the kind of slot this is.
 	Kind SlotKind
@@ -143,49 +143,81 @@ type Slot struct {
 }
 
 func (slot *Slot) String() string {
-	return fmt.Sprintf("[slot %s %v; %v for %v]", slot.Start, slot.SlotDuration, slot.Kind, slot.Duration)
+	if slot.Kind == Continuous {
+		return fmt.Sprintf("[slot %v %v; %v]", slot.Start, slot.End, slot.Kind)
+	}
+	return fmt.Sprintf("[slot %v %v; %v for %v]", slot.Start, slot.End, slot.Kind, slot.Duration)
 }
 
-// ActiveAt returns whether the slot is active at the
-// given time. If so, it returns the time the slot started;
-// if not it returns the zero time.
-func (slot *Slot) ActiveAt(t time.Time) time.Time {
-	start := dayStart(t).Add(slot.Start)
-	end := start.Add(slot.SlotDuration)
-	if !t.Before(start) && t.Before(end) {
-		return start
+// ActiveAt reports whether the slot is active at the
+// given time. If so, it returns the start and end time of the slot.
+func (slot *Slot) ActiveAt(t time.Time) (start, end time.Time, ok bool) {
+	start, end, ok = slot.activeAt(t, 0)
+	if !ok {
+		// It might still be in a slot from the previous day.
+		start, end, ok = slot.activeAt(t, -1)
 	}
-	// It might still be in a slot from the previous day.
-	start = dayStart(t.Add(-24 * time.Hour)).Add(slot.Start)
-	end = start.Add(slot.SlotDuration)
-	if !t.Before(start) && t.Before(end) {
-		return start
-	}
+	return
+}
 
-	return time.Time{}
+// activeAt is like ActiveAt except that it only looks at the slot
+// at dayOffset days from the day of t.
+func (slot *Slot) activeAt(t time.Time, dayOffset int) (start, end time.Time, ok bool) {
+	start = dayStartWithOffset(t, dayOffset, slot.Start)
+	if slot.End.After(slot.Start) {
+		end = dayStartWithOffset(t, dayOffset, slot.End)
+	} else {
+		// The end isn't after the start, which means it finishes the
+		// following day.
+		end = dayStartWithOffset(t, dayOffset+1, slot.End)
+	}
+	if !t.Before(start) && t.Before(end) {
+		return start, end, true
+	}
+	return time.Time{}, time.Time{}, false
+}
+
+// dayStartWithOffset returns the time of day at the fromMidnight from the start of
+// dayOffset days from t. It doesn't just add the duration to the start of the day because
+// that wouldn't correctly account for time zone changes.
+func dayStartWithOffset(t time.Time, dayOffset int, td TimeOfDay) time.Time {
+	// TODO When the given time of day does not exist within the given
+	// date, time.Date increments the hour and keeps the minutes,
+	// but for our purposes, it would probably be better to use the nearest
+	// available time.
+	return time.Date(
+		t.Year(),
+		t.Month(),
+		t.Day()+dayOffset,
+		td.Hour(),
+		td.Minute(),
+		td.Second(),
+		0,
+		t.Location(),
+	)
 }
 
 // Overlaps reports whether the two slots overlap in time.
-// If a slot has zero duration, it is not considered to overlap
-// any other slot.
+// Given daylight savings time changes, this might not
+// always be correct, but it's a reasonable guess.
 func (slot0 *Slot) Overlaps(slot1 *Slot) bool {
-	if slot0.SlotDuration == 0 || slot1.SlotDuration == 0 {
-		return false
+	return slot0.Start.d < slot1.endOffset() && slot1.Start.d < slot0.endOffset()
+}
+
+// endOffset returns the notional time offset of the end of the slot
+// from the start of the day containing the start of the slot.
+// It's only good for estimation and will change when time
+// zones change.
+func (slot Slot) endOffset() time.Duration {
+	if slot.End.After(slot.Start) {
+		return slot.End.d
 	}
-	slot0end := slot0.Start + slot0.SlotDuration
-	slot1end := slot1.Start + slot1.SlotDuration
-	return slot0.Start < slot1end && slot1.Start < slot0end
+	return slot.End.d + 24*time.Hour
 }
 
 // dayStart returns the start of the day containing the given time.
-// TODO what about time zone changes?
 func dayStart(t time.Time) time.Time {
-	dayOffset :=
-		time.Duration(t.Hour())*time.Hour +
-			time.Duration(t.Minute())*time.Minute +
-			time.Duration(t.Second())*time.Second +
-			time.Duration(t.Nanosecond())
-	return t.Add(-dayOffset)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
 func (cfg *Config) SetSlot(relay int, slot int, rule Slot) error {
@@ -352,7 +384,7 @@ func Assess(p AssessParams) RelayState {
 			}
 			continue
 		}
-		slot, start := rc.At(a.Now)
+		slot, start, _ := rc.At(a.Now)
 		if slot == nil {
 			panic("discretionary relay without a time slot!")
 		}
@@ -655,7 +687,7 @@ func (a *assessor) assessRelay0(relay int, rc *RelayConfig) (on bool, pri priori
 		a.logf("always on")
 		return true, priAbsolute
 	}
-	slot, start := rc.At(a.Now)
+	slot, start, end := rc.At(a.Now)
 	if slot == nil {
 		a.logf("no slot at %v", a.Now)
 		return false, priAbsolute
@@ -664,7 +696,10 @@ func (a *assessor) assessRelay0(relay int, rc *RelayConfig) (on bool, pri priori
 	a.logf("got slot %v starting at %v, has %v", slot, D(start), dur)
 
 	switch {
-	case (slot.Kind == Exactly || slot.Kind == AtLeast) && start.Add(slot.SlotDuration).Sub(a.Now) <= slot.Duration-dur:
+	case slot.Kind == Continuous:
+		// The relay is continuously on.
+		return true, priAbsolute
+	case (slot.Kind == Exactly || slot.Kind == AtLeast) && end.Sub(a.Now) <= slot.Duration-dur:
 		a.logf("must use all remaining time")
 		// All the remaining time must be used.
 		return true, priAbsolute

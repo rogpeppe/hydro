@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/rogpeppe/hydro/eth8020test"
 	"github.com/rogpeppe/hydro/hydroserver"
@@ -53,11 +54,16 @@ func main() {
 		}
 		fmt.Printf("meter %d %v\n", i, srv.Addr)
 	}
+	tz, err := time.LoadLocation("Europe/London")
+	if err != nil {
+		log.Fatal(err)
+	}
 	h, err := hydroserver.New(hydroserver.Params{
 		RelayAddrPath:   filepath.Join(dir, "relayaddr"),
 		ConfigPath:      filepath.Join(dir, "relayconfig"),
 		MeterConfigPath: filepath.Join(dir, "meterconfig"),
 		HistoryPath:     filepath.Join(dir, "history"),
+		TZ:              tz,
 	})
 	if err != nil {
 		log.Fatal(err)
