@@ -2,17 +2,13 @@ package googlecharts_test
 
 import (
 	"encoding/json"
+	"testing"
 	"time"
 
-	jc "github.com/juju/testing/checkers"
-	gc "gopkg.in/check.v1"
+	qt "github.com/frankban/quicktest"
 
 	"github.com/rogpeppe/hydro/googlecharts"
 )
-
-type tableSuite struct{}
-
-var _ = gc.Suite(&tableSuite{})
 
 type entry struct {
 	Name  string
@@ -22,7 +18,8 @@ type entry struct {
 	unexp int
 }
 
-func (*tableSuite) TestNewDataTable(c *gc.C) {
+func TestNewDataTable(t *testing.T) {
+	c := qt.New(t)
 	dt := googlecharts.NewDataTable([]entry{{
 		Name: "hello",
 		X:    5,
@@ -30,8 +27,8 @@ func (*tableSuite) TestNewDataTable(c *gc.C) {
 		T:    time.Unix(1487509695, 123*1e6),
 	}})
 	data, err := json.Marshal(dt)
-	c.Assert(err, gc.IsNil)
-	c.Assert(string(data), jc.JSONEquals, &googlecharts.DataTable{
+	c.Assert(err, qt.IsNil)
+	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
 		Cols: []googlecharts.Column{{
 			Type: "string",
 			Id:   "Name",
@@ -60,7 +57,8 @@ func (*tableSuite) TestNewDataTable(c *gc.C) {
 	})
 }
 
-func (*tableSuite) TestNewDataTableWithPointerElements(c *gc.C) {
+func TestNewDataTableWithPointerElements(t *testing.T) {
+	c := qt.New(t)
 	dt := googlecharts.NewDataTable([]*entry{
 		1: {
 			Name: "hello",
@@ -71,8 +69,8 @@ func (*tableSuite) TestNewDataTableWithPointerElements(c *gc.C) {
 	})
 
 	data, err := json.Marshal(dt)
-	c.Assert(err, gc.IsNil)
-	c.Assert(string(data), jc.JSONEquals, &googlecharts.DataTable{
+	c.Assert(err, qt.IsNil)
+	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
 		Cols: []googlecharts.Column{{
 			Type: "string",
 			Id:   "Name",
