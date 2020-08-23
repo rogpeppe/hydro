@@ -79,7 +79,7 @@ func New(p Params) (*Handler, error) {
 		history:    historyStore,
 	}
 	go h.configUpdater()
-	h.store.anyVal.Set(nil)
+	h.store.anyNotifier.Changed()
 	h.mux.Handle("/", gziphandler.GzipHandler(http.FileServer(staticData)))
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/history.json", h.serveHistory)
@@ -96,7 +96,7 @@ func New(p Params) (*Handler, error) {
 
 func (h *Handler) configUpdater() {
 	for {
-		for w := h.store.configVal.Watch(); w.Next(); {
+		for w := h.store.configNotifier.Watch(); w.Next(); {
 			h.worker.SetConfig(h.store.CtlConfig())
 		}
 	}
@@ -108,8 +108,8 @@ func (h *Handler) Close() {
 	// and method calls to the worker after it's closed will panic.
 	// Decide whether to close synchronously or make method calls
 	// not panic.
-	h.store.anyVal.Close()
-	h.store.configVal.Close()
+	h.store.anyNotifier.Close()
+	h.store.configNotifier.Close()
 	h.worker.Close()
 }
 
@@ -130,7 +130,7 @@ func (h *Handler) serveUpdates(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	log.Printf("websocket connection made")
-	for w := h.store.anyVal.Watch(); w.Next(); {
+	for w := h.store.anyNotifier.Watch(); w.Next(); {
 		if err := conn.WriteJSON(h.makeUpdate()); err != nil {
 			log.Printf("cannot write JSON to websocket: %v", err)
 			return
