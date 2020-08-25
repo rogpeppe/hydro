@@ -1,6 +1,7 @@
 package logworker
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,8 +14,8 @@ import (
 	"github.com/rogpeppe/hydro/ndmeter"
 )
 
-var ndmeterOpenEnergyLog = func(host string, t0, t1 time.Time) (sampleReadCloser, error) {
-	r, err := ndmeter.OpenEnergyLog(host, t0, t1)
+var ndmeterOpenEnergyLog = func(ctx context.Context, host string, t0, t1 time.Time) (sampleReadCloser, error) {
+	r, err := ndmeter.OpenEnergyLog(ctx, host, t0, t1)
 	if err != nil {
 		return nil, err
 	}
@@ -27,19 +28,26 @@ type sampleReadCloser interface {
 }
 
 type Params struct {
-	MeterHost       string
-	Dir             string
-	Prefix          string
+	// SampleDir holds the name of the directory to store the files.
+	SampleDir string
+	// MeterAddr holds the address of the meter.
+	MeterAddr string
+	// Prefix is used as a prefix for the file names created in SampleDir.
+	Prefix string
+	// StorageDuration holds the length of time that the meter holds the logs for.
 	StorageDuration time.Duration
-	PollInterval    time.Duration
-	TZ              *time.Location
+	// PollInterval holds how often to poll for new logs.
+	PollInterval time.Duration
+	// TZ holds the time zone to use when calculating day boundaries
+	// to use for the sample names.
+	TZ *time.Location
 }
 
 type Worker struct {
-	p        Params
-	closed   chan struct{}
-	isClosed bool
-	wg       sync.WaitGroup
+	p     Params
+	ctx   context.Context
+	close func()
+	wg    sync.WaitGroup
 }
 
 // New returns a Worker that periodically scans a directory
@@ -56,18 +64,20 @@ func New(p Params) (*Worker, error) {
 	if p.StorageDuration == 0 {
 		p.StorageDuration = 28 * 24 * time.Hour
 	}
-	if p.Dir == "" {
+	if p.SampleDir == "" {
 		return nil, fmt.Errorf("empty sample directory name")
 	}
-	if p.MeterHost == "" {
-		return nil, fmt.Errorf("empty meter hostname")
+	if p.MeterAddr == "" {
+		return nil, fmt.Errorf("empty meter address")
 	}
-	if err := os.MkdirAll(p.Dir, 0777); err != nil {
+	if err := os.MkdirAll(p.SampleDir, 0777); err != nil {
 		return nil, fmt.Errorf("cannot create sample directory: %v", err)
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	w := &Worker{
-		p:      p,
-		closed: make(chan struct{}),
+		p:     p,
+		ctx:   ctx,
+		close: cancel,
 	}
 	w.wg.Add(1)
 	go w.run()
@@ -82,18 +92,14 @@ func (w *Worker) run() {
 		}
 		select {
 		case <-time.After(w.p.PollInterval):
-		case <-w.closed:
+		case <-w.ctx.Done():
 			return
 		}
 	}
 }
 
 func (w *Worker) Close() {
-	if w.isClosed {
-		return
-	}
-	w.isClosed = true
-	close(w.closed)
+	w.close()
 	w.wg.Wait()
 }
 
@@ -119,23 +125,27 @@ func (w *Worker) poll() error {
 		return nil
 	}
 	for _, t := range need {
-		if err := w.downloadSamples(t); err != nil {
-			log.Printf("cannot create sample file %q: %v", w.filename(t), err)
+		n, err := w.downloadSamples(t)
+		if err != nil {
+			if w.ctx.Err() == nil {
+				log.Printf("cannot create sample file %q: %T %v", w.filename(t), err, err)
+			}
 		}
+		log.Printf("downloaded %d samples from %v starting at %v", n, w.p.MeterAddr, t)
 	}
 	return nil
 }
 
-func (w *Worker) downloadSamples(t time.Time) (err error) {
-	r, err := ndmeterOpenEnergyLog(w.p.MeterHost, t, t.AddDate(0, 0, 1))
+func (w *Worker) downloadSamples(t time.Time) (n int, err error) {
+	r, err := ndmeterOpenEnergyLog(w.ctx, w.p.MeterAddr, t, t.AddDate(0, 0, 1))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer r.Close()
 	log.Printf("fetching %v", w.filename(t))
-	f, err := ioutil.TempFile(w.p.Dir, "")
+	f, err := ioutil.TempFile(w.p.SampleDir, "")
 	if err != nil {
-		return fmt.Errorf("cannot create temp file: %v", err)
+		return 0, fmt.Errorf("cannot create temp file: %v", err)
 	}
 	defer func() {
 		f.Close()
@@ -143,14 +153,20 @@ func (w *Worker) downloadSamples(t time.Time) (err error) {
 			os.Remove(f.Name())
 		}
 	}()
-	if err := meterstat.WriteSamples(f, r); err != nil {
-		return fmt.Errorf("cannot write samples: %v", err)
+	n, err = meterstat.WriteSamples(f, r)
+	if err != nil {
+		return 0, fmt.Errorf("cannot write samples: %v", err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		return 0, fmt.Errorf("cannot close output file: %v", err)
+	}
+	if n == 0 {
+		return 0, fmt.Errorf("no samples found at %v", t)
+	}
 	if err := os.Rename(f.Name(), w.filename(t)); err != nil {
-		return fmt.Errorf("cannot rename temp file: %v", err)
+		return 0, fmt.Errorf("cannot rename temp file: %v", err)
 	}
-	return nil
+	return n, nil
 }
 
 const leeway = time.Hour
@@ -173,5 +189,5 @@ func (w *Worker) need(t time.Time) bool {
 
 func (w *Worker) filename(t time.Time) string {
 	name := fmt.Sprintf("%s%s.sample", w.p.Prefix, t.Format("2006-01-02"))
-	return filepath.Join(w.p.Dir, name)
+	return filepath.Join(w.p.SampleDir, name)
 }

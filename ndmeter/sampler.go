@@ -111,7 +111,9 @@ func (sampler *Sampler) getOne(ctx context.Context, addr string) *Sample {
 	for ctx.Err() == nil {
 		t0 := time.Now()
 		sample0, err := sampler.group.Do(addr, func() (interface{}, error) {
-			reading, err := Get(addr)
+			// Note: ignore the outer context cancellation because we want to continue
+			// with the request regardless.
+			reading, err := Get(context.Background(), addr)
 			return &Sample{
 				Time:    time.Now(),
 				Reading: reading,

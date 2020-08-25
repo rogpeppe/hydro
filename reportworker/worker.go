@@ -1,6 +1,7 @@
 package reportworker
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
@@ -10,22 +11,22 @@ import (
 )
 
 type Params struct {
-	SampleDir    string
+	SampleDir string
 	// Meters holds the names of the meter directories within SampleDir.
 	Meters       map[hydroreport.MeterLocation][]string
 	TZ           *time.Location
 	PollInterval time.Duration
-	// SetAvailableReports is called to set the currently available reports.
+	// UpdateAvailableReports is called to update the currently available reports.
 	// This should not block (specifically, calling Worker.Close will cause a deadlock).
 	// It's OK for the function to take ownership of the slice.
-	SetAvailableReports func([]*hydroreport.Report)
+	UpdateAvailableReports func([]*hydroreport.Report)
 }
 
 type Worker struct {
-	p        Params
-	closed   chan struct{}
-	isClosed bool
-	wg       sync.WaitGroup
+	p     Params
+	ctx   context.Context
+	close func()
+	wg    sync.WaitGroup
 }
 
 func New(p Params) (*Worker, error) {
@@ -35,12 +36,14 @@ func New(p Params) (*Worker, error) {
 	if p.PollInterval == 0 {
 		p.PollInterval = 4 * time.Hour
 	}
-	if p.SetAvailableReports == nil {
-		return nil, fmt.Errorf("no SetAvailableReports callback provided")
+	if p.UpdateAvailableReports == nil {
+		return nil, fmt.Errorf("no UpdateAvailableReports callback provided")
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	w := &Worker{
-		p:      p,
-		closed: make(chan struct{}),
+		ctx:   ctx,
+		close: cancel,
+		p:     p,
 	}
 	w.wg.Add(1)
 	go w.run()
@@ -48,6 +51,7 @@ func New(p Params) (*Worker, error) {
 }
 
 func (w *Worker) run() {
+	defer w.wg.Done()
 	for {
 		reports, err := hydroreport.AllReports(hydroreport.AllReportsParams{
 			SampleDir: w.p.SampleDir,
@@ -57,9 +61,9 @@ func (w *Worker) run() {
 		if err != nil {
 			log.Printf("cannot gather reports: %v", err)
 		}
-		w.p.SetAvailableReports(reports)
+		w.p.UpdateAvailableReports(reports)
 		select {
-		case <-w.closed:
+		case <-w.ctx.Done():
 			return
 		case <-time.After(w.p.PollInterval):
 		}
@@ -67,10 +71,6 @@ func (w *Worker) run() {
 }
 
 func (w *Worker) Close() {
-	if w.isClosed {
-		return
-	}
-	w.isClosed = true
-	close(w.closed)
+	w.close()
 	w.wg.Wait()
 }
