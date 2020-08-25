@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -17,6 +18,7 @@ import (
 	"github.com/rogpeppe/hydro/history"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
+	"github.com/rogpeppe/hydro/logworker"
 	"github.com/rogpeppe/hydro/meterworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
@@ -33,14 +35,16 @@ type Handler struct {
 	controller  *relayCtl
 	mux         *http.ServeMux
 	history     *history.DiskStore
+	p           Params
 }
 
 type Params struct {
-	RelayAddrPath   string
-	ConfigPath      string
-	MeterConfigPath string
-	HistoryPath     string
-	SampleDirPath   string
+	RelayAddrPath      string
+	ConfigPath         string
+	MeterConfigPath    string
+	HistoryPath        string
+	SampleDirPath      string
+	ReportPollInterval time.Duration
 	// TZ holds the time zone to use for meter assessments.
 	TZ *time.Location
 }
@@ -66,11 +70,26 @@ func New(p Params) (_ *Handler, err error) {
 	}
 	controller := newRelayController(relayCtlConfigStore)
 
-	mw, err := meterworker.New(meterworker.Params{
+	meterWorker, err := meterworker.New(meterworker.Params{
 		Updater:         store,
 		SampleDirPath:   p.SampleDirPath,
 		MeterConfigPath: p.MeterConfigPath,
 		TZ:              p.TZ,
+		// Use logworker to gather samples. We could also use sampleworker here,
+		// or a sampleworker proxy via a raspberry pi adjacent to the meter.
+		NewSampleWorker: func(p meterworker.SampleWorkerParams) (meterworker.SampleWorker, error) {
+			w, err := logworker.New(logworker.Params{
+				SampleDir: p.SampleDir,
+				MeterAddr: p.MeterAddr,
+				TZ:        p.TZ,
+				Prefix:    "log-",
+			})
+			if err != nil {
+				return nil, err
+			}
+			return w, nil
+		},
+		ReportPollInterval: p.ReportPollInterval,
 	})
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start meter worker")
@@ -81,7 +100,7 @@ func New(p Params) (_ *Handler, err error) {
 		Store:      historyStore,
 		Updater:    store,
 		Controller: controller,
-		Meters:     mw,
+		Meters:     meterWorker,
 		TZ:         p.TZ,
 	})
 	if err != nil {
@@ -91,9 +110,10 @@ func New(p Params) (_ *Handler, err error) {
 		store:       store,
 		mux:         http.NewServeMux(),
 		worker:      w,
-		meterWorker: mw,
+		meterWorker: meterWorker,
 		controller:  controller,
 		history:     historyStore,
+		p:           p,
 	}
 	go h.configUpdater()
 	h.store.anyNotifier.Changed()
@@ -101,6 +121,7 @@ func New(p Params) (_ *Handler, err error) {
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/history.json", h.serveHistory)
 	h.mux.HandleFunc("/config", h.serveConfig)
+	h.mux.HandleFunc("/reports/", h.serveReports)
 	h.mux.Handle("/api/", newAPIHandler(h))
 	// Let's see what's going on.
 	h.mux.HandleFunc("/debug/pprof/", pprof.Index)
@@ -217,6 +238,39 @@ func (h *Handler) serveHistory(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
+const reportLinkFormat = "hydro-report-2006-01.csv"
+
+func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
+	reports := h.store.AvailableReports()
+	reportName := strings.TrimPrefix(req.URL.Path, "/reports/")
+	if reportName == "" {
+		fmt.Fprintf(w, "%d reports available (TODO more info about available reports!)", len(reports))
+		return
+	}
+	t, err := time.ParseInLocation(reportLinkFormat, reportName, h.p.TZ)
+	if err != nil {
+		log.Printf("cannot parse report name %q: %v", reportName, err)
+		http.NotFound(w, req)
+		return
+	}
+	log.Printf("looking for %v %v", t.Year(), t.Month())
+	for _, report := range reports {
+		rt := report.StartTime()
+		log.Printf("checking against %v", rt)
+		if rt.Year() == t.Year() && rt.Month() == t.Month() {
+			w.Header().Set("Content-Type", "text/csv")
+			if err := report.Write(w); err != nil {
+				if err != nil {
+					log.Printf("error writing report %q: %v", reportName, err)
+				}
+			}
+			return
+		}
+	}
+	log.Printf("no matching report")
+	http.NotFound(w, req)
+}
+
 // clientUpdate holds the data that will be JSON-marshaled and sent
 // down the websocket connection to the client.
 type clientUpdate struct {
@@ -320,7 +374,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 		for i, r := range reports {
 			cr := &u.Reports[i]
 			cr.Name = r.StartTime().Format("Jan 2006")
-			cr.Name = "/reports/" + r.StartTime().Format("2006-01")
+			cr.Link = "/reports/" + r.StartTime().Format(reportLinkFormat)
 		}
 	}
 	return u
