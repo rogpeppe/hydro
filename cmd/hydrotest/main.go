@@ -59,12 +59,13 @@ func main() {
 		log.Fatal(err)
 	}
 	h, err := hydroserver.New(hydroserver.Params{
-		RelayAddrPath:   filepath.Join(dir, "relayaddr"),
-		ConfigPath:      filepath.Join(dir, "relayconfig"),
-		MeterConfigPath: filepath.Join(dir, "meterconfig"),
-		HistoryPath:     filepath.Join(dir, "history"),
-		SampleDirPath:   filepath.Join(dir, "samples"),
-		TZ:              tz,
+		RelayAddrPath:      filepath.Join(dir, "relayaddr"),
+		ConfigPath:         filepath.Join(dir, "relayconfig"),
+		MeterConfigPath:    filepath.Join(dir, "meterconfig"),
+		HistoryPath:        filepath.Join(dir, "history"),
+		SampleDirPath:      filepath.Join(dir, "samples"),
+		TZ:                 tz,
+		ReportPollInterval: time.Second,
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -190,14 +190,10 @@ func New(p Params) (*Worker, error) {
 
 		sampler:       ndmeter.NewSampler(),
 		sampleWorkers: make(map[string]SampleWorker),
-		meters:        mcfg.Meters,
 		p:             p,
-		meterState: &MeterState{
-			Meters: mcfg.Meters,
-		},
 	}
 	w.wg.Add(1)
-	go w.run()
+	go w.run(mcfg.Meters)
 	return w, nil
 }
 
@@ -247,9 +243,13 @@ func (w *Worker) SetMeters(ms []Meter) error {
 	}
 }
 
-func (w *Worker) run() {
+func (w *Worker) run(meters []Meter) {
 	defer w.wg.Done()
 	defer w.stopWorkers()
+	if _, err := w.setMeters(meters); err != nil {
+		log.Printf("cannot set meters initially: %v", err)
+	}
+	w.p.Updater.UpdateMeterState(w.meterState)
 	for {
 		select {
 		case req := <-w.setMetersC:

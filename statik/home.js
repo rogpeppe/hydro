@@ -81,7 +81,7 @@ var Meters = React.createClass({
 var Reports = React.createClass({
 	render: function() {
 		var reports = this.props.reports;
-		if(reports.length === 0){
+		if(!reports || reports.length === 0){
 			return <div>No reports available</div>
 		}
 		return <div>
@@ -89,13 +89,13 @@ var Reports = React.createClass({
 			<thead>
 				<tr><th>Name</th><th>Available reports</th></tr>
 			</thead>
-			<tbody>
+			<tbody> {
 				reports.map(function(report){
 					return <tr>
-						<td><a href={report.Link}>{report.Name}</a></td>
+						<td><a href={report.Link} download>{report.Name}</a></td>
 					</tr>
 				})
-			</tbody>
+			} </tbody>
 			</table>
 		</div>
 	}
@@ -117,6 +117,7 @@ socket.onmessage = function(event) {
 			<Reports reports={m.Reports}/>
 			<p/>
 			<a href="/config">Change configuration</a>
+			<p/>
 			<a href="/history.html">Relay history</a>
 		</div>, toplev);
 };
