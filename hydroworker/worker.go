@@ -6,6 +6,7 @@ package hydroworker
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -84,8 +85,11 @@ var ErrNoRelayController = errgo.New("no relay controller configured")
 // MeterReader represents a meter reader.
 type MeterReader interface {
 	// ReadMeters returns the most recent state of the meters.
+	// If there's no available meter information, it returns ErrNoMeters.
 	ReadMeters(ctx context.Context) (hydroctl.PowerUseSample, error)
 }
+
+var ErrNoMeters = fmt.Errorf("no meter information available")
 
 // Heartbeat is the interval at which the worker assesses for
 // possible relay changes.
@@ -163,13 +167,16 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		ctx1, cancel := context.WithTimeout(ctx, Heartbeat)
 		currentPowerUse, err := w.meters.ReadMeters(ctx1)
 		cancel()
-		if err != nil {
+		if err != nil && errgo.Cause(err) != ErrNoMeters {
 			log.Printf("warning: cannot get current meter reading: %v", err)
 		}
 		if !haveRelays {
 			log.Printf("can't talk to relay server")
 			// No point in continuing if we can't talk to the relay server.
 			continue
+		}
+		if err == ErrNoMeters {
+			currentPowerUse = w.allMaxPower(currentConfig, currentRelays)
 		}
 		now := time.Now().In(w.tz)
 		logger.msgs = logger.msgs[:0]
@@ -213,6 +220,20 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 			w.updater.UpdateWorkerState(currentState.Clone())
 			firstTime = false
 		}
+	}
+}
+
+func (w *Worker) allMaxPower(config *hydroctl.Config, relayState hydroctl.RelayState) hydroctl.PowerUseSample {
+	total := 0
+	for i := 0; i < hydroctl.MaxRelayCount; i++ {
+		if relayState.IsSet(i) {
+			total += config.Relays[i].MaxPower
+		}
+	}
+	return hydroctl.PowerUseSample{
+		PowerUse: hydroctl.PowerUse{
+			Here: float64(total),
+		},
 	}
 }
 

@@ -97,6 +97,10 @@ func (w *Worker) Close() {
 	w.wg.Wait()
 }
 
+func (w *Worker) Params() Params {
+	return w.p
+}
+
 func (w *Worker) poll() error {
 	// Find the earliest time that we might obtain a sample and round
 	// it up to the nearest day.
@@ -152,21 +156,18 @@ func (w *Worker) downloadSamples(t time.Time) (err error) {
 const leeway = time.Hour
 
 func (w *Worker) need(t time.Time) bool {
-	log.Printf("do we need %v ?", t)
 	endPeriod := t.AddDate(0, 0, 1)
 	path := w.filename(t)
 	info, err := meterstat.SampleFileInfo(path)
 	if err != nil {
-		log.Printf("yes (no info available: %v)", err)
 		return true
 	}
 	t0, t1 := info.FirstSample().Time, info.LastSample().Time
 	if t0.After(t.Add(leeway)) || t1.Before(endPeriod.Add(-leeway)) {
+		log.Printf("samples out of range; range [%v %v] need [%v %v]", t0, t1, t.Add(leeway), endPeriod.Add(-leeway))
 		// It doesn't contain all the samples we'd like it to
-		log.Printf("yes (samples out of range; range [%v %v] need [%v %v]", t0, t1, t.Add(leeway), endPeriod.Add(-leeway))
 		return true
 	}
-	log.Printf("no")
 	return false
 }
 

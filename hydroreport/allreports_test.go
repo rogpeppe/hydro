@@ -33,11 +33,14 @@ func TestAllReports(t *testing.T) {
 		err = ioutil.WriteFile(path, buf.Bytes(), 0666)
 		c.Assert(err, qt.IsNil)
 	}
-	reports, err := AllReports(dir, map[MeterLocation][]string{
-		LocGenerator: {"generator-a"},
-		LocHere:      {"here-a"},
-		LocNeighbour: {"neighbour-a"},
-	}, nil)
+	reports, err := AllReports(AllReportsParams{
+		SampleDir: dir,
+		Meters: map[MeterLocation][]string{
+			LocGenerator: {"generator-a"},
+			LocHere:      {"here-a"},
+			LocNeighbour: {"neighbour-a"},
+		},
+	})
 	c.Log("here range", epoch.Add(month), epoch.Add(4*month))
 	c.Assert(err, qt.IsNil)
 	var startTimes []time.Time

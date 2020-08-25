@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -17,6 +18,7 @@ import (
 	"github.com/rogpeppe/hydro/history"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
+	"github.com/rogpeppe/hydro/meterworker"
 	_ "github.com/rogpeppe/hydro/statik"
 )
 
@@ -25,11 +27,13 @@ var upgrader = websocket.Upgrader{
 }
 
 type Handler struct {
-	store      *store
-	worker     *hydroworker.Worker
-	controller *relayCtl
-	mux        *http.ServeMux
-	history    *history.DiskStore
+	store *store
+	// TODO rename this to relayworker.
+	worker      *hydroworker.Worker
+	meterWorker *meterworker.Worker
+	controller  *relayCtl
+	mux         *http.ServeMux
+	history     *history.DiskStore
 }
 
 type Params struct {
@@ -37,16 +41,26 @@ type Params struct {
 	ConfigPath      string
 	MeterConfigPath string
 	HistoryPath     string
+	SampleDirPath   string
 	// TZ holds the time zone to use for meter assessments.
 	TZ *time.Location
 }
 
-func New(p Params) (*Handler, error) {
+func meterName(m meterworker.Meter) string {
+	// TODO ideally we'd use a more resilient name for the meter, such
+	// as its mac address, but this'll do for now.
+	return strings.ToLower(m.Location.String()) + "-" + strings.ReplaceAll(m.Addr, ":", "·")
+}
+
+// TODO make it so it's possible to change this via the UI.
+var timezone, _ = time.LoadLocation("Europe/London")
+
+func New(p Params) (_ *Handler, err error) {
 	staticData, err := fs.New()
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot get static data")
 	}
-	store, err := newStore(p.ConfigPath, p.MeterConfigPath)
+	store, err := newStore(p.ConfigPath)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot make store")
 	}
@@ -59,24 +73,33 @@ func New(p Params) (*Handler, error) {
 	}
 	controller := newRelayController(relayCtlConfigStore)
 
-	hwp := hydroworker.Params{
+	mw, err := meterworker.New(meterworker.Params{
+		Updater:         store,
+		SampleDirPath:   p.SampleDirPath,
+		MeterConfigPath: p.MeterConfigPath,
+	})
+	if err != nil {
+		return nil, errgo.Notef(err, "cannot start meter worker")
+	}
+
+	w, err := hydroworker.New(hydroworker.Params{
 		Config:     store.CtlConfig(),
 		Store:      historyStore,
 		Updater:    store,
 		Controller: controller,
-		Meters:     store,
+		Meters:     mw,
 		TZ:         p.TZ,
-	}
-	w, err := hydroworker.New(hwp)
+	})
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start worker")
 	}
 	h := &Handler{
-		store:      store,
-		mux:        http.NewServeMux(),
-		worker:     w,
-		controller: controller,
-		history:    historyStore,
+		store:       store,
+		mux:         http.NewServeMux(),
+		worker:      w,
+		meterWorker: mw,
+		controller:  controller,
+		history:     historyStore,
 	}
 	go h.configUpdater()
 	h.store.anyNotifier.Changed()
@@ -200,9 +223,12 @@ func (h *Handler) serveHistory(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
+// clientUpdate holds the data that will be JSON-marshaled and sent
+// down the websocket connection to the client.
 type clientUpdate struct {
-	Relays []clientRelayInfo
-	Meters *clientMeterInfo
+	Relays  []clientRelayInfo
+	Meters  *clientMeterInfo
+	Reports []clientReport
 }
 
 type clientRelayInfo struct {
@@ -221,8 +247,13 @@ type clientSample struct {
 type clientMeterInfo struct {
 	Chargeable hydroctl.PowerChargeable
 	Use        hydroctl.PowerUse
-	Meters     []meter
+	Meters     []meterworker.Meter
 	Samples    map[string]clientSample
+}
+
+type clientReport struct {
+	Name string
+	Link string
 }
 
 // expectedMaxRoundTrip holds the maximum duration we might normally expect
@@ -235,6 +266,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 	ws := h.store.WorkerState()
 	cfg := h.store.CtlConfig()
 	meters := h.store.meterState()
+	reports := h.store.AvailableReports()
 	var u clientUpdate
 	samples := make(map[string]clientSample)
 	for addr, s := range meters.Samples {
@@ -288,6 +320,14 @@ func (h *Handler) makeUpdate() clientUpdate {
 			On:     r.On,
 			Since:  since,
 		})
+	}
+	if len(reports) != 0 {
+		u.Reports = make([]clientReport, len(reports))
+		for i, r := range reports {
+			cr := &u.Reports[i]
+			cr.Name = r.StartTime().Format("Jan 2006")
+			cr.Name = "/reports/" + r.StartTime().Format("2006-01")
+		}
 	}
 	return u
 }

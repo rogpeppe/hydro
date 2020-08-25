@@ -94,5 +94,5 @@ func csvFields(s string) []string {
 }
 
 func timeParam(t time.Time) string {
-	return fmt.Sprint(t.Unix() - 315532800)
+	return fmt.Sprint(t.Unix() - timeOffset)
 }
