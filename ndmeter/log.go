@@ -2,6 +2,7 @@ package ndmeter
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,13 +16,22 @@ import (
 
 const timeOffset = 315532800
 
+func postForm(ctx context.Context, url string, data url.Values) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return http.DefaultClient.Do(req)
+}
+
 // OpenEnergyLog opens a log of energy readings from the meter at the
 // given host, requesting readings between t0 and t1.
 // Note that the meter software is buggy, so the actually returned readings
 // might not reflect the requested time range.
 // The returned value should be closed after use.
-func OpenEnergyLog(host string, t0, t1 time.Time) (*EnergyReader, error) {
-	resp, err := http.PostForm("http://"+host+"/Read_Energy.cgi", url.Values{
+func OpenEnergyLog(ctx context.Context, host string, t0, t1 time.Time) (*EnergyReader, error) {
+	resp, err := postForm(ctx, "http://"+host+"/Read_Energy.cgi", url.Values{
 		"From": {timeParam(t0)},
 		"To":   {timeParam(t1)},
 		"Fmt":  {"csv"},
@@ -40,16 +50,44 @@ func OpenEnergyLog(host string, t0, t1 time.Time) (*EnergyReader, error) {
 	return &EnergyReader{
 		scanner: scanner,
 		rc:      resp.Body,
+		first:   true,
+		t0:      t0,
+		t1:      t1,
 	}, nil
 }
 
 type EnergyReader struct {
 	scanner *bufio.Scanner
+	t0, t1  time.Time
 	rc      io.ReadCloser
+	first   bool
 }
 
-// ReadSample implements meterstat.SampleReader.ReadSample
+// ReadSample implements meterstat.SampleReader.ReadSample.
 func (r *EnergyReader) ReadSample() (meterstat.Sample, error) {
+	// This buggy meter has a tendency to return samples outside of the requested
+	// time range, so make sure we keep 'em in bounds.
+	for {
+		sample, err := r.readSample()
+		if err != nil {
+			return meterstat.Sample{}, err
+		}
+		if sample.Time.After(r.t1) {
+			if r.first {
+				return meterstat.Sample{}, fmt.Errorf("energy reading samples started out of bounds (got %v want between %v and %v)", sample.Time, r.t0, r.t1)
+			}
+			return meterstat.Sample{}, io.EOF
+		}
+		if !sample.Time.Before(r.t0) {
+			r.first = false
+			return sample, nil
+		}
+	}
+}
+
+// readSample is like ReadSample except that it doesn't check that
+// the sample is within the requested bounds.
+func (r *EnergyReader) readSample() (meterstat.Sample, error) {
 	if !r.scanner.Scan() {
 		err := r.scanner.Err()
 		if err == nil {
@@ -85,6 +123,9 @@ func (r *EnergyReader) Close() error {
 	return r.rc.Close()
 }
 
+// csvFields returns the fields from a CSV header as returned by the meter.
+// Example:
+// 	Date, Time, kWh, Export kWh, Counter 1, Counter 2, Counter 3
 func csvFields(s string) []string {
 	fields := strings.Split(s, ",")
 	for i, f := range fields {

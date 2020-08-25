@@ -2,6 +2,7 @@ package ndmeter
 
 import (
 	"bufio"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -56,8 +57,8 @@ type NetworkSettings struct {
 	MeterName      string
 }
 
-func GetNetworkSettings(host string) (NetworkSettings, error) {
-	r, err := getAttributes(host, "net_settings.shtml")
+func GetNetworkSettings(ctx context.Context, host string) (NetworkSettings, error) {
+	r, err := getAttributes(ctx, host, "net_settings.shtml")
 	if err != nil {
 		return NetworkSettings{}, errgo.Notef(err, "cannot fetch live values")
 	}
@@ -103,8 +104,8 @@ func parseIP(s string) ([]byte, error) {
 	return ip[:], nil
 }
 
-func Get(host string) (Reading, error) {
-	r, err := getAttributes(host, "Values_live.shtml")
+func Get(ctx context.Context, host string) (Reading, error) {
+	r, err := getAttributes(ctx, host, "Values_live.shtml")
 	if err != nil {
 		return Reading{}, errgo.Notef(err, "cannot fetch live values")
 	}
@@ -203,8 +204,12 @@ var registers = map[int]measure{
 
 var attrLinePat = regexp.MustCompile(`<td id='([^']+)'>([^<]*)</td>`)
 
-func getAttributes(host string, page string) (*attributesReader, error) {
-	resp, err := http.Get("http://" + host + "/" + page)
+func getAttributes(ctx context.Context, host string, page string) (*attributesReader, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://"+host+"/"+page, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot fetch live values")
 	}

@@ -45,9 +45,10 @@ func TestWriteSamples(t *testing.T) {
 `[1:]
 	r := NewSampleReader(strings.NewReader(data))
 	var buf bytes.Buffer
-	err := WriteSamples(&buf, r)
+	n, err := WriteSamples(&buf, r)
 	c.Assert(err, qt.IsNil)
 	c.Assert(buf.String(), qt.Equals, data)
+	c.Assert(n, qt.Equals, 3)
 }
 
 func TestMultiReader(t *testing.T) {

@@ -4,6 +4,7 @@
 package sampleworker
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -46,9 +47,11 @@ func New(p Params) (*Worker, error) {
 	if p.Interval == 0 {
 		p.Interval = DefaultInterval
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	w := &Worker{
-		p:      p,
-		closed: make(chan struct{}),
+		p:     p,
+		ctx:   ctx,
+		close: cancel,
 	}
 	w.wg.Add(1)
 	go func() {
@@ -62,16 +65,13 @@ func New(p Params) (*Worker, error) {
 type Worker struct {
 	p        Params
 	isClosed bool
-	closed   chan struct{}
+	ctx      context.Context
+	close    func()
 	wg       sync.WaitGroup
 }
 
 func (w *Worker) Close() {
-	if w.isClosed {
-		return
-	}
-	w.isClosed = true
-	close(w.closed)
+	w.close()
 	w.wg.Wait()
 }
 
@@ -111,7 +111,7 @@ func (w *Worker) run() error {
 		}
 		select {
 		case <-time.After(w.p.Interval):
-		case <-w.closed:
+		case <-w.ctx.Done():
 			return nil
 		}
 	}
@@ -132,13 +132,14 @@ var retryStrategy = retry.Exponential{
 }
 
 func (w *Worker) readMeter() (float64, bool) {
-	for a := retry.StartWithCancel(retryStrategy, nil, w.closed); a.Next(); {
-		reading, err := ndmeter.Get(w.p.MeterAddr)
+	for a := retry.StartWithCancel(retryStrategy, nil, w.ctx.Done()); a.Next(); {
+		reading, err := ndmeter.Get(w.ctx, w.p.MeterAddr)
 		if err == nil {
 			return reading.TotalEnergy, true
 		}
 		log.Printf("cannot get reading from %v: %v", w.p.MeterAddr, err)
 	}
+	// Note: this only happens when the context gets cancelled (i.e. the worker is closed).
 	return 0, false
 }
 

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
-	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -46,12 +45,6 @@ type Params struct {
 	TZ *time.Location
 }
 
-func meterName(m meterworker.Meter) string {
-	// TODO ideally we'd use a more resilient name for the meter, such
-	// as its mac address, but this'll do for now.
-	return strings.ToLower(m.Location.String()) + "-" + strings.ReplaceAll(m.Addr, ":", "·")
-}
-
 // TODO make it so it's possible to change this via the UI.
 var timezone, _ = time.LoadLocation("Europe/London")
 
@@ -77,6 +70,7 @@ func New(p Params) (_ *Handler, err error) {
 		Updater:         store,
 		SampleDirPath:   p.SampleDirPath,
 		MeterConfigPath: p.MeterConfigPath,
+		TZ:              p.TZ,
 	})
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot start meter worker")

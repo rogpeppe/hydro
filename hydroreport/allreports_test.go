@@ -28,7 +28,7 @@ func TestAllReports(t *testing.T) {
 		err := os.MkdirAll(filepath.Dir(path), 0777)
 		c.Assert(err, qt.IsNil)
 		var buf bytes.Buffer
-		err = meterstat.WriteSamples(&buf, meterstat.NewMemSampleReader(samples))
+		_, err = meterstat.WriteSamples(&buf, meterstat.NewMemSampleReader(samples))
 		c.Assert(err, qt.IsNil)
 		err = ioutil.WriteFile(path, buf.Bytes(), 0666)
 		c.Assert(err, qt.IsNil)
