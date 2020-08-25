@@ -249,14 +249,11 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 	}
 	t, err := time.ParseInLocation(reportLinkFormat, reportName, h.p.TZ)
 	if err != nil {
-		log.Printf("cannot parse report name %q: %v", reportName, err)
 		http.NotFound(w, req)
 		return
 	}
-	log.Printf("looking for %v %v", t.Year(), t.Month())
 	for _, report := range reports {
 		rt := report.StartTime()
-		log.Printf("checking against %v", rt)
 		if rt.Year() == t.Year() && rt.Month() == t.Month() {
 			w.Header().Set("Content-Type", "text/csv")
 			if err := report.Write(w); err != nil {
@@ -267,7 +264,6 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	log.Printf("no matching report")
 	http.NotFound(w, req)
 }
 
