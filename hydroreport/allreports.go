@@ -103,9 +103,9 @@ func AllReports(p AllReportsParams) ([]*Report, error) {
 			}
 			if ok {
 				reports = append(reports, &Report{
-					meterDirs: meterDirs,
-					t0:        t0r,
-					t1:        t1r,
+					MeterDirs: meterDirs,
+					T0:        t0r,
+					T1:        t1r,
 					tz:        p.TZ,
 				})
 			}
@@ -114,86 +114,36 @@ func AllReports(p AllReportsParams) ([]*Report, error) {
 	return reports, nil
 }
 
+// Report represents a report generated from available samples.
 type Report struct {
-	meterDirs map[MeterLocation][]*meterstat.MeterSampleDir
-	// t0 and t1 hold the time range of the report.
-	t0, t1 time.Time
+	// MeterDirs holds all the directories containing the samples
+	// indexed by meter location.
+	MeterDirs map[MeterLocation][]*meterstat.MeterSampleDir
+	// T0 and T1 hold the time range of the report.
+	T0, T1 time.Time
 	tz     *time.Location
 }
 
-func (r *Report) StartTime() time.Time {
-	return r.t0
-}
-
-func (r *Report) Write(w io.Writer) error {
+// Params returns the parameters for WriteReport.
+func (r Report) Params() ReportParams {
 	locUsageReaders := make(map[MeterLocation]meterstat.UsageReader)
-	for loc, sds := range r.meterDirs {
+	for loc, sds := range r.MeterDirs {
 		usageReaders := make([]meterstat.UsageReader, 0, len(sds))
 		for _, sd := range sds {
-			sampleReaders := make([]meterstat.SampleReader, 0, len(sd.Files))
-			for _, info := range relevantFiles(sd.Files, r.t0, r.t1) {
-				f := info.Open()
-				defer f.Close()
-				sampleReaders = append(sampleReaders, f)
-			}
-			if len(sampleReaders) == 0 {
-				// Shouldn't happen because there should always be at least one sample file.
-				panic("no sample readers added")
-			}
-			allSamples := meterstat.MultiSampleReader(sampleReaders...)
-			usageReaders = append(usageReaders, meterstat.NewUsageReader(allSamples, r.t0, time.Minute))
+			usageReaders = append(usageReaders, meterstat.NewUsageReader(sd.OpenRange(r.T0, r.T1), r.T0, time.Minute))
 		}
 		locUsageReaders[loc] = meterstat.SumUsage(usageReaders...)
 	}
-	return WriteReport(w, ReportParams{
+	return ReportParams{
 		Generator: locUsageReaders[LocGenerator],
 		Neighbour: locUsageReaders[LocNeighbour],
 		Here:      locUsageReaders[LocHere],
-		EndTime:   r.t1,
+		EndTime:   r.T1,
 		TZ:        r.tz,
-	})
+	}
 }
 
-// relevantFiles returns all of the given sample files that are useful
-// for evaluating data points from t0 to t1.
-// We only need to keep files that have data ranges that overlap
-// the interval or that are directly before or after it if we
-// don't yet have a file that overlaps [t0, t0] or [t1, t1] respectively.
-func relevantFiles(sds []*meterstat.FileInfo, t0, t1 time.Time) []*meterstat.FileInfo {
-	result := make([]*meterstat.FileInfo, 0, len(sds))
-	haveStart := false
-	haveEnd := false
-	var start, end *meterstat.FileInfo
-	for _, sd := range sds {
-		sdt0, sdt1 := sd.FirstSample().Time, sd.LastSample().Time
-		if timeOverlaps(sdt0, sdt1, t0, t1) {
-			result = append(result, sd)
-			haveStart = haveStart || timeOverlaps(sdt0, sdt1, t0, t0)
-			haveEnd = haveEnd || timeOverlaps(sdt0, sdt1, t1, t1)
-			continue
-		}
-		if !haveStart && (start == nil || sdt1.After(start.LastSample().Time)) {
-			start = sd
-		}
-		if !haveEnd && (end == nil || sdt0.Before(end.FirstSample().Time)) {
-			end = sd
-		}
-	}
-	if !haveStart && start != nil {
-		result = append(result, start)
-	}
-	if !haveEnd && end != nil {
-		result = append(result, end)
-	}
-	return result
-}
-
-func timeOverlaps(at0, at1, bt0, bt1 time.Time) bool {
-	if at1.Before(at0) {
-		panic("bad interval a")
-	}
-	if bt1.Before(bt0) {
-		panic("bad interval b")
-	}
-	return !at0.After(bt1) && !bt0.After(at1)
+// Write writes the report as a CSV to w.
+func (r *Report) Write(w io.Writer) error {
+	return WriteReport(w, r.Params())
 }

@@ -256,7 +256,7 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	for _, report := range reports {
-		rt := report.StartTime()
+		rt := report.T0
 		if rt.Year() == t.Year() && rt.Month() == t.Month() {
 			w.Header().Set("Content-Type", "text/csv")
 			if err := report.Write(w); err != nil {
@@ -372,8 +372,8 @@ func (h *Handler) makeUpdate() clientUpdate {
 		u.Reports = make([]clientReport, len(reports))
 		for i, r := range reports {
 			cr := &u.Reports[i]
-			cr.Name = r.StartTime().Format("Jan 2006")
-			cr.Link = "/reports/" + r.StartTime().Format(reportLinkFormat)
+			cr.Name = r.T0.Format("Jan 2006")
+			cr.Link = "/reports/" + r.T0.Format(reportLinkFormat)
 		}
 	}
 	return u
