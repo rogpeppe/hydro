@@ -8,7 +8,8 @@ import (
 	"os"
 )
 
-func OpenSampleFile(path string) (*SampleFile, error) {
+// OpenSampleFile is a convenient shortcut for SampleFileInfo(path).Open.
+func OpenSampleFile(path string) (SampleReadCloser, error) {
 	info, err := SampleFileInfo(path)
 	if err != nil {
 		return nil, err
@@ -18,8 +19,8 @@ func OpenSampleFile(path string) (*SampleFile, error) {
 
 // OpenSampleFile returns information on a sample file.
 //
-// Empty sample files are considered to be invalid - an error
-// will be returned if there are no samples in the file.
+// Empty sample files are considered to be invalid - if there
+// are no samples in the file, it returns ErrNoSamples.
 func SampleFileInfo(path string) (*FileInfo, error) {
 	// Open the file, read the first sample from it, then close it.
 	// This means we'll be able to open many sample files at once
@@ -32,7 +33,7 @@ func SampleFileInfo(path string) (*FileInfo, error) {
 	s0, err := NewSampleReader(f).ReadSample()
 	if err != nil {
 		if err == io.EOF {
-			err = fmt.Errorf("no samples in file")
+			return nil, ErrNoSamples
 		}
 		return nil, fmt.Errorf("cannot read first sample from %q: %v", path, err)
 	}
@@ -78,14 +79,14 @@ func (info *FileInfo) LastSample() Sample {
 // should be closed after use. Note that the actual file is not
 // opened until ReadSample is called for the second time - the
 // sample already read is used to satisfy the first read.
-func (info *FileInfo) Open() *SampleFile {
-	return &SampleFile{
+func (info *FileInfo) Open() SampleReadCloser {
+	return &sampleFile{
 		info: info,
 	}
 }
 
-// SampleFile represents an open sample file.
-type SampleFile struct {
+// sampleFile represents an open sample file.
+type sampleFile struct {
 	doneFirst bool
 	closed    bool
 	info      *FileInfo
@@ -94,7 +95,7 @@ type SampleFile struct {
 }
 
 // ReadSample implements SampleReader.ReadSample.
-func (sf *SampleFile) ReadSample() (Sample, error) {
+func (sf *sampleFile) ReadSample() (Sample, error) {
 	if sf.closed {
 		return Sample{}, fmt.Errorf("sample file %q: read after close", sf.info.path)
 	}
@@ -135,8 +136,8 @@ func (sf *SampleFile) ReadSample() (Sample, error) {
 	return Sample{}, fmt.Errorf("cannot read sample from %q: %v", sf.info.path, err)
 }
 
-// Close closes the SampleFile.
-func (sf *SampleFile) Close() error {
+// Close implements SampleReadCloser.Close.
+func (sf *sampleFile) Close() error {
 	var err error
 	if sf.f != nil {
 		err = sf.f.Close()

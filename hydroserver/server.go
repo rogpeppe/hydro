@@ -122,6 +122,8 @@ func New(p Params) (_ *Handler, err error) {
 	h.mux.HandleFunc("/history.json", h.serveHistory)
 	h.mux.HandleFunc("/config", h.serveConfig)
 	h.mux.HandleFunc("/reports/", h.serveReports)
+	h.mux.HandleFunc("/meters/", h.serveMeters)
+	h.mux.HandleFunc("/samples/", h.serveSamples)
 	h.mux.Handle("/api/", newAPIHandler(h))
 	// Let's see what's going on.
 	h.mux.HandleFunc("/debug/pprof/", pprof.Index)

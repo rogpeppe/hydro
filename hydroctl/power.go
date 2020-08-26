@@ -4,26 +4,26 @@ package hydroctl
 // chargeable units.
 type PowerChargeable struct {
 	// ExportGrid holds the power exported to the grid (W).
-	ExportGrid float64
+	ExportGrid float64 `json:"ExportGrid"`
 	// ExportNeighbour holds the exported power used next door (W).
-	ExportNeighbour float64
+	ExportNeighbour float64 `json:"ExportNeighbour"`
 	// ExportHere holds the exported power used by here (W).
-	ExportHere float64
+	ExportHere float64 `json""ExportHere"`
 	// ImportNeighbour holds the import power used next door (W).
-	ImportNeighbour float64
+	ImportNeighbour float64 `json:"ImportNeighbour"`
 	// ImportHere holds the import power used here (W).
-	ImportHere float64
+	ImportHere float64 `json:"ImportHere"`
 }
 
 // PowerUse holds how power is being
 // used and generated in the system.
 type PowerUse struct {
 	// Generated holds the power being generated in watts.
-	Generated float64
+	Generated float64 `json:"Generated"`
 	// Neighbour holds the power being used by our neighbour in watts.
-	Neighbour float64
+	Neighbour float64 `json:"Neighbour"`
 	// Here holds the power being used here in watts.
-	Here float64
+	Here float64 `json:"Here"`
 }
 
 // ChargeablePower calculates how power use will be charged.

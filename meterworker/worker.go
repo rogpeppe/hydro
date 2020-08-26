@@ -113,10 +113,18 @@ type MeterSample struct {
 
 // Meter holds a meter that can be read to find out what the system is doing.
 type Meter struct {
-	Name       string
-	Location   hydroreport.MeterLocation
-	Addr       string // host:port
-	AllowedLag time.Duration
+	Name       string                    `json:"Name"`
+	Location   hydroreport.MeterLocation `json:"Location"`
+	Addr       string                    // host:port		`json:"Addr"`
+	AllowedLag time.Duration             `json:"AllowedLag"`
+}
+
+// SampleDir returns the name for the sample directory for the given meter (relative to the top level
+// sample directory).
+func (m Meter) SampleDir() string {
+	// TODO ideally we'd use a more resilient name for the meter, such
+	// as its mac address, but this'll do for now.
+	return strings.ToLower(m.Location.String()) + "-" + strings.ReplaceAll(m.Addr, ":", "·")
 }
 
 var _ hydroworker.MeterReader = (*Worker)(nil)
@@ -405,7 +413,7 @@ func (w *Worker) ensureSampleWorkers() error {
 			continue
 		}
 		sw, err := w.p.NewSampleWorker(SampleWorkerParams{
-			SampleDir: filepath.Join(w.p.SampleDirPath, meterDirName(m)),
+			SampleDir: filepath.Join(w.p.SampleDirPath, m.SampleDir()),
 			MeterAddr: addr,
 			TZ:        w.p.TZ,
 		})
@@ -424,7 +432,7 @@ func (w *Worker) restartReportWorker() error {
 	}
 	meterMap := make(map[hydroreport.MeterLocation][]string)
 	for _, m := range w.meters {
-		meterMap[m.Location] = append(meterMap[m.Location], meterDirName(m))
+		meterMap[m.Location] = append(meterMap[m.Location], m.SampleDir())
 	}
 	// Start the report gatherer worker.
 	reportWorker, err := reportworker.New(reportworker.Params{
@@ -455,11 +463,4 @@ func writeJSONFile(path string, x interface{}) error {
 		return err
 	}
 	return ioutil.WriteFile(path, data, 0666)
-}
-
-// meterDirName returns the name for the sample directory for the given meter (within the sample directory).
-func meterDirName(m Meter) string {
-	// TODO ideally we'd use a more resilient name for the meter, such
-	// as its mac address, but this'll do for now.
-	return strings.ToLower(m.Location.String()) + "-" + strings.ReplaceAll(m.Addr, ":", "·")
 }

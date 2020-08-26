@@ -70,3 +70,33 @@ type MeterSampleDir struct {
 	// T0 and T1 hold the range of the sample times found in the directory.
 	T0, T1 time.Time
 }
+
+// Open returns a reader that reads all the samples in the directory.
+// TODO perhaps add time range arguments and move the
+// code from hydroreport/allreports.Report.Write here?
+func (d *MeterSampleDir) Open() SampleReadCloser {
+	rs := make([]SampleReader, len(d.Files))
+	for i, f := range d.Files {
+		rs[i] = f.Open()
+	}
+	return &sampleDirReader{
+		files: rs,
+		r:     MultiSampleReader(rs...),
+	}
+}
+
+type sampleDirReader struct {
+	files []SampleReader
+	r     SampleReader
+}
+
+func (r *sampleDirReader) ReadSample() (Sample, error) {
+	return r.r.ReadSample()
+}
+
+func (r *sampleDirReader) Close() error {
+	for _, f := range r.files {
+		f.(SampleReadCloser).Close()
+	}
+	return nil
+}

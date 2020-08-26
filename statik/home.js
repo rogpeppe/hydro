@@ -65,7 +65,7 @@ var Meters = React.createClass({
 					var sample = meters.Samples && meters.Samples[meter.Addr];
 					return <tr>
 						<td>{meter.Name}</td>
-						<td><a href={"http://" + meter.Addr}>{meter.Addr}</a></td>
+						<td><a href={"/meters/" + meter.Addr}>{meter.Addr}</a></td>
 						<td>{sample ? kWfmt(sample.Power) : "n/a"}</td>
 						<td>{sample ? kWhfmt(sample.TotalEnergy) : "n/a"}</td>
 						<td>{sample ? sample.TimeLag : ""}</td>
