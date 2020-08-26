@@ -59,6 +59,9 @@ type SampleWorkerParams struct {
 	MeterAddr string
 	// TZ holds the time zone to use.
 	TZ *time.Location
+	// SamplesChanged is a callback that can be used to notify the meterworker
+	// that the underlying samples have changed.
+	SamplesChanged func()
 }
 
 // SampleWorker represents a started sample worker.
@@ -146,12 +149,13 @@ type setMetersReq struct {
 
 // Worker runs work related to the current set of meters.
 type Worker struct {
-	ctx         context.Context
-	close       func()
-	wg          sync.WaitGroup
-	p           Params
-	readMetersC chan readMetersReq
-	setMetersC  chan setMetersReq
+	ctx             context.Context
+	close           func()
+	wg              sync.WaitGroup
+	p               Params
+	readMetersC     chan readMetersReq
+	setMetersC      chan setMetersReq
+	samplesChangedC chan struct{}
 
 	// The fields below are owned by the run goroutine.
 
@@ -191,10 +195,11 @@ func New(p Params) (*Worker, error) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &Worker{
-		ctx:         ctx,
-		close:       cancel,
-		readMetersC: make(chan readMetersReq),
-		setMetersC:  make(chan setMetersReq),
+		ctx:             ctx,
+		close:           cancel,
+		readMetersC:     make(chan readMetersReq),
+		setMetersC:      make(chan setMetersReq),
+		samplesChangedC: make(chan struct{}, 1),
 
 		sampler:       ndmeter.NewSampler(),
 		sampleWorkers: make(map[string]SampleWorker),
@@ -251,6 +256,16 @@ func (w *Worker) SetMeters(ms []Meter) error {
 	}
 }
 
+// SamplesChanged notifies that the sample data may have changed
+// and therefore it's worth checking to see if the available reports
+// have changed too.
+func (w *Worker) SamplesChanged() {
+	select {
+	case w.samplesChangedC <- struct{}{}:
+	default:
+	}
+}
+
 func (w *Worker) run(meters []Meter) {
 	defer w.wg.Done()
 	defer w.stopWorkers()
@@ -274,6 +289,10 @@ func (w *Worker) run(meters []Meter) {
 			}
 			if meterStateChanged {
 				w.p.Updater.UpdateMeterState(w.meterState)
+			}
+		case <-w.samplesChangedC:
+			if w.reportWorker != nil {
+				w.reportWorker.SamplesChanged()
 			}
 		case <-w.ctx.Done():
 			return
@@ -413,9 +432,10 @@ func (w *Worker) ensureSampleWorkers() error {
 			continue
 		}
 		sw, err := w.p.NewSampleWorker(SampleWorkerParams{
-			SampleDir: filepath.Join(w.p.SampleDirPath, m.SampleDir()),
-			MeterAddr: addr,
-			TZ:        w.p.TZ,
+			SampleDir:      filepath.Join(w.p.SampleDirPath, m.SampleDir()),
+			MeterAddr:      addr,
+			TZ:             w.p.TZ,
+			SamplesChanged: w.SamplesChanged,
 		})
 		if err != nil {
 			return fmt.Errorf("cannot start sample worker for %q: %v", addr, err)

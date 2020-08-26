@@ -79,10 +79,11 @@ func New(p Params) (_ *Handler, err error) {
 		// or a sampleworker proxy via a raspberry pi adjacent to the meter.
 		NewSampleWorker: func(p meterworker.SampleWorkerParams) (meterworker.SampleWorker, error) {
 			w, err := logworker.New(logworker.Params{
-				SampleDir: p.SampleDir,
-				MeterAddr: p.MeterAddr,
-				TZ:        p.TZ,
-				Prefix:    "log-",
+				SampleDir:      p.SampleDir,
+				MeterAddr:      p.MeterAddr,
+				TZ:             p.TZ,
+				Prefix:         "log-",
+				SamplesChanged: p.SamplesChanged,
 			})
 			if err != nil {
 				return nil, err

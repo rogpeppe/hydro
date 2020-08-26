@@ -65,7 +65,7 @@ func main() {
 		HistoryPath:        filepath.Join(dir, "history"),
 		SampleDirPath:      filepath.Join(dir, "samples"),
 		TZ:                 tz,
-		ReportPollInterval: time.Second,
+		ReportPollInterval: 30 * time.Second,
 	})
 	if err != nil {
 		log.Fatal(err)
