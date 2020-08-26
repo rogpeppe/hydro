@@ -79,18 +79,25 @@ func WriteReport(w io.Writer, p ReportParams) error {
 		}
 		var err error
 		var pu hydroctl.PowerUse
-		pu.Generated, err = p.Generator.ReadUsage()
+
+		u, err := p.Generator.ReadUsage()
 		if err != nil {
 			return fmt.Errorf("generator usage samples stopped early (at %v): %v", t, err)
 		}
-		pu.Neighbour, err = p.Neighbour.ReadUsage()
+		pu.Generated = u.Energy
+
+		u, err = p.Neighbour.ReadUsage()
 		if err != nil {
 			return fmt.Errorf("neighbour usage samples stopped early (at %v): %v", t, err)
 		}
-		pu.Here, err = p.Here.ReadUsage()
+		pu.Neighbour = u.Energy
+
+		u, err = p.Here.ReadUsage()
 		if err != nil {
 			return fmt.Errorf("here usage samples stopped early (at %v): %v", t, err)
 		}
+		pu.Here = u.Energy
+
 		cp := hydroctl.ChargeablePower(pu)
 		total.ExportGrid += cp.ExportGrid
 		total.ExportNeighbour += cp.ExportNeighbour
