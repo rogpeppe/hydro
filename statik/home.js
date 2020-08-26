@@ -87,7 +87,7 @@ var Reports = React.createClass({
 		return <div>
 			<table class="reports">
 			<thead>
-				<tr><th>Name</th><th>Available reports</th></tr>
+				<tr><th>Available reports</th></tr>
 			</thead>
 			<tbody> {
 				reports.map(function(report){

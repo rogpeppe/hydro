@@ -41,6 +41,9 @@ type Params struct {
 	// TZ holds the time zone to use when calculating day boundaries
 	// to use for the sample names.
 	TZ *time.Location
+	// SamplesChanged is called if non-nil to notify that some new samples
+	// have been added.
+	SamplesChanged func()
 }
 
 type Worker struct {
@@ -130,8 +133,12 @@ func (w *Worker) poll() error {
 			if w.ctx.Err() == nil {
 				log.Printf("cannot create sample file %q: %T %v", w.filename(t), err, err)
 			}
+		} else {
+			log.Printf("downloaded %d samples from %v starting at %v", n, w.p.MeterAddr, t)
+			if w.p.SamplesChanged != nil {
+				w.p.SamplesChanged()
+			}
 		}
-		log.Printf("downloaded %d samples from %v starting at %v", n, w.p.MeterAddr, t)
 	}
 	return nil
 }

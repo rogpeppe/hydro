@@ -27,12 +27,24 @@ var meterTempl = newTemplate(`
 </head>
 <body>
 <h1>{{.Meter.Name}}</h1>
+<a href="http://{{.Meter.Addr}}">http://{{.Meter.Addr}}</a>
+<h3>Manually entered samples</h2>
 <form action="/samples/{{.Meter.Addr}}" method="POST">
-<textarea name="samples" rows="20" cols="80">
+<textarea name="samples" rows="10" cols="80">
 {{range $s := .Samples}}{{$s.Time.Format "2006-01-02 15:04"}} {{printf "%.3fkWH" (mul $s.TotalEnergy .001)}}
 {{end}}
 </textarea><br>
 <input type="submit" value="Save">
+<h3>Sample format</h3>
+Each sample is on a line of its own and must hold three space-separated fields: the date (in <i>yyyy/mm/dd</i> format), the time (in <i>hh:mm</i> format) and the total energy read from the meter at that time, in kWh (the "kWh" suffix is optional).
+
+Samples must be ordered by time (most recent sample last).
+For example:
+<pre>
+2020-05-01 00:00 1234kWH
+2020-08-24 00:00 1345644
+<pre>
+<br>
 </body>
 `)
 
@@ -135,6 +147,7 @@ func (h *Handler) serveSamplesPost(w http.ResponseWriter, req *http.Request, m m
 	sampleFilePath := filepath.Join(sampleDir, "manual.sample")
 	if len(samples) == 0 {
 		os.Remove(sampleFilePath)
+		h.meterWorker.SamplesChanged()
 		http.Redirect(w, req, "/index.html", http.StatusMovedPermanently)
 		return
 	}
@@ -147,10 +160,11 @@ func (h *Handler) serveSamplesPost(w http.ResponseWriter, req *http.Request, m m
 		http.Error(w, fmt.Sprintf("cannot create sample file: %v", err), http.StatusInternalServerError)
 		return
 	}
+	defer h.meterWorker.SamplesChanged()
 	defer f.Close()
 	bufw := bufio.NewWriter(f)
 	defer bufw.Flush()
-	n, err := meterstat.WriteSamples(bufw, meterstat.NewMemSampleReader(samples))
+	_, err = meterstat.WriteSamples(bufw, meterstat.NewMemSampleReader(samples))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("cannot write samples to %q: %v", sampleFilePath, err), http.StatusInternalServerError)
 		return

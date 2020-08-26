@@ -23,10 +23,11 @@ type Params struct {
 }
 
 type Worker struct {
-	p     Params
-	ctx   context.Context
-	close func()
-	wg    sync.WaitGroup
+	p              Params
+	ctx            context.Context
+	close          func()
+	wg             sync.WaitGroup
+	samplesChanged chan struct{}
 }
 
 func New(p Params) (*Worker, error) {
@@ -41,9 +42,10 @@ func New(p Params) (*Worker, error) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &Worker{
-		ctx:   ctx,
-		close: cancel,
-		p:     p,
+		ctx:            ctx,
+		close:          cancel,
+		p:              p,
+		samplesChanged: make(chan struct{}, 1),
 	}
 	w.wg.Add(1)
 	go w.run()
@@ -66,7 +68,18 @@ func (w *Worker) run() {
 		case <-w.ctx.Done():
 			return
 		case <-time.After(w.p.PollInterval):
+		case <-w.samplesChanged:
 		}
+	}
+}
+
+// SamplesChanged notifies that the sample data may have changed
+// and therefore it's worth checking to see if the available reports
+// have changed too.
+func (w *Worker) SamplesChanged() {
+	select {
+	case w.samplesChanged <- struct{}{}:
+	default:
 	}
 }
 
