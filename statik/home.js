@@ -92,7 +92,7 @@ var Reports = React.createClass({
 			<tbody> {
 				reports.map(function(report){
 					return <tr>
-						<td><a href={report.Link} download>{report.Name}</a></td>
+						<td><a href={report.Link}>{report.Name}</a></td>
 					</tr>
 				})
 			} </tbody>

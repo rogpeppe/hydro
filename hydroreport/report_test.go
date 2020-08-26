@@ -68,14 +68,15 @@ func TestWriteReport(t *testing.T) {
 		Time:        epoch.Add(46 * time.Hour),
 		TotalEnergy: 5000*4 + (46-16)*70000,
 	}})
-
-	var buf bytes.Buffer
-	err := WriteReport(&buf, ReportParams{
+	rr, err := Open(Params{
 		Generator: meterstat.NewUsageReader(generatorSamples, epoch, time.Minute),
 		Here:      meterstat.NewUsageReader(hereSamples, epoch, time.Minute),
 		Neighbour: meterstat.NewUsageReader(neighbourSamples, epoch, time.Minute),
 		EndTime:   epoch.Add(24 * time.Hour),
 	})
+	c.Assert(err, qt.IsNil)
+	var buf bytes.Buffer
+	err = Write(&buf, rr)
 	c.Assert(err, qt.IsNil)
 	c.Assert(buf.String(), qt.Equals, `
 Time,Export to grid (kWH),Export power used by Aliday (kWH),Export power used by Drynoch (kWH),Import power used by Aliday (kWH),Import power used by Drynoch (kWH)

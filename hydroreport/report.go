@@ -10,7 +10,8 @@ import (
 	"github.com/rogpeppe/hydro/meterstat"
 )
 
-type ReportParams struct {
+// Params holds parameters for the Open function.
+type Params struct {
 	// The UsageReaders hold the usage readers
 	// for the meters that the report takes into account.
 	// They must all start at the same instance, have the same quantum
@@ -19,7 +20,7 @@ type ReportParams struct {
 	Generator meterstat.UsageReader
 	Neighbour meterstat.UsageReader
 	Here      meterstat.UsageReader
-	// EndTime holds the time that the report will end.
+	// EndTime holds the time that the report will end (not inclusive).
 	// It must be a whole hour multiple.
 	EndTime time.Time
 	// TZ holds the time zone to use for the report times.
@@ -27,9 +28,19 @@ type ReportParams struct {
 	TZ *time.Location
 }
 
-// WriteReport writes a CSV file containing an hour-by-hour report of
-// energy usage over the course of a month.
-func WriteReport(w io.Writer, p ReportParams) error {
+// Entry holds a entry line in a report, corresponding to 1 hour of readings.
+type Entry struct {
+	Time time.Time
+	hydroctl.PowerChargeable
+}
+
+// Reader represents a reader of report entry lines.
+type Reader interface {
+	ReadEntry() (Entry, error)
+}
+
+// Open returns a reader that reads entries from the report.
+func Open(p Params) (Reader, error) {
 	if p.TZ == nil {
 		p.TZ = time.UTC
 	}
@@ -39,19 +50,73 @@ func WriteReport(w io.Writer, p ReportParams) error {
 		p.Neighbour,
 		p.Here,
 	); err != nil {
-		return fmt.Errorf("inconsistent usage readers: %v", err)
+		return nil, fmt.Errorf("inconsistent usage readers: %v", err)
 	}
 	if !wholeHour(p.EndTime) {
-		return fmt.Errorf("report end time %s is not on a whole hour", p.EndTime)
+		return nil, fmt.Errorf("report end time %s is not on a whole hour", p.EndTime)
 	}
 	t := p.Generator.Time().In(p.TZ)
 	if !wholeHour(t) {
-		return fmt.Errorf("report start time %s is not on a whole hour", t)
+		return nil, fmt.Errorf("report start time %s is not on a whole hour", t)
 	}
 	quantum := p.Generator.Quantum()
 	if time.Hour%quantum != 0 {
-		return fmt.Errorf("usage reader quantum %v does not divide an hour evenly", quantum)
+		return nil, fmt.Errorf("usage reader quantum %v does not divide an hour evenly", quantum)
 	}
+	return &reportReader{
+		currentTime:       t,
+		quantum:           quantum,
+		samplesPerQuantum: int(time.Hour / quantum),
+		p:                 p,
+	}, nil
+}
+
+type reportReader struct {
+	currentTime       time.Time
+	samplesPerQuantum int
+	quantum           time.Duration
+	p                 Params
+}
+
+// ReadEntry implements Reader.
+func (r *reportReader) ReadEntry() (Entry, error) {
+	if !r.currentTime.Before(r.p.EndTime) {
+		return Entry{}, io.EOF
+	}
+	var total hydroctl.PowerChargeable
+	for i := 0; i < r.samplesPerQuantum; i++ {
+		var pu hydroctl.PowerUse
+
+		u, err := r.p.Generator.ReadUsage()
+		if err != nil {
+			return Entry{}, fmt.Errorf("generator usage samples stopped early (at %v): %v", r.p.Generator.Time(), err)
+		}
+		pu.Generated = u.Energy
+
+		u, err = r.p.Neighbour.ReadUsage()
+		if err != nil {
+			return Entry{}, fmt.Errorf("neighbour usage samples stopped early (at %v): %v", r.p.Neighbour.Time(), err)
+		}
+		pu.Neighbour = u.Energy
+
+		u, err = r.p.Here.ReadUsage()
+		if err != nil {
+			return Entry{}, fmt.Errorf("here usage samples stopped early (at %v): %v", r.p.Here.Time(), err)
+		}
+		pu.Here = u.Energy
+
+		total = total.Add(hydroctl.ChargeablePower(pu))
+	}
+	rec := Entry{
+		PowerChargeable: total,
+		Time:            r.currentTime,
+	}
+	r.currentTime = r.currentTime.Add(time.Hour)
+	return rec, nil
+}
+
+// Write writes a report with entries read from r.
+func Write(w io.Writer, r Reader) error {
 	fmt.Fprintln(w, "Time,"+
 		"Export to grid (kWH),"+
 		// TODO don't hard-code the names!
@@ -60,54 +125,23 @@ func WriteReport(w io.Writer, p ReportParams) error {
 		"Import power used by Aliday (kWH),"+
 		"Import power used by Drynoch (kWH)",
 	)
-	var total hydroctl.PowerChargeable
-	samples := 0
 	for {
-		if wholeHour(t) && samples > 0 {
-			fmt.Fprintf(w, "%v,%s,%s,%s,%s,%s\n",
-				t.Add(-time.Hour).In(p.TZ).Format("2006-01-02 15:04 MST"),
-				powerStr(total.ExportGrid),
-				powerStr(total.ExportNeighbour),
-				powerStr(total.ExportHere),
-				powerStr(total.ImportNeighbour),
-				powerStr(total.ImportHere),
-			)
-			total = hydroctl.PowerChargeable{}
-		}
-		if t.Add(quantum).After(p.EndTime) {
-			break
-		}
-		var err error
-		var pu hydroctl.PowerUse
-
-		u, err := p.Generator.ReadUsage()
+		rec, err := r.ReadEntry()
 		if err != nil {
-			return fmt.Errorf("generator usage samples stopped early (at %v): %v", t, err)
+			if err == io.EOF {
+				return nil
+			}
+			return err
 		}
-		pu.Generated = u.Energy
-
-		u, err = p.Neighbour.ReadUsage()
-		if err != nil {
-			return fmt.Errorf("neighbour usage samples stopped early (at %v): %v", t, err)
-		}
-		pu.Neighbour = u.Energy
-
-		u, err = p.Here.ReadUsage()
-		if err != nil {
-			return fmt.Errorf("here usage samples stopped early (at %v): %v", t, err)
-		}
-		pu.Here = u.Energy
-
-		cp := hydroctl.ChargeablePower(pu)
-		total.ExportGrid += cp.ExportGrid
-		total.ExportNeighbour += cp.ExportNeighbour
-		total.ExportHere += cp.ExportHere
-		total.ImportNeighbour += cp.ImportNeighbour
-		total.ImportHere += cp.ImportHere
-		samples++
-		t = t.Add(quantum)
+		fmt.Fprintf(w, "%v,%s,%s,%s,%s,%s\n",
+			rec.Time.Format("2006-01-02 15:04 MST"),
+			powerStr(rec.ExportGrid),
+			powerStr(rec.ExportNeighbour),
+			powerStr(rec.ExportHere),
+			powerStr(rec.ImportNeighbour),
+			powerStr(rec.ImportHere),
+		)
 	}
-	return nil
 }
 
 func powerStr(f float64) string {

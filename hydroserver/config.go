@@ -3,13 +3,11 @@ package hydroserver
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"log"
 	"net"
 	"net/http"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/rogpeppe/hydro/hydroreport"
 	"github.com/rogpeppe/hydro/meterworker"
@@ -255,27 +253,4 @@ var meterInfo = map[string]struct {
 		name:     "Aliday",
 		location: hydroreport.LocNeighbour,
 	},
-}
-
-var tmplFuncs = template.FuncMap{
-	"nbsp": func(s string) string {
-		return strings.Replace(s, " ", "\u00a0", -1)
-	},
-	"capitalize": func(s string) string {
-		_, n := utf8.DecodeRuneInString(s)
-		if u := strings.ToUpper(s[0:n]); u != s[0:n] {
-			return u + s[n:]
-		}
-		return s
-	},
-	"joinSp": func(ss []string) string {
-		return strings.Join(ss, " ")
-	},
-	"mul": func(f1, f2 float64) float64 {
-		return f1 * f2
-	},
-}
-
-func newTemplate(s string) *template.Template {
-	return template.Must(template.New("").Funcs(tmplFuncs).Parse(s))
 }

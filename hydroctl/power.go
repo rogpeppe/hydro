@@ -15,6 +15,16 @@ type PowerChargeable struct {
 	ImportHere float64 `json:"ImportHere"`
 }
 
+// Add returns p.f+p1.f for each field f in p.
+func (p PowerChargeable) Add(p1 PowerChargeable) PowerChargeable {
+	p.ExportGrid += p1.ExportGrid
+	p.ExportNeighbour += p1.ExportNeighbour
+	p.ExportHere += p1.ExportHere
+	p.ImportNeighbour += p1.ImportNeighbour
+	p.ImportHere += p1.ImportHere
+	return p
+}
+
 // PowerUse holds how power is being
 // used and generated in the system.
 type PowerUse struct {

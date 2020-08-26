@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
-	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -241,35 +240,6 @@ func (h *Handler) serveHistory(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
-const reportLinkFormat = "hydro-report-2006-01.csv"
-
-func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
-	reports := h.store.AvailableReports()
-	reportName := strings.TrimPrefix(req.URL.Path, "/reports/")
-	if reportName == "" {
-		fmt.Fprintf(w, "%d reports available (TODO more info about available reports!)", len(reports))
-		return
-	}
-	t, err := time.ParseInLocation(reportLinkFormat, reportName, h.p.TZ)
-	if err != nil {
-		http.NotFound(w, req)
-		return
-	}
-	for _, report := range reports {
-		rt := report.T0
-		if rt.Year() == t.Year() && rt.Month() == t.Month() {
-			w.Header().Set("Content-Type", "text/csv")
-			if err := report.Write(w); err != nil {
-				if err != nil {
-					log.Printf("error writing report %q: %v", reportName, err)
-				}
-			}
-			return
-		}
-	}
-	http.NotFound(w, req)
-}
-
 // clientUpdate holds the data that will be JSON-marshaled and sent
 // down the websocket connection to the client.
 type clientUpdate struct {
@@ -373,7 +343,7 @@ func (h *Handler) makeUpdate() clientUpdate {
 		for i, r := range reports {
 			cr := &u.Reports[i]
 			cr.Name = r.T0.Format("Jan 2006")
-			cr.Link = "/reports/" + r.T0.Format(reportLinkFormat)
+			cr.Link = "/reports/" + r.T0.Format("2006-01")
 		}
 	}
 	return u
