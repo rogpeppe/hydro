@@ -125,7 +125,7 @@ type Report struct {
 }
 
 // Params returns the parameters for WriteReport.
-func (r Report) Params() ReportParams {
+func (r Report) Params() Params {
 	locUsageReaders := make(map[MeterLocation]meterstat.UsageReader)
 	for loc, sds := range r.MeterDirs {
 		usageReaders := make([]meterstat.UsageReader, 0, len(sds))
@@ -134,7 +134,7 @@ func (r Report) Params() ReportParams {
 		}
 		locUsageReaders[loc] = meterstat.SumUsage(usageReaders...)
 	}
-	return ReportParams{
+	return Params{
 		Generator: locUsageReaders[LocGenerator],
 		Neighbour: locUsageReaders[LocNeighbour],
 		Here:      locUsageReaders[LocHere],
@@ -145,5 +145,9 @@ func (r Report) Params() ReportParams {
 
 // Write writes the report as a CSV to w.
 func (r *Report) Write(w io.Writer) error {
-	return WriteReport(w, r.Params())
+	rr, err := Open(r.Params())
+	if err != nil {
+		return err
+	}
+	return Write(w, rr)
 }
