@@ -184,7 +184,7 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 
 	var b bytes.Buffer
 	if err := configTempl.Execute(&b, p); err != nil {
-		log.Printf("template execution failed: %v", err)
+		log.Printf("config template execution failed: %v", err)
 		http.Error(w, fmt.Sprintf("template execution failed: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -270,6 +270,9 @@ var tmplFuncs = template.FuncMap{
 	},
 	"joinSp": func(ss []string) string {
 		return strings.Join(ss, " ")
+	},
+	"mul": func(f1, f2 float64) float64 {
+		return f1 * f2
 	},
 }
 

@@ -21,7 +21,7 @@ func TestSampleReader(t *testing.T) {
 946814410005,1010
 946814415000,23456
 `[1:]))
-	samples, err := readAll(r)
+	samples, err := ReadAllSamples(r)
 	c.Assert(err, qt.IsNil)
 
 	c.Assert(samples, qt.DeepEquals, []Sample{{
@@ -76,7 +76,7 @@ func TestMultiReader(t *testing.T) {
 		Time:        epoch.Add(38 * time.Second),
 		TotalEnergy: 3000,
 	}})
-	samples, err := readAll(MultiSampleReader(r0, r1, r2))
+	samples, err := ReadAllSamples(MultiSampleReader(r0, r1, r2))
 	c.Assert(err, qt.IsNil)
 	c.Assert(samples, qt.DeepEquals, []Sample{{
 		Time:        epoch,
@@ -119,7 +119,7 @@ func TestSampleFile(t *testing.T) {
 		c.Check(sf.Close(), qt.IsNil)
 	}()
 
-	samples, err := readAll(sf)
+	samples, err := ReadAllSamples(sf)
 	c.Assert(err, qt.IsNil)
 	c.Assert(samples, qt.DeepEquals, []Sample{{
 		Time:        epoch,
@@ -143,7 +143,7 @@ func TestSampleFileEmpty(t *testing.T) {
 	err := ioutil.WriteFile(path, nil, 0666)
 	c.Assert(err, qt.IsNil)
 	sf, err := OpenSampleFile(path)
-	c.Assert(err, qt.ErrorMatches, `cannot read first sample from ".*": no samples in file`)
+	c.Assert(err, qt.Equals, ErrNoSamples)
 	c.Assert(sf, qt.IsNil)
 }
 
@@ -168,7 +168,7 @@ func TestSampleFileMulti(t *testing.T) {
 		}()
 		rs[i] = sf
 	}
-	samples, err := readAll(MultiSampleReader(rs...))
+	samples, err := ReadAllSamples(MultiSampleReader(rs...))
 	c.Assert(err, qt.IsNil)
 
 	c.Assert(samples, qt.DeepEquals, []Sample{{
@@ -223,18 +223,4 @@ func TestSampleFileRangeIncompleteLastLine(t *testing.T) {
 	c.Assert(err, qt.IsNil)
 	c.Assert(info.FirstSample().Time, qt.DeepEquals, epoch)
 	c.Assert(info.LastSample().Time, qt.DeepEquals, epoch.Add(10*time.Second))
-}
-
-func readAll(r SampleReader) ([]Sample, error) {
-	var samples []Sample
-	for {
-		s, err := r.ReadSample()
-		if err != nil {
-			if err == io.EOF {
-				return samples, nil
-			}
-			return samples, err
-		}
-		samples = append(samples, s)
-	}
 }

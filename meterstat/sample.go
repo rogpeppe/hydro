@@ -28,6 +28,13 @@ type SampleReader interface {
 	ReadSample() (Sample, error)
 }
 
+// SampleReadCloser is like SampleReader but includes a Close method
+// which should be called after the reader is done with.
+type SampleReadCloser interface {
+	SampleReader
+	Close() error
+}
+
 // NewMemSampleReader returns a SampleReader that returns
 // successive values from the given slice.
 func NewMemSampleReader(samples []Sample) SampleReader {
@@ -190,4 +197,19 @@ func WriteSamples(w io.Writer, r SampleReader) (int, error) {
 func WriteSample(w io.Writer, s Sample) error {
 	_, err := fmt.Fprintf(w, "%d,%.0f\n", s.Time.UnixNano()/1e6, s.TotalEnergy)
 	return err
+}
+
+// ReadAllSamples returns a slice of all the samples read from r.
+func ReadAllSamples(r SampleReader) ([]Sample, error) {
+	var samples []Sample
+	for {
+		s, err := r.ReadSample()
+		if err != nil {
+			if err == io.EOF {
+				return samples, nil
+			}
+			return samples, err
+		}
+		samples = append(samples, s)
+	}
 }
