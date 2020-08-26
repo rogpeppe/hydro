@@ -21,7 +21,6 @@
 				request.send();
 			}
 			function drawChart(doc, data) {
-				console.log("drawing chart", data)
 				var container = document.getElementById('timeline');
 				var chart = new google.visualization.Timeline(container);
 				var dataTable = new google.visualization.DataTable(data);

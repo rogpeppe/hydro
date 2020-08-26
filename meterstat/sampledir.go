@@ -71,18 +71,74 @@ type MeterSampleDir struct {
 	T0, T1 time.Time
 }
 
-// Open returns a reader that reads all the samples in the directory.
-// TODO perhaps add time range arguments and move the
-// code from hydroreport/allreports.Report.Write here?
-func (d *MeterSampleDir) Open() SampleReadCloser {
+// OpenRange is like Open but includes only samples from files that are needed
+// to determine energy values from t0 to t1 inclusive.
+// If t0 or t1 are zero, d.T0 and d.T1 are used respectively.
+func (d *MeterSampleDir) OpenRange(t0, t1 time.Time) SampleReadCloser {
+	if t0.IsZero() {
+		t0 = d.T0
+	}
+	if t1.IsZero() {
+		t1 = d.T1
+	}
+	files := relevantFiles(d.Files, t0, t1)
 	rs := make([]SampleReader, len(d.Files))
-	for i, f := range d.Files {
+	for i, f := range files {
 		rs[i] = f.Open()
 	}
 	return &sampleDirReader{
 		files: rs,
 		r:     MultiSampleReader(rs...),
 	}
+}
+
+// relevantFiles returns all of the given sample files that are useful
+// for evaluating data points from t0 to t1.
+// We only need to keep files that have data ranges that overlap
+// the interval or that are directly before or after it if we
+// don't yet have a file that overlaps [t0, t0] or [t1, t1] respectively.
+func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
+	result := make([]*FileInfo, 0, len(sds))
+	haveStart := false
+	haveEnd := false
+	var start, end *FileInfo
+	for _, sd := range sds {
+		sdt0, sdt1 := sd.FirstSample().Time, sd.LastSample().Time
+		if timeOverlaps(sdt0, sdt1, t0, t1) {
+			result = append(result, sd)
+			haveStart = haveStart || timeOverlaps(sdt0, sdt1, t0, t0)
+			haveEnd = haveEnd || timeOverlaps(sdt0, sdt1, t1, t1)
+			continue
+		}
+		if !haveStart && (start == nil || sdt1.After(start.LastSample().Time)) {
+			start = sd
+		}
+		if !haveEnd && (end == nil || sdt0.Before(end.FirstSample().Time)) {
+			end = sd
+		}
+	}
+	if !haveStart && start != nil {
+		result = append(result, start)
+	}
+	if !haveEnd && end != nil {
+		result = append(result, end)
+	}
+	return result
+}
+
+func timeOverlaps(at0, at1, bt0, bt1 time.Time) bool {
+	if at1.Before(at0) {
+		panic("bad interval a")
+	}
+	if bt1.Before(bt0) {
+		panic("bad interval b")
+	}
+	return !at0.After(bt1) && !bt0.After(at1)
+}
+
+// Open returns a reader that reads all the samples from the directory.
+func (d *MeterSampleDir) Open() SampleReadCloser {
+	return d.OpenRange(time.Time{}, time.Time{})
 }
 
 type sampleDirReader struct {
