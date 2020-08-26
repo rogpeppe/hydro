@@ -19,7 +19,7 @@ var usageReaderTests = []struct {
 	quantum     time.Duration
 	expectError string
 	expect      []float64
-	expectTotal float64
+	expectTotal Usage
 }{{
 	testName: "allSamples",
 	samples: `
@@ -27,10 +27,13 @@ var usageReaderTests = []struct {
 946814410000,1010
 946814415000,1030
 `[1:],
-	start:       epoch,
-	quantum:     time.Second,
-	expect:      []float64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4},
-	expectTotal: 30,
+	start:   epoch,
+	quantum: time.Second,
+	expect:  []float64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4},
+	expectTotal: Usage{
+		Energy:  30,
+		Samples: 2,
+	},
 }, {
 	testName: "startLater",
 	samples: `
@@ -38,21 +41,13 @@ var usageReaderTests = []struct {
 946814410000,1010
 946814415000,1030
 `[1:],
-	start:       epoch.Add(3 * time.Second),
-	quantum:     time.Second,
-	expect:      []float64{1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4},
-	expectTotal: 27,
-}, {
-	testName: "startLater",
-	samples: `
-946814400000,1000
-946814410000,1010
-946814415000,1030
-`[1:],
-	start:       epoch.Add(3 * time.Second),
-	quantum:     time.Second,
-	expect:      []float64{1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4},
-	expectTotal: 27,
+	start:   epoch.Add(3 * time.Second),
+	quantum: time.Second,
+	expect:  []float64{1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4},
+	expectTotal: Usage{
+		Energy:  27,
+		Samples: 1 + 7.0/10,
+	},
 }, {
 	testName: "startTooEarly",
 	samples: `
@@ -84,8 +79,10 @@ func TestUsageReader(t *testing.T) {
 				test.quantum,
 			)
 			c.Assert(r.Quantum(), qt.Equals, test.quantum)
+			// We test the Energy values because it's too tedious to test
+			// all the Sample values at the moment...
 			var samples []float64
-			total := float64(0)
+			var total Usage
 			foundError := false
 			t := test.start
 			for {
@@ -103,8 +100,8 @@ func TestUsageReader(t *testing.T) {
 					}
 					c.Fatalf("error calling ReadUsage: %v", err)
 				}
-				samples = append(samples, sample)
-				total += sample
+				samples = append(samples, sample.Energy)
+				total = total.Add(sample)
 			}
 			if test.expectError != "" && !foundError {
 				c.Errorf("no error found; want %q", test.expectError)
@@ -163,8 +160,8 @@ func TestSumUsage(t *testing.T) {
 		time.Second,
 	)
 	ur := SumUsage(r0, r1, r2)
-	sum := 0.0
-	var usages []float64
+	var sum Usage
+	var usages []Usage
 	c.Assert(ur.Quantum(), qt.Equals, time.Second)
 	for {
 		c.Assert(ur.Time(), qt.DeepEquals, epoch.Add(time.Second*time.Duration(len(usages))))
@@ -174,35 +171,40 @@ func TestSumUsage(t *testing.T) {
 		}
 		c.Assert(err, qt.IsNil)
 		usages = append(usages, u)
-		sum += u
+		sum = sum.Add(u)
 	}
-	c.Check(usages, approxDeepEquals, []float64{
-		125,
-		125,
-		120.55555555555556,
-		120.55555555555556,
-		120.55555555555556,
-		107.22222222222221,
-		107.22222222222224,
-		107.22222222222221,
-		165.55555555555554,
-		165.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
-		465.55555555555554,
+	c.Check(usages, approxDeepEquals, []Usage{
+		{125, .8},
+		{125, .8},
+		{120.55555555555556, .3556},
+		{120.55555555555556, .3556},
+		{120.55555555555556, .3556},
+		{107.22222222222221, .4889},
+		{107.22222222222224, .4889},
+		{107.22222222222221, .4889},
+		{165.55555555555554, .2389},
+		{165.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
+		{465.55555555555554, .2389},
 	})
 	// Check that the total energy sums correctly to the difference in total energy between the
 	// start and end of all the sample sets.
-	c.Check(sum, approxDeepEquals, 0.0+
-		6000-1000+
-		1000-100+
-		30-10,
-	)
+	c.Check(sum, approxDeepEquals, Usage{
+		Energy: 0.0 +
+			6000 - 1000 +
+			1000 - 100 +
+			30 - 10,
+		// Note: the number of samples is the total number of samples less the
+		// number sample sources, because the last sample from each source
+		// is not counted.
+		Samples: 7,
+	})
 }
