@@ -100,3 +100,41 @@ func TestNewDataTableWithPointerElements(t *testing.T) {
 		}},
 	})
 }
+
+type withEmbed struct {
+	A int
+	embed
+}
+
+type embed struct {
+	B int
+}
+
+func TestNewDataTableWithAnonField(t *testing.T) {
+	c := qt.New(t)
+	dt := googlecharts.NewDataTable([]withEmbed{{
+		A: 99,
+		embed: embed{
+			B: 88,
+		},
+	}})
+
+	data, err := json.Marshal(dt)
+	c.Assert(err, qt.IsNil)
+	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
+		Cols: []googlecharts.Column{{
+			Type: "number",
+			Id:   "A",
+		}, {
+			Type: "number",
+			Id:   "B",
+		}},
+		Rows: []googlecharts.Row{{
+			Cells: []googlecharts.Cell{{
+				Value: 99,
+			}, {
+				Value: 88,
+			}},
+		}},
+	})
+}
