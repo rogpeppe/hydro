@@ -82,7 +82,7 @@ func (d *MeterSampleDir) OpenRange(t0, t1 time.Time) SampleReadCloser {
 		t1 = d.T1
 	}
 	files := relevantFiles(d.Files, t0, t1)
-	rs := make([]SampleReader, len(d.Files))
+	rs := make([]SampleReader, len(files))
 	for i, f := range files {
 		rs[i] = f.Open()
 	}
@@ -99,6 +99,8 @@ func (d *MeterSampleDir) OpenRange(t0, t1 time.Time) SampleReadCloser {
 // don't yet have a file that overlaps [t0, t0] or [t1, t1] respectively.
 func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
 	result := make([]*FileInfo, 0, len(sds))
+	// haveStart and haveEnd record whether we've put a start or end entry into
+	// result respectively.
 	haveStart := false
 	haveEnd := false
 	var start, end *FileInfo
@@ -110,10 +112,10 @@ func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
 			haveEnd = haveEnd || timeOverlaps(sdt0, sdt1, t1, t1)
 			continue
 		}
-		if !haveStart && (start == nil || sdt1.After(start.LastSample().Time)) {
+		if !haveStart && !sdt1.After(t0) && (start == nil || sdt1.After(start.LastSample().Time)) {
 			start = sd
 		}
-		if !haveEnd && (end == nil || sdt0.Before(end.FirstSample().Time)) {
+		if !haveEnd && !sdt0.Before(t1) && (end == nil || sdt0.Before(end.FirstSample().Time)) {
 			end = sd
 		}
 	}

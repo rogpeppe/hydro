@@ -117,7 +117,7 @@ func New(p Params) (_ *Handler, err error) {
 	h.store.anyNotifier.Changed()
 	h.mux.Handle("/", gziphandler.GzipHandler(http.FileServer(staticData)))
 	h.mux.HandleFunc("/updates", h.serveUpdates)
-	h.mux.HandleFunc("/history.json", h.serveHistory)
+	h.mux.HandleFunc("/history.json", h.serveHistoryJSON)
 	h.mux.HandleFunc("/config", h.serveConfig)
 	h.mux.HandleFunc("/reports/", h.serveReports)
 	h.mux.HandleFunc("/meters/", h.serveMeters)

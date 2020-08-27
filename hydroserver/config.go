@@ -17,11 +17,9 @@ import (
 var configTempl = newTemplate(`
 <html>
 <head>
-<style>
-.instructions {
-	max-width: 30em
-}
-</style>
+		<title>Hydro configuration</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="/common.css">
 </head>
 <body>
 <form action="config" method="POST">

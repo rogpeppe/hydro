@@ -18,9 +18,21 @@ type DataTable struct {
 	Rows []Row    `json:"rows"`
 }
 
+// Column returns a pointer to the column entry with the
+// given ID, or nil if there is no such ID.
+func (t *DataTable) Column(columnID string) *Column {
+	for i := range t.Cols {
+		col := &t.Cols[i]
+		if col.ID == columnID {
+			return col
+		}
+	}
+	return nil
+}
+
 type Column struct {
 	Type    DataType `json:"type"`
-	Id      string   `json:"id"`
+	ID      string   `json:"id"`
 	Label   string   `json:"label,omitempty"`
 	Pattern string   `json:"pattern,omitempty"`
 }
@@ -163,7 +175,7 @@ func parseTypeInfo(xt reflect.Type) (*typeInfo, error) {
 		}
 		info.fields = append(info.fields, fi)
 		info.cols = append(info.cols, Column{
-			Id:    fi.id,
+			ID:    fi.id,
 			Label: fi.label,
 			Type:  fi.dtype,
 		})

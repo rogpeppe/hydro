@@ -26,35 +26,11 @@ type segment struct {
 
 var configErrorTempl = newTemplate(`
 <html>
-<head>
-<style>
-/* Tooltip container */
-.errorText {
-	position: relative;
-	display: inline-block;
-	border-bottom: 1px dotted red; /* If you want dots under the hoverable text */
-}
-
-/* Tooltip text */
-.errorText .toolTip {
-	visibility: hidden;
-	width: 30em;
-	background-color: black;
-	color: #fff;
-	text-align: center;
-	padding: 5px 0;
-	border-radius: 6px;
- 
-	/* Position the tooltip text - see examples below! */
-	position: absolute;
-	z-index: 1;
-}
-
-/* Show the tooltip text when you mouse over the tooltip container */
-.errorText:hover .toolTip {
-	visibility: visible;
-}
-</style>
+	<head>
+		<title>Error in configuration</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="/common.css">
+	</head>
 </head>
 <body>
 <h3>Errors found in configuration</h3>
