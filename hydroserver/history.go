@@ -16,7 +16,7 @@ type historyRecord struct {
 	End   time.Time
 }
 
-func (h *Handler) serveHistory(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) serveHistoryJSON(w http.ResponseWriter, req *http.Request) {
 	ws := h.store.WorkerState()
 	if ws == nil {
 		http.Error(w, "no current relay information available", http.StatusInternalServerError)

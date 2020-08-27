@@ -2,6 +2,7 @@ package hydroserver
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rogpeppe/hydro/googlecharts"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroreport"
 )
@@ -19,37 +21,47 @@ var reportTempl = newTemplate(`
 	<head>
 		<title>Energy usage report {{.Report.T0.Format "2006-01"}}</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<style type="text/css">
-			html, body {
-				margin: 0 auto;
-				font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
-				font-size:14px;
-				color:#333;
-				background-color:#fff;
+		<link rel="stylesheet" href="/common.css">
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script type="text/javascript">
+			google.charts.load('current', {'packages':['corechart']});
+			google.charts.setOnLoadCallback(getData);
+			function getData() {
+				var request = new XMLHttpRequest();
+				request.open('GET', '{{.JSONLink}}', true);
+				request.onload = function() {
+					if (this.status != 200) {
+						console.log("got error status", this.status, this.response);
+						return
+					}
+					var data = JSON.parse(this.response);
+					drawChart(document, data)
+				};
+				request.onerror = function() {
+					console.log("connection error getting history.json")
+				};
+				request.send();
 			}
-			table {
-				border-collapse: collapse;
-				border: 1px solid #666666;
-				padding-bottom: 3px;
+			function drawChart(doc, data) {
+				var container = document.getElementById('reportGraph');
+				var chart = new google.visualization.AreaChart(container);
+				var dataTable = new google.visualization.DataTable(data);
+				chart.draw(dataTable, {
+					title: 'Energy use',
+					hAxis: {
+						title: 'Time'
+					},
+					vAxis: {
+						minValue: 0,
+						title: 'Energy (kWh)'
+					}
+				});
 			}
-			th, td {
-				padding-top: 3px;
-				padding-bottom: 3px;
-				padding-right: 10px;
-				padding-left: 10px;
-			}
-			.content {margin:10px;}
-			tbody tr:nth-child(odd) {
-				background-color: #ffffff;
-			}
-
-			tbody tr:nth-child(even) {
-				background-color: #eeeeee;
-			}
-		</style>
+		</script>
 	</head>
 <h2>Energy usage report {{.Report.T0.Format "2006-01"}}</h2>
-
+<a href="{{.CSVLink}}" download>Download report CSV</a>
+<p/>
 <table class="chargeable">
 <thead>
 	<tr><th>Name</th><th>Chargeable power</th></tr>
@@ -63,10 +75,13 @@ var reportTempl = newTemplate(`
 </tbody>
 </table>
 <p/>
-<a href="{{.CSVLink}}" download>Download report CSV</a>
+<div id="reportGraph" style="height: 600px; width: 800px"></div>
 `)
 
-const reportCSVLinkFormat = "hydro-report-2006-01.csv"
+const (
+	reportCSVLinkFormat  = "hydro-report-2006-01.csv"
+	reportJSONLinkFormat = "2006-01.json"
+)
 
 func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 	reports := h.store.AvailableReports()
@@ -75,11 +90,15 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "%d reports available (TODO more info about available reports!)", len(reports))
 		return
 	}
-	wantCSV := false
+	handler := h.serveReport
 	tfmt := "2006-01"
-	if strings.HasSuffix(reportName, ".csv") {
-		wantCSV = true
+	switch {
+	case strings.HasSuffix(reportName, ".csv"):
+		handler = h.serveReportCSV
 		tfmt = reportCSVLinkFormat
+	case strings.HasSuffix(reportName, ".json"):
+		handler = h.serveReportJSON
+		tfmt = reportJSONLinkFormat
 	}
 	t, err := time.ParseInLocation(tfmt, reportName, h.p.TZ)
 	if err != nil {
@@ -89,15 +108,52 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 	for _, report := range reports {
 		rt := report.T0
 		if rt.Year() == t.Year() && rt.Month() == t.Month() {
-			if wantCSV {
-				h.serveReportCSV(w, req, report)
-			} else {
-				h.serveReport(w, req, report)
-			}
+			handler(w, req, report)
 			return
 		}
 	}
 	http.NotFound(w, req)
+}
+
+var reportGraphLabels = map[string]string{
+	"ExportGrid":      "Exported to grid",
+	"ExportNeighbour": "Aliday export",
+	"ExportHere":      "Drynoch export",
+	"ImportNeighbour": "Aliday import",
+	"ImportHere":      "Drynoch import",
+}
+
+func (h *Handler) serveReportJSON(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
+	var entries []hydroreport.Entry
+	r, err := hydroreport.Open(report.Params())
+	if err != nil {
+		log.Printf("report open failed: %v", err)
+		http.Error(w, fmt.Sprintf("cannot open report: %v", err), http.StatusInternalServerError)
+		return
+	}
+	for {
+		e, err := r.ReadEntry()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Printf("report template execution failed: %v", err)
+			http.Error(w, fmt.Sprintf("cannot get report data points: %v", err), http.StatusInternalServerError)
+			return
+		}
+		entries = append(entries, e)
+	}
+	table := googlecharts.NewDataTable(entries)
+	for id, label := range reportGraphLabels {
+		table.Column(id).Label = label
+	}
+	w.Header().Set("Content-Type", "application/json")
+	data, _ := json.Marshal(table)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("cannot marshal data table: %v", err), http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }
 
 func (h *Handler) serveReportCSV(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
@@ -113,12 +169,14 @@ type reportParams struct {
 	Report     *hydroreport.Report
 	Chargeable hydroctl.PowerChargeable
 	CSVLink    string
+	JSONLink   string
 }
 
 func (h *Handler) serveReport(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
 	p := reportParams{
-		Report:  report,
-		CSVLink: fmt.Sprintf("/reports/%s", report.T0.Format(reportCSVLinkFormat)),
+		Report:   report,
+		CSVLink:  fmt.Sprintf("/reports/%s", report.T0.Format(reportCSVLinkFormat)),
+		JSONLink: fmt.Sprintf("/reports/%s", report.T0.Format(reportJSONLinkFormat)),
 	}
 	r, err := hydroreport.Open(report.Params())
 	if err != nil {

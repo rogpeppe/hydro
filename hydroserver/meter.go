@@ -18,13 +18,11 @@ import (
 
 var meterTempl = newTemplate(`
 <html>
-<head>
-<style>
-.instructions {
-	max-width: 30em
-}
-</style>
-</head>
+	<head>
+		<title>{{.Meter.Name}}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="/common.css">
+	</head>
 <body>
 <h1>{{.Meter.Name}}</h1>
 <a href="http://{{.Meter.Addr}}">http://{{.Meter.Addr}}</a>

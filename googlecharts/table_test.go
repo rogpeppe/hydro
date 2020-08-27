@@ -31,17 +31,17 @@ func TestNewDataTable(t *testing.T) {
 	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
 		Cols: []googlecharts.Column{{
 			Type: "string",
-			Id:   "Name",
+			ID:   "Name",
 		}, {
 			Type: "number",
-			Id:   "X",
+			ID:   "X",
 		}, {
 			Type:  "number",
-			Id:    "Y",
+			ID:    "Y",
 			Label: "y label",
 		}, {
 			Type: "datetime",
-			Id:   "T",
+			ID:   "T",
 		}},
 		Rows: []googlecharts.Row{{
 			Cells: []googlecharts.Cell{{
@@ -73,17 +73,17 @@ func TestNewDataTableWithPointerElements(t *testing.T) {
 	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
 		Cols: []googlecharts.Column{{
 			Type: "string",
-			Id:   "Name",
+			ID:   "Name",
 		}, {
 			Type: "number",
-			Id:   "X",
+			ID:   "X",
 		}, {
 			Type:  "number",
-			Id:    "Y",
+			ID:    "Y",
 			Label: "y label",
 		}, {
 			Type: "datetime",
-			Id:   "T",
+			ID:   "T",
 		}},
 		Rows: []googlecharts.Row{{
 			Cells: make([]googlecharts.Cell, 4),
@@ -124,10 +124,10 @@ func TestNewDataTableWithAnonField(t *testing.T) {
 	c.Assert(string(data), qt.JSONEquals, &googlecharts.DataTable{
 		Cols: []googlecharts.Column{{
 			Type: "number",
-			Id:   "A",
+			ID:   "A",
 		}, {
 			Type: "number",
-			Id:   "B",
+			ID:   "B",
 		}},
 		Rows: []googlecharts.Row{{
 			Cells: []googlecharts.Cell{{

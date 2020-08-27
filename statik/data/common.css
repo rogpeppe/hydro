@@ -1,0 +1,58 @@
+html, body {
+	margin: 0 auto;
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size:14px;
+	color:#333;
+	background-color:#fff;
+	max-width: 50em;
+}
+table {
+	border-collapse: collapse;
+	border: 1px solid #666666;
+	padding-bottom: 3px;
+}
+th, td {
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+.content {margin:10px;}
+tbody tr:nth-child(odd) {
+	background-color: #ffffff;
+}
+
+tbody tr:nth-child(even) {
+	background-color: #eeeeee;
+}
+
+/*
+ * For configuration errors:
+ */
+
+/* Tooltip container */
+.errorText {
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted red; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.errorText .toolTip {
+	visibility: hidden;
+	width: 30em;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+
+	/* Position the tooltip text - see examples below! */
+	position: absolute;
+	z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.errorText:hover .toolTip {
+	visibility: visible;
+}
