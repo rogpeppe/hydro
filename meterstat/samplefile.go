@@ -63,6 +63,14 @@ func (info *FileInfo) Path() string {
 	return info.path
 }
 
+// Range returns the time range spanned by the file.
+func (info *FileInfo) Range() TimeRange {
+	return TimeRange{
+		T0: info.firstSample.Time,
+		T1: info.lastSample.Time,
+	}
+}
+
 // FirstSample returns the first sample in the file.
 func (info *FileInfo) FirstSample() Sample {
 	return info.firstSample

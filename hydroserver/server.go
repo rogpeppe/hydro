@@ -200,8 +200,9 @@ type clientMeterInfo struct {
 }
 
 type clientReport struct {
-	Name string
-	Link string
+	Name    string
+	Link    string
+	Partial bool
 }
 
 // expectedMaxRoundTrip holds the maximum duration we might normally expect
@@ -273,8 +274,9 @@ func (h *Handler) makeUpdate() clientUpdate {
 		u.Reports = make([]clientReport, len(reports))
 		for i, r := range reports {
 			cr := &u.Reports[i]
-			cr.Name = r.T0.Format("Jan 2006")
-			cr.Link = "/reports/" + r.T0.Format("2006-01")
+			cr.Name = r.Range.T0.Format("Jan 2006")
+			cr.Link = "/reports/" + r.Range.T0.Format("2006-01")
+			cr.Partial = r.Partial
 		}
 	}
 	return u
