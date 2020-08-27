@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rogpeppe/hydro/structfield"
 	errgo "gopkg.in/errgo.v1"
 )
 
@@ -64,8 +65,8 @@ type tableType struct {
 //
 // The id of the column is taken from the field name by default. The
 // other column values can be customized by the format string stored
-// under the "googlecharts" json key in the struct field's tags. The
-// format string gives the label of the field, possibly followed by a
+// under the "googlecharts" key in the struct field's tags. The
+// tag value gives the label of the field, possibly followed by a
 // comma-separated list of options. The label may be empty to leave the
 // label unspecified.
 //
@@ -150,10 +151,10 @@ func parseTypeInfo(xt reflect.Type) (*typeInfo, error) {
 	if t.Kind() != reflect.Struct {
 		return nil, errgo.Newf("argument to NewDataTable needs []struct or []*struct, got %v", xt)
 	}
+	fields := structfield.Fields(t)
 	info.fields = make([]fieldInfo, 0, t.NumField())
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		if f.PkgPath != "" {
+	for _, f := range fields {
+		if f.PkgPath != "" || isAnonStruct(f) {
 			continue
 		}
 		fi, err := getFieldInfo(f)
@@ -197,6 +198,14 @@ type fieldInfo struct {
 }
 
 var timeType = reflect.TypeOf(time.Time{})
+
+func isAnonStruct(f reflect.StructField) bool {
+	if !f.Anonymous {
+		return false
+	}
+	t := f.Type
+	return t.Kind() == reflect.Struct || t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct
+}
 
 func getFieldInfo(f reflect.StructField) (fieldInfo, error) {
 	dt, ok := kindToDataType[f.Type.Kind()]
