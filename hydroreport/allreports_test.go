@@ -45,7 +45,7 @@ func TestAllReports(t *testing.T) {
 	c.Assert(err, qt.IsNil)
 	var startTimes []time.Time
 	for _, r := range reports {
-		startTimes = append(startTimes, r.T0)
+		startTimes = append(startTimes, r.Range.T0)
 	}
 	c.Assert(startTimes, qt.DeepEquals, []time.Time{
 		date(2000, 12, 1),

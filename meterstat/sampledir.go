@@ -58,8 +58,7 @@ func ReadSampleDir(dir string, pattern string) (*MeterSampleDir, error) {
 	}
 	return &MeterSampleDir{
 		Files: files,
-		T0:    t0,
-		T1:    t1,
+		Range: TimeRange{t0, t1},
 	}, nil
 }
 
@@ -67,21 +66,21 @@ func ReadSampleDir(dir string, pattern string) (*MeterSampleDir, error) {
 type MeterSampleDir struct {
 	// Files holds an entry for each sample file in the directory.
 	Files []*FileInfo
-	// T0 and T1 hold the range of the sample times found in the directory.
-	T0, T1 time.Time
+	// Range holds the time range of samples found in the directory.
+	Range TimeRange
 }
 
 // OpenRange is like Open but includes only samples from files that are needed
-// to determine energy values from t0 to t1 inclusive.
-// If t0 or t1 are zero, d.T0 and d.T1 are used respectively.
-func (d *MeterSampleDir) OpenRange(t0, t1 time.Time) SampleReadCloser {
-	if t0.IsZero() {
-		t0 = d.T0
+// to determine energy values within the specifid time range inclusive.
+// If t.T0 or t.T1 are zero, d.T0 and d.T1 are used respectively.
+func (d *MeterSampleDir) OpenRange(t TimeRange) SampleReadCloser {
+	if t.T0.IsZero() {
+		t.T0 = d.Range.T0
 	}
-	if t1.IsZero() {
-		t1 = d.T1
+	if t.T1.IsZero() {
+		t.T1 = d.Range.T1
 	}
-	files := relevantFiles(d.Files, t0, t1)
+	files := relevantFiles(d.Files, t)
 	rs := make([]SampleReader, len(files))
 	for i, f := range files {
 		rs[i] = f.Open()
@@ -97,7 +96,7 @@ func (d *MeterSampleDir) OpenRange(t0, t1 time.Time) SampleReadCloser {
 // We only need to keep files that have data ranges that overlap
 // the interval or that are directly before or after it if we
 // don't yet have a file that overlaps [t0, t0] or [t1, t1] respectively.
-func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
+func relevantFiles(sds []*FileInfo, t TimeRange) []*FileInfo {
 	result := make([]*FileInfo, 0, len(sds))
 	// haveStart and haveEnd record whether we've put a start or end entry into
 	// result respectively.
@@ -105,17 +104,17 @@ func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
 	haveEnd := false
 	var start, end *FileInfo
 	for _, sd := range sds {
-		sdt0, sdt1 := sd.FirstSample().Time, sd.LastSample().Time
-		if timeOverlaps(sdt0, sdt1, t0, t1) {
+		sdt := sd.Range()
+		if sdt.Overlaps(t) {
 			result = append(result, sd)
-			haveStart = haveStart || timeOverlaps(sdt0, sdt1, t0, t0)
-			haveEnd = haveEnd || timeOverlaps(sdt0, sdt1, t1, t1)
+			haveStart = haveStart || sdt.Overlaps(TimeRange{t.T0, t.T0})
+			haveEnd = haveEnd || sdt.Overlaps(TimeRange{t.T1, t.T1})
 			continue
 		}
-		if !haveStart && !sdt1.After(t0) && (start == nil || sdt1.After(start.LastSample().Time)) {
+		if !haveStart && !sdt.T1.After(t.T0) && (start == nil || sdt.T1.After(start.Range().T1)) {
 			start = sd
 		}
-		if !haveEnd && !sdt0.Before(t1) && (end == nil || sdt0.Before(end.FirstSample().Time)) {
+		if !haveEnd && !sdt.T0.Before(t.T1) && (end == nil || sdt.T0.Before(end.Range().T0)) {
 			end = sd
 		}
 	}
@@ -128,19 +127,9 @@ func relevantFiles(sds []*FileInfo, t0, t1 time.Time) []*FileInfo {
 	return result
 }
 
-func timeOverlaps(at0, at1, bt0, bt1 time.Time) bool {
-	if at1.Before(at0) {
-		panic("bad interval a")
-	}
-	if bt1.Before(bt0) {
-		panic("bad interval b")
-	}
-	return !at0.After(bt1) && !bt0.After(at1)
-}
-
 // Open returns a reader that reads all the samples from the directory.
 func (d *MeterSampleDir) Open() SampleReadCloser {
-	return d.OpenRange(time.Time{}, time.Time{})
+	return d.OpenRange(TimeRange{})
 }
 
 type sampleDirReader struct {

@@ -19,7 +19,7 @@ import (
 var reportTempl = newTemplate(`
 <html>
 	<head>
-		<title>Energy usage report {{.Report.T0.Format "2006-01"}}</title>
+		<title>Energy usage report {{.Report.Range.T0.Format "2006-01"}}{{if .Report.Partial}} (partial){{end}}</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/common.css">
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -53,15 +53,24 @@ var reportTempl = newTemplate(`
 					},
 					vAxis: {
 						minValue: 0,
-						title: 'Energy (kWh)'
-					}
+						title: 'Energy (Wh)'
+					},
+					explorer: {
+						zoomDelta: 1.1,
+						maxZoomIn: .1,
+						maxZoomOut: 1,
+						keepInBounds: true
+					},
 				});
 			}
 		</script>
 	</head>
-<h2>Energy usage report {{.Report.T0.Format "2006-01"}}</h2>
-<a href="{{.CSVLink}}" download>Download report CSV</a>
+<h2>Energy usage report {{.Report.Range.T0.Format "2006-01"}}{{if .Report.Partial}} (partial){{end}}</h2>
+<a href="{{.CSVLink}}" download>Download report CSV{{if .Report.Partial}} (partial){{end}}</a>
 <p/>
+{{if .Report.Partial}}Note: this report does not cover the full month. Samples
+are only available from {{.Report.Range.T0.Format "2006-01-02"}} to {{.Report.Range.T1.Format "2006-01-02"}}.
+{{end}}
 <table class="chargeable">
 <thead>
 	<tr><th>Name</th><th>Chargeable power</th></tr>
@@ -106,7 +115,7 @@ func (h *Handler) serveReports(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	for _, report := range reports {
-		rt := report.T0
+		rt := report.Range.T0
 		if rt.Year() == t.Year() && rt.Month() == t.Month() {
 			handler(w, req, report)
 			return
@@ -175,8 +184,8 @@ type reportParams struct {
 func (h *Handler) serveReport(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
 	p := reportParams{
 		Report:   report,
-		CSVLink:  fmt.Sprintf("/reports/%s", report.T0.Format(reportCSVLinkFormat)),
-		JSONLink: fmt.Sprintf("/reports/%s", report.T0.Format(reportJSONLinkFormat)),
+		CSVLink:  fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportCSVLinkFormat)),
+		JSONLink: fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportJSONLinkFormat)),
 	}
 	r, err := hydroreport.Open(report.Params())
 	if err != nil {

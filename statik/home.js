@@ -87,12 +87,12 @@ var Reports = React.createClass({
 		return <div>
 			<table class="reports">
 			<thead>
-				<tr><th>Available reports</th></tr>
+				<tr><th>Available reports</th><th>Partial</th></tr>
 			</thead>
 			<tbody> {
 				reports.map(function(report){
 					return <tr>
-						<td><a href={report.Link}>{report.Name}</a></td>
+						<td><a href={report.Link}>{report.Name}</a></td><td>{report.Partial ? "yes" : "no"}</td>
 					</tr>
 				})
 			} </tbody>
