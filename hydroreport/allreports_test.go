@@ -48,15 +48,27 @@ func TestAllReports(t *testing.T) {
 		startTimes = append(startTimes, r.Range.T0)
 	}
 	c.Assert(startTimes, qt.DeepEquals, []time.Time{
+		time.Date(2000, 11, 2, 12, 0, 0, 0, time.UTC),
 		date(2000, 12, 1),
 		date(2001, 1, 1),
+		date(2001, 2, 1),
 	})
-	assertUniformReport(c, reports[0], date(2000, 12, 1), date(2001, 1, 1), time.Hour, hydroctl.PowerChargeable{
+	assertUniformReport(c, reports[0], time.Date(2000, 11, 2, 12, 0, 0, 0, time.UTC), date(2000, 12, 1), time.Hour, hydroctl.PowerChargeable{
 		ExportGrid:      36000,
 		ExportNeighbour: 10000,
 		ExportHere:      4000,
 	})
-	assertUniformReport(c, reports[1], date(2001, 1, 1), date(2001, 2, 1), time.Hour, hydroctl.PowerChargeable{
+	assertUniformReport(c, reports[1], date(2000, 12, 1), date(2001, 1, 1), time.Hour, hydroctl.PowerChargeable{
+		ExportGrid:      36000,
+		ExportNeighbour: 10000,
+		ExportHere:      4000,
+	})
+	assertUniformReport(c, reports[2], date(2001, 1, 1), date(2001, 2, 1), time.Hour, hydroctl.PowerChargeable{
+		ExportGrid:      36000,
+		ExportNeighbour: 10000,
+		ExportHere:      4000,
+	})
+	assertUniformReport(c, reports[3], date(2001, 2, 1), date(2001, 2, 1), time.Hour, hydroctl.PowerChargeable{
 		ExportGrid:      36000,
 		ExportNeighbour: 10000,
 		ExportHere:      4000,

@@ -26,6 +26,9 @@ type Params struct {
 	// TZ holds the time zone to use for the report times.
 	// If it's nil, time.UTC will be used.
 	TZ *time.Location
+	// EntryDuration holds the duration of a report entry.
+	// If it's zero, it defaults to one hour.
+	EntryDuration time.Duration
 }
 
 // Entry holds a entry line in a report, corresponding to 1 hour of readings.
@@ -44,6 +47,9 @@ func Open(p Params) (Reader, error) {
 	if p.TZ == nil {
 		p.TZ = time.UTC
 	}
+	if p.EntryDuration == 0 {
+		p.EntryDuration = time.Hour
+	}
 	p.EndTime = p.EndTime.In(p.TZ)
 	if err := checkUsageReaderConsistency(
 		p.Generator,
@@ -52,21 +58,23 @@ func Open(p Params) (Reader, error) {
 	); err != nil {
 		return nil, fmt.Errorf("inconsistent usage readers: %v", err)
 	}
-	if !wholeHour(p.EndTime) {
-		return nil, fmt.Errorf("report end time %s is not on a whole hour", p.EndTime)
+	if !wholeQuantum(p.EndTime, p.EntryDuration) {
+		return nil, fmt.Errorf("report end time %s is not on a report entry time boundary (need multiple of %v)", p.EndTime, p.EntryDuration)
 	}
+	// We know the readers have the same time, so we only need to check one of them
+	// to know the start time of all of them.
 	t := p.Generator.Time().In(p.TZ)
-	if !wholeHour(t) {
-		return nil, fmt.Errorf("report start time %s is not on a whole hour", t)
+	if !wholeQuantum(t, p.EntryDuration) {
+		return nil, fmt.Errorf("report start time %s is not on a report entry time boundary (need multiple of %v)", t, p.EntryDuration)
 	}
 	quantum := p.Generator.Quantum()
-	if time.Hour%quantum != 0 {
-		return nil, fmt.Errorf("usage reader quantum %v does not divide an hour evenly", quantum)
+	if p.EntryDuration%quantum != 0 {
+		return nil, fmt.Errorf("usage reader quantum %v does not divide report entry duration (%v) evenly", quantum, p.EntryDuration)
 	}
 	return &reportReader{
 		currentTime:       t,
 		quantum:           quantum,
-		samplesPerQuantum: int(time.Hour / quantum),
+		samplesPerQuantum: int(p.EntryDuration / quantum),
 		p:                 p,
 	}, nil
 }
@@ -84,6 +92,7 @@ func (r *reportReader) ReadEntry() (Entry, error) {
 		return Entry{}, io.EOF
 	}
 	var total hydroctl.PowerChargeable
+	entryStartTime := r.currentTime
 	for i := 0; i < r.samplesPerQuantum; i++ {
 		var pu hydroctl.PowerUse
 
@@ -104,14 +113,16 @@ func (r *reportReader) ReadEntry() (Entry, error) {
 			return Entry{}, fmt.Errorf("here usage samples stopped early (at %v): %v", r.p.Here.Time(), err)
 		}
 		pu.Here = u.Energy
-
 		total = total.Add(hydroctl.ChargeablePower(pu))
+		r.currentTime = r.currentTime.Add(r.quantum)
+		//fmt.Printf("chargeable at %v: usage %+v; %+v\n", r.currentTime.Format("2006-01-02 15:04 MST"), pu, hydroctl.ChargeablePower(pu))
 	}
 	rec := Entry{
 		PowerChargeable: total,
-		Time:            r.currentTime,
+		// Note: a report entry summarises the activity that happens from
+		// the start of an entry until the end.
+		Time: entryStartTime,
 	}
-	r.currentTime = r.currentTime.Add(time.Hour)
 	return rec, nil
 }
 
@@ -148,8 +159,8 @@ func powerStr(f float64) string {
 	return fmt.Sprintf("%.3f", math.RoundToEven(f)/1000)
 }
 
-func wholeHour(t time.Time) bool {
-	return t.Truncate(time.Hour).Equal(t)
+func wholeQuantum(t time.Time, d time.Duration) bool {
+	return t.Truncate(d).Equal(t)
 }
 
 func checkUsageReaderConsistency(rs ...meterstat.UsageReader) error {

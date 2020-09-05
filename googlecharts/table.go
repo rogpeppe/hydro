@@ -117,6 +117,16 @@ func NewDataTable(x interface{}) *DataTable {
 	return &dt
 }
 
+// Columns returns column information for the type
+// of x, which must be a slice as passed to NewDataTable.
+func Columns(x interface{}) []Column {
+	info, err := getTypeInfo(reflect.TypeOf(x))
+	if err != nil {
+		panic(err)
+	}
+	return append([]Column(nil), info.cols...)
+}
+
 type typeInfo struct {
 	indir  bool
 	cols   []Column
