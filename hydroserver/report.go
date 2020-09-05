@@ -15,6 +15,14 @@ import (
 	"github.com/rogpeppe/hydro/hydroreport"
 )
 
+type reportParams struct {
+	Report      *hydroreport.Report
+	Chargeable  hydroctl.PowerChargeable
+	CSVLink     string
+	JSONLink    string
+	DataColumns []int
+}
+
 // TODO add graph of energy usage and sample count.
 var reportTempl = newTemplate(`
 <html>
@@ -46,21 +54,54 @@ var reportTempl = newTemplate(`
 				var container = document.getElementById('reportGraph');
 				var chart = new google.visualization.AreaChart(container);
 				var dataTable = new google.visualization.DataTable(data);
-				chart.draw(dataTable, {
+				var dataView = new google.visualization.DataView(dataTable);
+				var valTransform = function(transform, col) {
+					return function(dataTable, row) {
+						return transform(dataTable.getValue(row, col))
+					}
+				}
+				// Show the desired columns in the correct order.
+				var want = [true, true, true, true, true, true];
+				var columns = {{.DataColumns}};
+				viewCols = []
+				columns.forEach(function(col, i) {
+					if(!want[i]) {
+						return
+					}
+					var colType = dataTable.getColumnType(col)
+					viewCols.push({
+						type: colType,
+						calc: function(dataTable, row) {
+							var val = dataTable.getValue(row, col);
+							if(colType === 'number') {
+								val  /= 1000;
+							}
+							return val;
+						},
+						label: dataTable.getColumnLabel(col),
+					})
+				})
+				dataView.setColumns(viewCols)
+
+				chart.draw(dataView, {
 					title: 'Energy use',
 					hAxis: {
 						title: 'Time'
 					},
 					vAxis: {
 						minValue: 0,
-						title: 'Energy (Wh)'
+						title: 'Energy (kWh)'
+					},
+					hAxis: {
+						format: 'MMM d HH:mm',
 					},
 					explorer: {
 						zoomDelta: 1.1,
-						maxZoomIn: .1,
+						maxZoomIn: .04,
 						maxZoomOut: 1,
 						keepInBounds: true
 					},
+					isStacked: true
 				});
 			}
 		</script>
@@ -134,7 +175,9 @@ var reportGraphLabels = map[string]string{
 
 func (h *Handler) serveReportJSON(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
 	var entries []hydroreport.Entry
-	r, err := hydroreport.Open(report.Params())
+	p := report.Params()
+	//p.EntryDuration = time.Minute
+	r, err := hydroreport.Open(p)
 	if err != nil {
 		log.Printf("report open failed: %v", err)
 		http.Error(w, fmt.Sprintf("cannot open report: %v", err), http.StatusInternalServerError)
@@ -174,19 +217,41 @@ func (h *Handler) serveReportCSV(w http.ResponseWriter, req *http.Request, repor
 	}
 }
 
-type reportParams struct {
-	Report     *hydroreport.Report
-	Chargeable hydroctl.PowerChargeable
-	CSVLink    string
-	JSONLink   string
+func columnIndex(cols []googlecharts.Column, id string) int {
+	for i := range cols {
+		if cols[i].ID == id {
+			return i
+		}
+	}
+	panic("no column index found for " + id)
 }
+
+var columnIndexes = func() []int {
+	colIDs := []string{
+		"Time",
+		"ExportHere",
+		"ExportNeighbour",
+		"ExportGrid",
+		"ImportHere",
+		"ImportNeighbour",
+	}
+	cols := googlecharts.Columns([]hydroreport.Entry(nil))
+	indexes := make([]int, len(colIDs))
+	for i, id := range colIDs {
+		indexes[i] = columnIndex(cols, id)
+	}
+	log.Printf("column indexes: %v", indexes)
+	return indexes
+}()
 
 func (h *Handler) serveReport(w http.ResponseWriter, req *http.Request, report *hydroreport.Report) {
 	p := reportParams{
-		Report:   report,
-		CSVLink:  fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportCSVLinkFormat)),
-		JSONLink: fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportJSONLinkFormat)),
+		Report:      report,
+		CSVLink:     fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportCSVLinkFormat)),
+		JSONLink:    fmt.Sprintf("/reports/%s", report.Range.T0.Format(reportJSONLinkFormat)),
+		DataColumns: columnIndexes,
 	}
+
 	r, err := hydroreport.Open(report.Params())
 	if err != nil {
 		log.Printf("report open failed: %v", err)
