@@ -138,7 +138,6 @@ func (w *Worker) Close() {
 }
 
 func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
-	log.Printf("hydroworker starting")
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 	firstTime := true
@@ -154,28 +153,21 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		case <-timer.C:
 			timer.Reset(Heartbeat)
 		}
-		haveRelays := true
-		currentRelays, err := w.controller.Relays()
-		if err != nil {
-			if errgo.Cause(err) != ErrNoRelayController {
-				log.Printf("cannot get current relay state: %v (%#v)", err, err)
-			}
-			haveRelays = false
-		}
 		// By deriving the context from our parent context,
 		// this will automatically stop when the worker is closed.
 		ctx1, cancel := context.WithTimeout(ctx, Heartbeat)
-		currentPowerUse, err := w.meters.ReadMeters(ctx1)
+		currentPowerUse, meterErr := w.meters.ReadMeters(ctx1)
 		cancel()
-		if err != nil && errgo.Cause(err) != ErrNoMeters {
-			log.Printf("warning: cannot get current meter reading: %v", err)
+		if meterErr != nil && errgo.Cause(meterErr) != ErrNoMeters {
+			log.Printf("warning: cannot get current meter reading: %v", meterErr)
 		}
-		if !haveRelays {
-			log.Printf("can't talk to relay server")
+		currentRelays, err := w.controller.Relays()
+		if err != nil {
+			log.Printf("cannot get current relay state: %v", err)
 			// No point in continuing if we can't talk to the relay server.
 			continue
 		}
-		if err == ErrNoMeters {
+		if meterErr == ErrNoMeters {
 			currentPowerUse = w.allMaxPower(currentConfig, currentRelays)
 		}
 		now := time.Now().In(w.tz)
@@ -190,10 +182,11 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 		})
 		changed := newRelays != currentRelays
 		if changed {
-			for _, msg := range logger.msgs {
-				log.Printf("%s", msg)
-			}
-			log.Printf("relay state changed to %v", newRelays)
+			// TODO log if verbose mode is on
+			//for _, msg := range logger.msgs {
+			//	log.Printf("%s", msg)
+			//}
+			//log.Printf("relay state changed to %v", newRelays)
 			if err := w.controller.SetRelays(newRelays); err != nil {
 				log.Printf("cannot set relay state: %v", err)
 				continue
@@ -201,10 +194,10 @@ func (w *Worker) run(ctx context.Context, currentConfig *hydroctl.Config) {
 			alreadyUnchanged = false
 		} else {
 			if !alreadyUnchanged {
-				for _, msg := range logger.msgs {
-					log.Printf("%s", msg)
-				}
-				log.Printf("relay state unchanged")
+				//for _, msg := range logger.msgs {
+				//	log.Printf("%s", msg)
+				//}
+				//log.Printf("relay state unchanged")
 				alreadyUnchanged = true
 			}
 		}
