@@ -385,7 +385,7 @@ func (w *Worker) readMeters(ctx context.Context) (_ hydroctl.PowerUseSample, met
 
 // setMeters is the internal version of SetMeters, called from within the worker.run goroutine.
 // It reports whether the meter state was updated.
-func (w *Worker) setMeters(meters []Meter) (bool, error) {
+func (w *Worker) setMeters(meters []Meter) (_ok bool, _err error) {
 	if reflect.DeepEqual(meters, w.meters) {
 		return false, nil
 	}

@@ -189,7 +189,7 @@ func (h *Handler) serveConfigGet(w http.ResponseWriter, req *http.Request) {
 
 func (h *Handler) serveConfigPost(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
-	configText := req.Form.Get("config")
+	configText := strings.TrimSpace(req.Form.Get("config"))
 	if err := h.store.setConfigText(configText); err != nil {
 		serveConfigError(w, req, err)
 		return

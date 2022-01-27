@@ -240,7 +240,6 @@ var columnIndexes = func() []int {
 	for i, id := range colIDs {
 		indexes[i] = columnIndex(cols, id)
 	}
-	log.Printf("column indexes: %v", indexes)
 	return indexes
 }()
 

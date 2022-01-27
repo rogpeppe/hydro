@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cd "$SNAP_DATA"
-exec "$SNAP/bin/$SNAP_ARCH/$(basename $0)" "$@"

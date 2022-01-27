@@ -9,7 +9,7 @@ import (
 	"github.com/rogpeppe/hydro/meterstat"
 )
 
-//go:generate stringer -trimprefix Loc -type MeterLocation
+//go:generate go run golang.org/x/tools/cmd/stringer@v0.1.9 -trimprefix Loc -type MeterLocation
 
 type MeterLocation int
 

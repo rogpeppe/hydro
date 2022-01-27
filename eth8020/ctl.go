@@ -29,7 +29,7 @@ type Conn struct {
 	c        net.Conn
 }
 
-//go:generate stringer -type Cmd
+//go:generate go run golang.org/x/tools/cmd/stringer@v0.1.9 -type Cmd
 
 type Cmd uint8
 

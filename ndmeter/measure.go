@@ -15,7 +15,7 @@ import (
 	errgo "gopkg.in/errgo.v1"
 )
 
-//go:generate stringer -type measure
+//go:generate go run golang.org/x/tools/cmd/stringer@v0.1.9 -type measure
 
 type measure int
 

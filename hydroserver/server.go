@@ -9,15 +9,14 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/websocket"
-	"github.com/rakyll/statik/fs"
 	"gopkg.in/errgo.v1"
 
+	"github.com/rogpeppe/hydro/asset"
 	"github.com/rogpeppe/hydro/history"
 	"github.com/rogpeppe/hydro/hydroctl"
 	"github.com/rogpeppe/hydro/hydroworker"
 	"github.com/rogpeppe/hydro/logworker"
 	"github.com/rogpeppe/hydro/meterworker"
-	_ "github.com/rogpeppe/hydro/statik"
 )
 
 var upgrader = websocket.Upgrader{
@@ -50,10 +49,7 @@ type Params struct {
 var timezone, _ = time.LoadLocation("Europe/London")
 
 func New(p Params) (_ *Handler, err error) {
-	staticData, err := fs.New()
-	if err != nil {
-		return nil, errgo.Notef(err, "cannot get static data")
-	}
+	staticData := asset.Data()
 	store, err := newStore(p.ConfigPath)
 	if err != nil {
 		return nil, errgo.Notef(err, "cannot make store")
@@ -115,7 +111,7 @@ func New(p Params) (_ *Handler, err error) {
 	}
 	go h.configUpdater()
 	h.store.anyNotifier.Changed()
-	h.mux.Handle("/", gziphandler.GzipHandler(http.FileServer(staticData)))
+	h.mux.Handle("/", gziphandler.GzipHandler(http.FileServer(http.FS(staticData))))
 	h.mux.HandleFunc("/updates", h.serveUpdates)
 	h.mux.HandleFunc("/history.json", h.serveHistoryJSON)
 	h.mux.HandleFunc("/config", h.serveConfig)
@@ -218,27 +214,38 @@ func (h *Handler) makeUpdate() clientUpdate {
 	reports := h.store.AvailableReports()
 	var u clientUpdate
 	samples := make(map[string]clientSample)
-	for addr, s := range meters.Samples {
-		// Allow 50% extra time for a round trip when the allowed lag is long,
-		// or a fairly arbitrary constant when it's short. We should probably
-		// do a bit better than this and estimate the usual round trip time so
-		// that we send a request sufficiently in advance of the allowed-lag
-		// deadline that it's rare to overrun it.
-		allowedLag := s.AllowedLag * 3 / 2
-		if allowedLag < expectedMaxRoundTrip {
-			allowedLag = expectedMaxRoundTrip
+	if meters != nil {
+		for addr, s := range meters.Samples {
+			// Allow 50% extra time for a round trip when the allowed lag is long,
+			// or a fairly arbitrary constant when it's short. We should probably
+			// do a bit better than this and estimate the usual round trip time so
+			// that we send a request sufficiently in advance of the allowed-lag
+			// deadline that it's rare to overrun it.
+			allowedLag := s.AllowedLag * 3 / 2
+			if allowedLag < expectedMaxRoundTrip {
+				allowedLag = expectedMaxRoundTrip
+			}
+			samples[addr] = clientSample{
+				TimeLag:     lag(s.Time, allowedLag, meters.Time),
+				Power:       s.ActivePower,
+				TotalEnergy: s.TotalEnergy,
+			}
 		}
-		samples[addr] = clientSample{
-			TimeLag:     lag(s.Time, allowedLag, meters.Time),
-			Power:       s.ActivePower,
-			TotalEnergy: s.TotalEnergy,
+		u.Meters = &clientMeterInfo{
+			Chargeable: meters.Chargeable,
+			Use:        meters.Use,
+			Meters:     meters.Meters,
+			Samples:    samples,
 		}
 	}
-	u.Meters = &clientMeterInfo{
-		Chargeable: meters.Chargeable,
-		Use:        meters.Use,
-		Meters:     meters.Meters,
-		Samples:    samples,
+	if len(reports) != 0 {
+		u.Reports = make([]clientReport, len(reports))
+		for i, r := range reports {
+			cr := &u.Reports[i]
+			cr.Name = r.Range.T0.Format("Jan 2006")
+			cr.Link = "/reports/" + r.Range.T0.Format("2006-01")
+			cr.Partial = r.Partial
+		}
 	}
 	if ws == nil || len(ws.Relays) == 0 {
 		u.Relays = []clientRelayInfo{} // be nice to JS and don't give it null.
@@ -269,15 +276,6 @@ func (h *Handler) makeUpdate() clientUpdate {
 			On:     r.On,
 			Since:  since,
 		})
-	}
-	if len(reports) != 0 {
-		u.Reports = make([]clientReport, len(reports))
-		for i, r := range reports {
-			cr := &u.Reports[i]
-			cr.Name = r.Range.T0.Format("Jan 2006")
-			cr.Link = "/reports/" + r.Range.T0.Format("2006-01")
-			cr.Partial = r.Partial
-		}
 	}
 	return u
 }

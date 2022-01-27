@@ -105,7 +105,7 @@ const (
 	NotInUse
 )
 
-//go:generate stringer -type SlotKind
+//go:generate go run golang.org/x/tools/cmd/stringer@v0.1.9 -type SlotKind
 
 type SlotKind int
 
@@ -248,7 +248,7 @@ const (
 	priAbsolute
 )
 
-//go:generate stringer -type priority
+//go:generate go run golang.org/x/tools/cmd/stringer@v0.1.9 -type priority
 
 // MaxRelayCount holds the maximum number of relays
 // the system can be configured with.

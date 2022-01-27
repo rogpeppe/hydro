@@ -50,7 +50,6 @@ func NewDiskStore(path string, earliest time.Time) (*DiskStore, error) {
 		sort.Sort(eventsByTime(older))
 		for i, e := range older {
 			if !e.Time.IsZero() {
-				log.Printf("appending out-of-date event %v", e)
 				s.events = append(s.events, e)
 			}
 			older[i] = Event{}
@@ -70,7 +69,6 @@ func NewDiskStore(path string, earliest time.Time) (*DiskStore, error) {
 		}
 		if e.Time.Before(earliest) {
 			older[e.Relay] = e
-			log.Printf("retaining out-of-date event %#v", e)
 			hasOlder = true
 			continue
 		}

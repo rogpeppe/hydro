@@ -131,7 +131,7 @@ func (w *Worker) poll() error {
 		n, err := w.downloadSamples(t)
 		if err != nil {
 			if w.ctx.Err() == nil {
-				log.Printf("cannot create sample file %q: %T %v", w.filename(t), err, err)
+				log.Printf("cannot create sample file %q: %v", w.filename(t), err)
 			}
 		} else {
 			log.Printf("downloaded %d samples from %v starting at %v", n, w.p.MeterAddr, t)
