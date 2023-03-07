@@ -7,7 +7,7 @@ require (
 	github.com/beevik/ntp v0.3.0
 	github.com/frankban/quicktest v1.10.1
 	github.com/google/go-cmp v0.4.0
-	github.com/gorilla/websocket v0.0.0-20150923222930-13e4d0621caa
+	github.com/gorilla/websocket v1.4.1
 	github.com/julienschmidt/httprouter v1.2.0
 	github.com/kr/fs v0.1.0
 	github.com/rogpeppe/rjson v0.0.0-20151026200957-77220b71d327
